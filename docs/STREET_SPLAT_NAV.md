@@ -43,6 +43,7 @@ The bundle's coordinates are the visloc-rs map frame (z up); `map_to_rne` gives 
 | | goals | contacts | time | on kerbs | nearest solid cell | from the walk, median / max |
 | --- | --- | --- | --- | --- | --- | --- |
 | RNE, ground truth | 4/4 | 0 | 284 s | 9.9 s at <= 0.12 m/s | 0.61 m | 0.30 / 1.03 m |
+| RNE, camera only (visloc-rs fixes) | 4/4 | 0 | 286 s | 9.8 s at <= 0.12 m/s | 0.60 m | 0.30 / 1.07 m |
 
 For reference, the visloc-rs ROS 2 simulator with Nav2 on visloc localization reached 4/4
 goals with no contacts and spent 9.8 s on the kerbs (its thirteenth run, with people and
@@ -53,8 +54,39 @@ hash is the same with and without rendering.
 The bundle is not in the repository: the footage is OverMaps360 (OverTheReality),
 CC BY-NC 4.0. The library's tests use a synthetic street (a lane, a post, a kerb crossing).
 
+## Camera-only localization
+
+With `--localizer BIN` the robot steers on its own estimate, not on ground truth:
+
+- **Odometry.** Wheel odometry with the visloc-rs simulator's errors: 2 % speed scale,
+  3 % yaw-rate scale and a 0.002 rad/s yaw-rate bias while moving.
+- **Fixes.** Every 0.5 s the front camera is rendered at the true pose and localized
+  against the bundle's visloc-rs map, with the estimate as the prior. The localizer is
+  `visloc_map_localize_server` (visloc-rs `ros2/visloc-ros2`), `visloc_map_localize_node`'s
+  core behind stdin and stdout, so the map is loaded once for the whole drive.
+- **Gating.** A fix further than 0.25 m (plus 0.1 m per second since the last accepted fix)
+  from the estimate is rejected. An accepted one moves the estimate halfway to it, so one
+  wrong fix that passes the gate cannot throw the estimate far.
+- **Log.** `fixes.csv` logs each attempt next to the truth.
+
+```text
+... --localizer visloc-rs/ros2/visloc-ros2/target/release/visloc_map_localize_server \
+    [--map DIR] [--loc-args "--max_hamming 90 --reprojection_threshold 5 --min_inliers 20 --projection_radius 40"]
+```
+
+| | fixes | pose error RMSE / median / max |
+| --- | --- | --- |
+| RNE, fixes replace the estimate, 0.5 m gate | 573 of 629 (13 gated) | 15.8 / 2.7 / 73 cm |
+| RNE, half-way blend, 0.25 m gate (default) | 529 of 572 (23 gated) | 8.6 / 2.0 / 48 cm |
+| visloc-rs Nav2 run (thirteenth, with people) | 719 of 800 images | 8.9 / 2.3 / 72 cm |
+
+The map was built from visloc-rs `gsplat_render_server` renders and the fixes come from
+RNE's renders, yet with the prior 97 % of the frames localize (2.4 cm median error). The
+wrong fixes that remain (0.3 to 1.2 m off, 25 to 36 inliers) come in short runs, and the
+gate and the blend absorb them. Headless with localization the drive takes 6 minutes on
+CPU (about 570 front-camera renders and fixes).
+
 ## Next
 
-Camera-only localization (visloc-rs fixes on the rendered front camera, as in example 161),
-then the crowd and the cars from the visloc-rs simulator as splat actors. The plan is in
+The crowd and the cars from the visloc-rs simulator, as splat actors. The plan is in
 visloc-rs `docs/rne_migration.md`.

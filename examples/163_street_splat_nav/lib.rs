@@ -331,6 +331,21 @@ pub struct NavConfig {
     pub goal_timeout_s: f64,
     /// Simulation step (s).
     pub step_s: f64,
+    /// Wheel odometry's speed scale error (fraction; the visloc-rs simulator's default).
+    pub odom_scale_error: f64,
+    /// Wheel odometry's yaw-rate bias while moving (rad/s).
+    pub odom_yaw_bias_rad_s: f64,
+    /// Wheel odometry's yaw-rate scale error (fraction).
+    pub odom_yaw_scale_error: f64,
+    /// Simulated seconds between localization attempts.
+    pub fix_every_s: f64,
+    /// A fix further than this from the estimate is rejected (m) ...
+    pub fix_gate_m: f64,
+    /// ... plus this much per second since the last accepted fix (m/s).
+    pub fix_gate_growth_m_s: f64,
+    /// How far an accepted fix moves the estimate towards it (1: all the way). Below 1,
+    /// one wrong fix that passes the gate moves the estimate only part of the way.
+    pub fix_blend: f64,
 }
 
 impl Default for NavConfig {
@@ -346,6 +361,13 @@ impl Default for NavConfig {
             goal_tolerance_m: 0.3,
             goal_timeout_s: 600.0,
             step_s: 0.02,
+            odom_scale_error: 0.02,
+            odom_yaw_bias_rad_s: 0.002,
+            odom_yaw_scale_error: 0.03,
+            fix_every_s: 0.5,
+            fix_gate_m: 0.25,
+            fix_gate_growth_m_s: 0.1,
+            fix_blend: 0.5,
         }
     }
 }
@@ -369,6 +391,8 @@ pub struct RobotState {
     pub speed_m_s: f64,
     /// Goal being driven to (0-based).
     pub goal: usize,
+    /// The robot's own estimate of its pose (x, y, yaw), which it steers on.
+    pub estimate: Pose2d,
 }
 
 /// What a drive did.
@@ -396,7 +420,23 @@ pub struct DriveReport {
     pub walk_distance_max_m: f64,
     /// A hash of every step's pose, for replay checks.
     pub trajectory_hash: u64,
+    /// Localization attempts, fixes accepted, and fixes rejected by the gate.
+    pub fixes_attempted: usize,
+    /// See `fixes_attempted`.
+    pub fixes_accepted: usize,
+    /// See `fixes_attempted`.
+    pub fixes_rejected: usize,
+    /// Position error of the estimate (m): RMSE, median and largest, sampled every 0.2 s.
+    pub pose_error_rmse_m: f64,
+    /// See `pose_error_rmse_m`.
+    pub pose_error_median_m: f64,
+    /// See `pose_error_rmse_m`.
+    pub pose_error_max_m: f64,
 }
+
+/// One localization: the true state (to render the camera from) and the robot's estimate
+/// (the prior) in; a fix (x, y, yaw) or nothing out.
+pub type Localize<'a> = dyn FnMut(&RobotState, Pose2d) -> Option<Pose2d> + 'a;
 
 /// The lane costmap: walls and the street's solid cells (what the robot's scan would show:
 /// posts, trunks) lethal and inflated for the footprint, off the lane costly.
@@ -454,6 +494,18 @@ fn distance_to_polyline(points: &[[f64; 2]], x: f64, y: f64) -> f64 {
 pub fn drive(
     street: &Street,
     config: &NavConfig,
+    on_step: impl FnMut(&RobotState),
+) -> Result<DriveReport, StreetError> {
+    drive_localized(street, config, None, on_step)
+}
+
+/// Drives the robot through the street's goals. With `localize`, the robot steers on its own
+/// estimate: wheel odometry with `config`'s errors, replaced by each fix that passes the gate
+/// (every `fix_every_s`); without it, on ground truth. The robot starts at a known pose.
+pub fn drive_localized(
+    street: &Street,
+    config: &NavConfig,
+    mut localize: Option<&mut Localize<'_>>,
     mut on_step: impl FnMut(&RobotState),
 ) -> Result<DriveReport, StreetError> {
     let costmap = lane_costmap(street, config);
@@ -469,6 +521,7 @@ pub fn drive(
         slow_radius_m: 0.75,
     };
     let (mut x, mut y, mut yaw) = (street.start[0], street.start[1], street.start[2]);
+    let mut estimate = Pose2d::new(x, y, yaw);
     let mut report = DriveReport {
         goals: street.goals.len(),
         min_solid_clearance_m: f64::INFINITY,
@@ -476,28 +529,23 @@ pub fn drive(
     };
     let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
     let mut walk_distances = Vec::new();
+    let mut errors = Vec::new();
     let mut t = 0.0;
     let mut speed = 0.0;
+    let mut next_fix = 0.0;
+    let mut last_fix = 0.0;
     for (index, goal) in street.goals.iter().enumerate() {
         let path: Path2d = plan_path(
             &costmap,
-            Vec3::new(x, y, 0.0),
+            Vec3::new(estimate.x_m, estimate.y_m, 0.0),
             Vec3::new(goal[0], goal[1], 0.0),
             &planner,
         )
         .map_err(|e| StreetError::Plan(index, e.to_string()))?;
         let started = t;
         loop {
-            let result = pure_pursuit_follow(&path, Pose2d::new(x, y, yaw), &follow)
-                .map_err(|e| StreetError::Plan(index, e.to_string()))?;
-            let on_edge = street.kerbs.on_edge(x, y, yaw, config.wheelbase_m);
-            let mut v = result.command.linear_m_s;
-            if on_edge {
-                v = v.min(config.kerb_speed_m_s);
-            }
-            let w = result.command.angular_rad_s;
             let (drop, pitch) = street.kerbs.pose(x, y, yaw, config.wheelbase_m);
-            let state = RobotState {
+            let mut state = RobotState {
                 t_s: t,
                 x_m: x,
                 y_m: y,
@@ -506,26 +554,85 @@ pub fn drive(
                 pitch_rad: pitch,
                 speed_m_s: speed,
                 goal: index,
+                estimate,
             };
+            if let Some(localize) = localize.as_mut() {
+                if t + 1e-9 >= next_fix {
+                    next_fix += config.fix_every_s;
+                    report.fixes_attempted += 1;
+                    if let Some(fix) = localize(&state, estimate) {
+                        let gate = config.fix_gate_m + config.fix_gate_growth_m_s * (t - last_fix);
+                        if (fix.x_m - estimate.x_m).hypot(fix.y_m - estimate.y_m) <= gate {
+                            let a = config.fix_blend;
+                            let dyaw = (fix.yaw_rad - estimate.yaw_rad + std::f64::consts::PI)
+                                .rem_euclid(std::f64::consts::TAU)
+                                - std::f64::consts::PI;
+                            estimate = Pose2d::new(
+                                estimate.x_m + a * (fix.x_m - estimate.x_m),
+                                estimate.y_m + a * (fix.y_m - estimate.y_m),
+                                estimate.yaw_rad + a * dyaw,
+                            );
+                            last_fix = t;
+                            report.fixes_accepted += 1;
+                        } else {
+                            report.fixes_rejected += 1;
+                        }
+                    }
+                    state.estimate = estimate;
+                }
+            } else {
+                estimate = Pose2d::new(x, y, yaw);
+                state.estimate = estimate;
+            }
             on_step(&state);
-            for value in [x, y, yaw] {
+            for value in [x, y, yaw, estimate.x_m, estimate.y_m] {
                 hash = (hash ^ value.to_bits()).wrapping_mul(0x0100_0000_01b3);
             }
+            let result = pure_pursuit_follow(&path, estimate, &follow)
+                .map_err(|e| StreetError::Plan(index, e.to_string()))?;
             if result.reached || t - started > config.goal_timeout_s {
-                report.reached += usize::from(result.reached);
+                // the goal counts when the robot is really there
+                let truly = (goal[0] - x).hypot(goal[1] - y) <= config.goal_tolerance_m + 0.2;
+                report.reached += usize::from(result.reached && truly);
                 break;
             }
+            let on_edge = street.kerbs.on_edge(x, y, yaw, config.wheelbase_m);
+            let mut v = result.command.linear_m_s;
+            if on_edge {
+                v = v.min(config.kerb_speed_m_s);
+            }
+            let w = result.command.angular_rad_s;
             let nyaw = yaw + w * config.step_s;
             let nx = x + v * config.step_s * nyaw.cos();
             let ny = y + v * config.step_s * nyaw.sin();
-            if street.hits_solid(nx, ny, street.robot_radius_m) {
+            let moved = if street.hits_solid(nx, ny, street.robot_radius_m) {
                 report.contacts += 1;
                 yaw = nyaw;
                 speed = 0.0;
+                0.0
             } else {
-                report.distance_m += (nx - x).hypot(ny - y);
+                let d = (nx - x).hypot(ny - y);
+                report.distance_m += d;
                 (x, y, yaw) = (nx, ny, nyaw);
                 speed = v;
+                d
+            };
+            if localize.is_some() {
+                // wheel odometry: what the wheels measured, with their errors
+                let ov = moved / config.step_s * (1.0 + config.odom_scale_error);
+                let moving = moved > 1e-6 || w.abs() > 1e-6;
+                let ow = w * (1.0 + config.odom_yaw_scale_error)
+                    + if moving {
+                        config.odom_yaw_bias_rad_s
+                    } else {
+                        0.0
+                    };
+                let eyaw = estimate.yaw_rad + ow * config.step_s;
+                estimate = Pose2d::new(
+                    estimate.x_m + ov * config.step_s * eyaw.cos(),
+                    estimate.y_m + ov * config.step_s * eyaw.sin(),
+                    eyaw,
+                );
             }
             if on_edge {
                 report.kerb_time_s += config.step_s;
@@ -538,6 +645,7 @@ pub fn drive(
                 if street.walk.len() > 1 {
                     walk_distances.push(distance_to_polyline(&street.walk, x, y));
                 }
+                errors.push((estimate.x_m - x).hypot(estimate.y_m - y));
             }
             t += config.step_s;
         }
@@ -548,6 +656,13 @@ pub fn drive(
         walk_distances.sort_by(f64::total_cmp);
         report.walk_distance_median_m = walk_distances[walk_distances.len() / 2];
         report.walk_distance_max_m = *walk_distances.last().unwrap_or(&0.0);
+    }
+    if !errors.is_empty() {
+        report.pose_error_rmse_m =
+            (errors.iter().map(|e| e * e).sum::<f64>() / errors.len() as f64).sqrt();
+        errors.sort_by(f64::total_cmp);
+        report.pose_error_median_m = errors[errors.len() / 2];
+        report.pose_error_max_m = *errors.last().unwrap_or(&0.0);
     }
     Ok(report)
 }
@@ -639,6 +754,51 @@ mod tests {
             (lowest + 0.1).abs() < 1e-9,
             "the road between the kerbs is 10 cm down"
         );
+    }
+
+    /// A stand-in localizer: the true pose with a seeded few-centimetre error, no fix on
+    /// one attempt in four, and a wild one now and then.
+    fn noisy_localizer() -> impl FnMut(&RobotState, Pose2d) -> Option<Pose2d> {
+        let mut n: u64 = 0;
+        move |truth, _prior| {
+            n += 1;
+            let r = |k: u64| (((n * 2_654_435_761 + k * 40_503) % 1000) as f64 / 1000.0) - 0.5;
+            match n % 4 {
+                0 => None,
+                _ if n.is_multiple_of(37) => {
+                    Some(Pose2d::new(truth.x_m + 3.0, truth.y_m, truth.yaw_rad))
+                }
+                _ => Some(Pose2d::new(
+                    truth.x_m + 0.06 * r(1),
+                    truth.y_m + 0.06 * r(2),
+                    truth.yaw_rad + 0.02 * r(3),
+                )),
+            }
+        }
+    }
+
+    #[test]
+    fn robot_steers_on_its_estimate_with_fixes() {
+        let street = street();
+        let mut localize = noisy_localizer();
+        let report =
+            drive_localized(&street, &NavConfig::default(), Some(&mut localize), |_| {}).unwrap();
+        assert_eq!(report.reached, 2, "{report:?}");
+        assert_eq!(report.contacts, 0);
+        assert!(
+            report.fixes_rejected > 0,
+            "the wild fixes are gated: {report:?}"
+        );
+        assert!(report.pose_error_rmse_m < 0.1, "{report:?}");
+    }
+
+    #[test]
+    fn odometry_alone_drifts() {
+        let street = street();
+        let mut never = |_: &RobotState, _: Pose2d| None;
+        let report =
+            drive_localized(&street, &NavConfig::default(), Some(&mut never), |_| {}).unwrap();
+        assert!(report.pose_error_max_m > 0.3, "{report:?}");
     }
 
     #[test]

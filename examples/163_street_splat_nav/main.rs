@@ -5,6 +5,11 @@
 //! --out DIR          drive.csv, report.json and, unless --render-every 0, PNG frames
 //! --render-every S   simulated seconds between rendered frames (default 0.5; 0: none)
 //! --max-frames N     render at most N frames
+//! --localizer BIN    steer on the robot's estimate: wheel odometry with errors, corrected by
+//!                    visloc-rs fixes on the rendered front camera; BIN is visloc-rs
+//!                    `visloc_map_localize_server` (default: ground truth)
+//! --map DIR          its localization map (default: the bundle's `map`)
+//! --loc-args "ARGS"  extra localizer flags (default: the Nav2 runs' tuned ones)
 //! ```
 //!
 //! The robot plans on the bundle's lane map with `rne_nav` and follows the plan by pure
@@ -14,16 +19,23 @@
 
 use png::{BitDepth, ColorType, Encoder};
 use rne_math::{Quat, Transform3, Vec3};
+use rne_nav::Pose2d;
 use rne_render::{
     validate_gaussian_splat_manifest, Camera, HybridRenderScene, RenderScene, RenderSceneItem,
     VisualShape,
 };
 use rne_render_3dgs::{load_gaussian_splat_background, render_hybrid_scene_camera};
 use rne_render_wgpu::WgpuRenderBackend;
+use std::cell::RefCell;
 use std::fs::{self, File};
-use std::io::{BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
-use street_splat_nav::{drive, map_to_rne, NavConfig, RobotState, Street};
+use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use street_splat_nav::{drive_localized, map_to_rne, NavConfig, RobotState, Street};
+
+/// The tuned localizer flags of the visloc-rs Nav2 runs.
+const TUNED: &str =
+    "--max_hamming 90 --reprojection_threshold 5 --min_inliers 20 --projection_radius 40";
 
 const CAM_SIZE: u32 = 640;
 const CHASE_WIDTH: u32 = 960;
@@ -46,35 +58,85 @@ fn main() {
         street.credit
     );
 
-    let mut renderer = (render_every > 0.0).then(|| Renderer::new(&street));
+    let localizer = arg("--localizer");
+    let renderer =
+        RefCell::new((render_every > 0.0 || localizer.is_some()).then(|| Renderer::new(&street)));
+    let mut server = localizer.map(|bin| {
+        let map = arg("--map").map_or_else(|| street.dir.join("map"), PathBuf::from);
+        let loc_args = arg("--loc-args").unwrap_or_else(|| TUNED.into());
+        Server::spawn(&bin, &map, &loc_args)
+    });
+    let fix_pgm = out.join("fix.pgm");
+    let mut fix_log = BufWriter::new(File::create(out.join("fixes.csv")).expect("fixes.csv"));
+    writeln!(
+        fix_log,
+        "t_s,true_x,true_y,est_x,est_y,fix_x,fix_y,fix_yaw,inliers"
+    )
+    .unwrap();
+    let mut localize = |truth: &RobotState, estimate: Pose2d| -> Option<Pose2d> {
+        let server = server.as_mut()?;
+        let image = renderer
+            .borrow_mut()
+            .as_mut()
+            .expect("renderer")
+            .front(&street, truth);
+        write_luma_pgm(&fix_pgm, &image);
+        let camera_z = street.ground_at(estimate.x_m, estimate.y_m) + street.camera_height_m;
+        let reply = server.ask(&fix_pgm, estimate, camera_z);
+        let fix = reply.map(|(pose, _)| pose);
+        writeln!(
+            fix_log,
+            "{:.2},{:.3},{:.3},{:.3},{:.3},{},{}",
+            truth.t_s,
+            truth.x_m,
+            truth.y_m,
+            estimate.x_m,
+            estimate.y_m,
+            fix.map_or(",,".into(), |f| format!(
+                "{:.3},{:.3},{:.4}",
+                f.x_m, f.y_m, f.yaw_rad
+            )),
+            reply.map_or(0, |(_, n)| n)
+        )
+        .unwrap();
+        fix
+    };
     let mut log = BufWriter::new(File::create(out.join("drive.csv")).expect("drive.csv"));
     writeln!(log, "t_s,x,y,z,yaw,pitch,speed,goal").unwrap();
     let mut next_frame = 0.0;
     let mut frame = 0usize;
     let config = NavConfig::default();
-    let report = drive(&street, &config, |s| {
-        if ((s.t_s / config.step_s).round() as u64).is_multiple_of(5) {
-            writeln!(
-                log,
-                "{:.2},{:.3},{:.3},{:.3},{:.4},{:.4},{:.3},{}",
-                s.t_s, s.x_m, s.y_m, s.z_m, s.yaw_rad, s.pitch_rad, s.speed_m_s, s.goal
-            )
-            .unwrap();
-        }
-        if let Some(r) = renderer.as_mut() {
-            if s.t_s + 1e-9 >= next_frame && frame < max_frames {
-                r.render(&street, s, &out, frame);
-                frame += 1;
-                next_frame += render_every;
+    let use_fixes = arg("--localizer").is_some();
+    let report = drive_localized(
+        &street,
+        &config,
+        use_fixes.then_some(&mut localize as _),
+        |s| {
+            if ((s.t_s / config.step_s).round() as u64).is_multiple_of(5) {
+                writeln!(
+                    log,
+                    "{:.2},{:.3},{:.3},{:.3},{:.4},{:.4},{:.3},{}",
+                    s.t_s, s.x_m, s.y_m, s.z_m, s.yaw_rad, s.pitch_rad, s.speed_m_s, s.goal
+                )
+                .unwrap();
             }
-        }
-    })
+            if render_every > 0.0 && s.t_s + 1e-9 >= next_frame && frame < max_frames {
+                if let Some(r) = renderer.borrow_mut().as_mut() {
+                    r.render(&street, s, &out, frame);
+                    frame += 1;
+                    next_frame += render_every;
+                }
+            }
+        },
+    )
     .expect("drive");
     log.flush().unwrap();
     let json = format!(
         "{{\"reached\": {}, \"goals\": {}, \"contacts\": {}, \"time_s\": {:.1}, \"distance_m\": {:.1}, \
          \"kerb_time_s\": {:.1}, \"kerb_max_speed_m_s\": {:.3}, \"min_solid_clearance_m\": {:.2}, \
          \"walk_distance_median_m\": {:.2}, \"walk_distance_max_m\": {:.2}, \"frames\": {frame}, \
+         \"fixes_attempted\": {}, \"fixes_accepted\": {}, \"fixes_rejected\": {}, \
+         \"pose_error_rmse_m\": {:.3}, \"pose_error_median_m\": {:.3}, \"pose_error_max_m\": {:.3}, \
          \"trajectory_hash\": \"{:016x}\"}}\n",
         report.reached,
         report.goals,
@@ -86,6 +148,12 @@ fn main() {
         report.min_solid_clearance_m,
         report.walk_distance_median_m,
         report.walk_distance_max_m,
+        report.fixes_attempted,
+        report.fixes_accepted,
+        report.fixes_rejected,
+        report.pose_error_rmse_m,
+        report.pose_error_median_m,
+        report.pose_error_max_m,
         report.trajectory_hash
     );
     fs::write(out.join("report.json"), &json).expect("report.json");
@@ -114,6 +182,29 @@ impl Renderer {
             front: Camera::new(CAM_SIZE, CAM_SIZE, std::f64::consts::FRAC_PI_2),
             chase: Camera::new(CHASE_WIDTH, CHASE_HEIGHT, 60f64.to_radians()),
         }
+    }
+
+    /// The front camera at the true pose, RGBA8.
+    fn front(&mut self, street: &Street, s: &RobotState) -> rne_render::ImageFrame {
+        let heading = Quat::from_rotation_y(s.yaw_rad);
+        let body = (heading * Quat::from_rotation_z(s.pitch_rad)).normalize();
+        let base = map_to_rne(s.x_m, s.y_m, s.z_m);
+        let look_forward = Quat::from_rotation_y(-std::f64::consts::FRAC_PI_2);
+        let front_view = Transform3::from_translation_rotation(
+            base + body * Vec3::new(0.0, street.camera_height_m, 0.0),
+            (body * look_forward).normalize(),
+        );
+        let empty = HybridRenderScene::new(self.environment.clone(), RenderScene::new());
+        render_hybrid_scene_camera(
+            &mut self.backend,
+            &mut self.background,
+            &self.front,
+            &front_view,
+            &empty,
+            CLEAR,
+        )
+        .expect("front render")
+        .color
     }
 
     fn render(&mut self, street: &Street, s: &RobotState, out: &Path, frame: usize) {
@@ -179,6 +270,117 @@ impl Renderer {
             image.color.height,
             &image.color.rgba8,
         );
+    }
+}
+
+/// The localizer's input: 8-bit luma (BT.601), binary PGM.
+fn write_luma_pgm(path: &Path, image: &rne_render::ImageFrame) {
+    let mut bytes = format!("P5\n{} {}\n255\n", image.width, image.height).into_bytes();
+    bytes.extend(image.rgba8.chunks_exact(4).map(|p| {
+        ((299 * u32::from(p[0]) + 587 * u32::from(p[1]) + 114 * u32::from(p[2]) + 500) / 1000) as u8
+    }));
+    fs::write(path, bytes).expect("fix image");
+}
+
+/// visloc-rs `visloc_map_localize_server`, kept running for the whole drive.
+struct Server {
+    _child: Child,
+    stdin: ChildStdin,
+    stdout: BufReader<ChildStdout>,
+}
+
+impl Server {
+    fn spawn(bin: &str, map: &Path, loc_args: &str) -> Self {
+        let mut child = Command::new(bin)
+            .arg("--map")
+            .arg(map)
+            .args(loc_args.split_whitespace())
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("localizer");
+        let stdin = child.stdin.take().expect("localizer stdin");
+        let stdout = BufReader::new(child.stdout.take().expect("localizer stdout"));
+        Self {
+            _child: child,
+            stdin,
+            stdout,
+        }
+    }
+
+    /// A fix (x, y, yaw) and its inliers for one image, with the estimate as the prior.
+    fn ask(&mut self, image: &Path, estimate: Pose2d, camera_z_m: f64) -> Option<(Pose2d, usize)> {
+        // map <- camera with OpenCV axes (x right, y down, z forward) for a level camera
+        let (s, c) = estimate.yaw_rad.sin_cos();
+        let q = quat_from_columns([s, -c, 0.0], [0.0, 0.0, -1.0], [c, s, 0.0]);
+        writeln!(
+            self.stdin,
+            "{} {} {} {} {} {} {} {}",
+            image.display(),
+            estimate.x_m,
+            estimate.y_m,
+            camera_z_m,
+            q[0],
+            q[1],
+            q[2],
+            q[3]
+        )
+        .expect("localizer write");
+        self.stdin.flush().expect("localizer flush");
+        let mut line = String::new();
+        self.stdout.read_line(&mut line).expect("localizer read");
+        let f: Vec<&str> = line.split_whitespace().collect();
+        if f.first() != Some(&"ok") || f.len() < 9 {
+            return None;
+        }
+        let v: Vec<f64> = f[1..8].iter().filter_map(|s| s.parse().ok()).collect();
+        let inliers = f[8].parse().unwrap_or(0);
+        // yaw from the camera's forward (z) axis in the map
+        let (x, y, z, w) = (v[3], v[4], v[5], v[6]);
+        let forward = [2.0 * (x * z + w * y), 2.0 * (y * z - w * x)];
+        Some((
+            Pose2d::new(v[0], v[1], forward[1].atan2(forward[0])),
+            inliers,
+        ))
+    }
+}
+
+/// Quaternion (x, y, z, w) of the rotation with these columns.
+fn quat_from_columns(x: [f64; 3], y: [f64; 3], z: [f64; 3]) -> [f64; 4] {
+    let m = [[x[0], y[0], z[0]], [x[1], y[1], z[1]], [x[2], y[2], z[2]]];
+    let trace = m[0][0] + m[1][1] + m[2][2];
+    if trace > 0.0 {
+        let s = (trace + 1.0).sqrt() * 2.0;
+        [
+            (m[2][1] - m[1][2]) / s,
+            (m[0][2] - m[2][0]) / s,
+            (m[1][0] - m[0][1]) / s,
+            0.25 * s,
+        ]
+    } else if m[0][0] > m[1][1] && m[0][0] > m[2][2] {
+        let s = (1.0 + m[0][0] - m[1][1] - m[2][2]).sqrt() * 2.0;
+        [
+            0.25 * s,
+            (m[0][1] + m[1][0]) / s,
+            (m[0][2] + m[2][0]) / s,
+            (m[2][1] - m[1][2]) / s,
+        ]
+    } else if m[1][1] > m[2][2] {
+        let s = (1.0 + m[1][1] - m[0][0] - m[2][2]).sqrt() * 2.0;
+        [
+            (m[0][1] + m[1][0]) / s,
+            0.25 * s,
+            (m[1][2] + m[2][1]) / s,
+            (m[0][2] - m[2][0]) / s,
+        ]
+    } else {
+        let s = (1.0 + m[2][2] - m[0][0] - m[1][1]).sqrt() * 2.0;
+        [
+            (m[0][2] + m[2][0]) / s,
+            (m[1][2] + m[2][1]) / s,
+            0.25 * s,
+            (m[1][0] - m[0][1]) / s,
+        ]
     }
 }
 
