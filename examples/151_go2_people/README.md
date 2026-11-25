@@ -391,6 +391,19 @@ retreats from the same person as observations and the yielding estimate
 flickered. The updated controller requires separation before it can
 retreat again for that track.
 
+With the separation guard, the same 24 reactive crowd trials had no
+contacts, falls, or runs with more than 5 m remaining. Both columns below
+use reverse and the same trial seeds.
+
+| Reactive crowd, 8 trials each | Contact runs, default | Contact runs, awareness | Max remaining, awareness (m) |
+| --- | ---: | ---: | ---: |
+| `nearest+map` | 0 | 0 | 1.36 |
+| `tracker` | 2 | 0 | 1.52 |
+| `tracker+map` | 0 | 0 | 1.28 |
+
+The previously timed-out trial completed in 97.2 s with 1.37 m remaining.
+The awareness option was evaluated on reactive crowd for these three sources.
+
 With the default controller and reverse enabled, scripted crowd contact
 runs fell from 15 to 14 out of 64. Reactive crowd had three contact runs
 out of 64 in each version. The built-in tracker went from two to one, and
