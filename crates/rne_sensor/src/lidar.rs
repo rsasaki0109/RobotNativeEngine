@@ -45,6 +45,7 @@ use rne_world::Transform3;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::f64::consts::{PI, TAU};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 const LIDAR_RANDOM_DOMAIN_V1: u64 = 0x3152_4144_494C_4E52;
 
@@ -220,7 +221,10 @@ impl LidarSweep {
 /// owning a backend. Implementations must follow the ordering contract of
 /// [`PhysicsBackend::raycast`]: hits by increasing distance, ties broken by stable
 /// entity order.
-pub trait LidarRaycaster {
+///
+/// Raycasters are `Sync` because a large scan is cast from several threads at once
+/// (see [`LIDAR_RAYS_PER_WORKER`]); every [`PhysicsBackend`] already is.
+pub trait LidarRaycaster: Sync {
     /// Executes one raycast query.
     fn lidar_raycast(
         &self,
@@ -616,6 +620,137 @@ struct PlannedRay {
     timestamp_s: f64,
 }
 
+/// Minimum number of rays given to each worker thread of a scan.
+///
+/// A scan with fewer than twice this many rays is cast on the calling thread;
+/// larger scans are split into contiguous blocks of rays, one per worker, up to
+/// the machine's available parallelism. Every ray's noise is keyed by its
+/// ordinal and the blocks are joined in ray order, so the cloud is identical
+/// whatever the number of workers.
+pub const LIDAR_RAYS_PER_WORKER: usize = 2048;
+
+/// Workers a scan of `rays` rays is split across.
+fn lidar_worker_count(rays: usize) -> usize {
+    let available = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+    (rays / LIDAR_RAYS_PER_WORKER).clamp(1, available)
+}
+
+/// Everything a ray needs besides its plan; shared read-only by the workers.
+struct ScanContext<'a, R: ?Sized> {
+    backend: &'a R,
+    physics_world: PhysicsWorldId,
+    world: Option<&'a World>,
+    sweep: &'a LidarSweep,
+    spec: &'a LidarSpec,
+    noise_key: SensorNoiseKey,
+    random: KeyedRandom,
+    atmosphere: LidarAtmosphere,
+}
+
+/// The scan was discarded ([`LidarFailureBehavior::DropScan`]).
+struct ScanDropped;
+
+impl<R: LidarRaycaster + ?Sized> ScanContext<'_, R> {
+    /// Casts a contiguous block of rays, returning their returns in ray order.
+    fn cast(&self, rays: &[PlannedRay]) -> Result<Vec<PendingReturn>, ScanDropped> {
+        let mut pending = Vec::new();
+        for planned in rays {
+            let pose = self.sweep.pose_at(planned.sweep_fraction);
+            let origin_m = pose.translation + Vec3::new(0.0, self.spec.height_offset_m, 0.0);
+            let direction = ray_direction(
+                self.spec,
+                &pose,
+                planned.azimuth_rad,
+                planned.elevation_rad,
+                &self.random,
+                self.noise_key,
+                planned.ordinal,
+            );
+            let Some(direction) = direction else {
+                continue;
+            };
+            let ray = RayGeometry {
+                origin_m,
+                direction,
+                column: planned.column,
+                channel: planned.channel,
+                ordinal: planned.ordinal,
+                timestamp_s: planned.timestamp_s,
+            };
+
+            match evaluate_ray(
+                self.backend,
+                self.physics_world,
+                self.world,
+                &ray,
+                self.spec,
+                self.atmosphere,
+                &self.random,
+                self.noise_key,
+            ) {
+                Ok(returns) => pending.extend(returns),
+                Err(RayFailure::Skip) => continue,
+                Err(RayFailure::Scan) => return Err(ScanDropped),
+            }
+        }
+        Ok(pending)
+    }
+
+    /// Casts every ray, split across `workers` threads.
+    ///
+    /// The rays are cut into more blocks than workers and each worker takes
+    /// the next free block, so a worker whose rays all miss (open sky) does
+    /// not wait for one whose rays cross a crowd. Blocks are joined in ray
+    /// order, so the result does not depend on which worker cast which block.
+    fn cast_all(
+        &self,
+        rays: &[PlannedRay],
+        workers: usize,
+    ) -> Result<Vec<PendingReturn>, ScanDropped> {
+        if workers <= 1 || rays.len() < 2 {
+            return self.cast(rays);
+        }
+        let block_len = rays.len().div_ceil(workers * BLOCKS_PER_WORKER).max(1);
+        let blocks: Vec<&[PlannedRay]> = rays.chunks(block_len).collect();
+        let next = AtomicUsize::new(0);
+        let mut done: Vec<(usize, Result<Vec<PendingReturn>, ScanDropped>)> =
+            std::thread::scope(|scope| {
+                let handles: Vec<_> = (0..workers.min(blocks.len()))
+                    .map(|_| {
+                        scope.spawn(|| {
+                            let mut mine = Vec::new();
+                            loop {
+                                let index = next.fetch_add(1, Ordering::Relaxed);
+                                let Some(block) = blocks.get(index) else {
+                                    break;
+                                };
+                                mine.push((index, self.cast(block)));
+                            }
+                            mine
+                        })
+                    })
+                    .collect();
+                handles
+                    .into_iter()
+                    .flat_map(|handle| {
+                        handle
+                            .join()
+                            .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+                    })
+                    .collect()
+            });
+        done.sort_unstable_by_key(|(index, _)| *index);
+        let mut pending = Vec::new();
+        for (_, block) in done {
+            pending.extend(block?);
+        }
+        Ok(pending)
+    }
+}
+
+/// Blocks per worker when a scan is split; more blocks balance uneven rays.
+const BLOCKS_PER_WORKER: usize = 8;
+
 fn cast_planned_rays<R: LidarRaycaster + ?Sized>(
     backend: &R,
     physics_world: PhysicsWorldId,
@@ -625,49 +760,44 @@ fn cast_planned_rays<R: LidarRaycaster + ?Sized>(
     noise_key: SensorNoiseKey,
     rays: impl Iterator<Item = PlannedRay>,
 ) -> PointCloud {
-    let random = lidar_random(noise_key);
-    let atmosphere = spec.domain_randomization.sample(spec.atmosphere, noise_key);
-    let mut pending: Vec<PendingReturn> = Vec::new();
+    let rays: Vec<PlannedRay> = rays.collect();
+    let workers = lidar_worker_count(rays.len());
+    cast_planned_rays_with_workers(
+        backend,
+        physics_world,
+        world,
+        sweep,
+        spec,
+        noise_key,
+        &rays,
+        workers,
+    )
+}
 
-    for planned in rays {
-        let pose = sweep.pose_at(planned.sweep_fraction);
-        let origin_m = pose.translation + Vec3::new(0.0, spec.height_offset_m, 0.0);
-        let direction = ray_direction(
-            spec,
-            &pose,
-            planned.azimuth_rad,
-            planned.elevation_rad,
-            &random,
-            noise_key,
-            planned.ordinal,
-        );
-        let Some(direction) = direction else {
-            continue;
-        };
-        let ray = RayGeometry {
-            origin_m,
-            direction,
-            column: planned.column,
-            channel: planned.channel,
-            ordinal: planned.ordinal,
-            timestamp_s: planned.timestamp_s,
-        };
-
-        match evaluate_ray(
-            backend,
-            physics_world,
-            world,
-            &ray,
-            spec,
-            atmosphere,
-            &random,
-            noise_key,
-        ) {
-            Ok(returns) => pending.extend(returns),
-            Err(RayFailure::Skip) => continue,
-            Err(RayFailure::Scan) => return PointCloud::new(),
-        }
-    }
+#[allow(clippy::too_many_arguments)]
+fn cast_planned_rays_with_workers<R: LidarRaycaster + ?Sized>(
+    backend: &R,
+    physics_world: PhysicsWorldId,
+    world: Option<&World>,
+    sweep: &LidarSweep,
+    spec: &LidarSpec,
+    noise_key: SensorNoiseKey,
+    rays: &[PlannedRay],
+    workers: usize,
+) -> PointCloud {
+    let context = ScanContext {
+        backend,
+        physics_world,
+        world,
+        sweep,
+        spec,
+        noise_key,
+        random: lidar_random(noise_key),
+        atmosphere: spec.domain_randomization.sample(spec.atmosphere, noise_key),
+    };
+    let Ok(mut pending) = context.cast_all(rays, workers) else {
+        return PointCloud::new();
+    };
 
     apply_bloom(&mut pending, spec);
 
@@ -2295,5 +2425,130 @@ mod tests {
         assert!(fog.extinction_per_m() > 0.0);
         assert_relative_eq!(fog.occlusion_per_m(), 0.0, epsilon = 1e-15);
         assert!(rain.occlusion_per_m() > 0.0);
+    }
+
+    fn grid_rays(spec: &LidarSpec) -> Vec<PlannedRay> {
+        let channels = spec.effective_channel_count();
+        (0..spec.ray_count)
+            .flat_map(|column| {
+                (0..channels).map(move |channel| PlannedRay {
+                    sweep_fraction: f64::from(column) / f64::from(spec.ray_count),
+                    azimuth_rad: column_azimuth_rad(spec, column),
+                    elevation_rad: spec.channel_elevation_rad(channel),
+                    column,
+                    channel,
+                    ordinal: u64::from(column) * u64::from(channels) + u64::from(channel),
+                    timestamp_s: spec.column_time_s(column),
+                })
+            })
+            .collect()
+    }
+
+    #[test]
+    fn scan_is_identical_whatever_the_number_of_workers() {
+        let mut world = World::new();
+        let entity = spawn_named(&mut world, "wall");
+        world
+            .entity_mut(entity)
+            .insert(LidarMaterial::new(0.9, 0.0, 0.2));
+        let physics = WallPhysics {
+            entity,
+            plane_x: 6.0,
+        };
+        // Every per-ray effect that draws noise, plus bloom, which couples
+        // neighbouring columns after the rays are joined.
+        let spec = LidarSpec {
+            ray_count: 257,
+            min_angle_rad: -1.0,
+            max_angle_rad: 1.0,
+            channel_count: 7,
+            min_elevation_rad: -0.3,
+            max_elevation_rad: 0.3,
+            rotation_period_s: 0.1,
+            height_offset_m: 0.0,
+            range_noise_stddev_m: 0.02,
+            intensity_noise_stddev: 0.05,
+            dropout_probability: 0.1,
+            beam_divergence_rad: 0.003,
+            saturation_intensity: 0.5,
+            bloom_gain: 0.3,
+            bloom_column_radius: 2,
+            ..LidarSpec::default()
+        };
+        let sweep = LidarSweep::new(
+            Transform3::IDENTITY,
+            Transform3::from_translation_rotation(
+                Vec3::new(0.3, 0.0, 0.1),
+                Quat::from_rotation_y(0.05),
+            ),
+        );
+        let rays = grid_rays(&spec);
+        let key = SensorNoiseKey::new(3, 4, 5, 6);
+        let scan = |workers| {
+            cast_planned_rays_with_workers(
+                &physics,
+                PhysicsWorldId::DEFAULT,
+                Some(&world),
+                &sweep,
+                &spec,
+                key,
+                &rays,
+                workers,
+            )
+        };
+        let serial = scan(1);
+        assert!(serial.points_m.len() > 1000);
+        for workers in [2, 3, 7, 64] {
+            assert_eq!(scan(workers), serial, "{workers} workers");
+        }
+        // The public entry point picks its own worker count.
+        assert_eq!(
+            sample_lidar_swept(
+                &physics,
+                PhysicsWorldId::DEFAULT,
+                &world,
+                &sweep,
+                &spec,
+                key
+            ),
+            serial
+        );
+    }
+
+    #[test]
+    fn dropped_scan_is_empty_whatever_the_number_of_workers() {
+        let physics = OrderedHitPhysics {
+            hits: Vec::new(),
+            fail: true,
+        };
+        let world = World::new();
+        let spec = LidarSpec {
+            ray_count: 64,
+            channel_count: 4,
+            failure_behavior: LidarFailureBehavior::DropScan,
+            ..LidarSpec::default()
+        };
+        let rays = grid_rays(&spec);
+        for workers in [1, 2, 5] {
+            let cloud = cast_planned_rays_with_workers(
+                &physics,
+                PhysicsWorldId::DEFAULT,
+                Some(&world),
+                &LidarSweep::stationary(Transform3::IDENTITY),
+                &spec,
+                SensorNoiseKey::new(1, 1, 1, 1),
+                &rays,
+                workers,
+            );
+            assert!(cloud.points_m.is_empty());
+        }
+    }
+
+    #[test]
+    fn small_scans_stay_on_the_calling_thread() {
+        assert_eq!(lidar_worker_count(0), 1);
+        assert_eq!(lidar_worker_count(LIDAR_RAYS_PER_WORKER * 2 - 1), 1);
+        let available = std::thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+        assert_eq!(lidar_worker_count(LIDAR_RAYS_PER_WORKER * 1000), available);
     }
 }

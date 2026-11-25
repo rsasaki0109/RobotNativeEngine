@@ -1,0 +1,29 @@
+[package]
+name = "perception_tasks"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_core = { workspace = true }
+rne_ecs = { workspace = true }
+rne_math = { workspace = true }
+rne_physics = { workspace = true }
+rne_physics_rapier = { workspace = true }
+rne_sensor = { workspace = true }
+rne_world = { workspace = true }
+png = { workspace = true }
+rne_render = { workspace = true }
+rne_render_cpu = { workspace = true }
+serde_json = { workspace = true }
+
+[[example]]
+name = "149_perception_tasks"
+path = "main.rs"
+# Run the scene and detector checks with the workspace tests.
+test = true
