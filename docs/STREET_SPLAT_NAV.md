@@ -25,6 +25,12 @@ cargo run --release -p street_splat_nav --example 163_street_splat_nav -- \
 The bundle's coordinates are the visloc-rs map frame (z up); `map_to_rne` gives RNE's
 `(x, z, -y)`, so a pose compares directly with the ROS 2 / Nav2 runs in visloc-rs.
 
+![A white delivery robot drives along a real street rebuilt as 3D Gaussian Splatting: walkers, cyclists, a stroller and cars pass it, it waits by a sign post, crosses a side street at a zebra crossing with a traffic light](media/street-splat-nav.gif)
+
+The robot on ground truth with the crowd (seed 0), from the chase camera, two stretches of
+the drive (the full run: [media/street-splat-nav.mp4](media/street-splat-nav.mp4), twice
+real time). Map data: OverMaps360 (OverTheReality), CC BY-NC 4.0, credited in every frame.
+
 ## How it drives
 
 - **Plan.** A* (`rne_nav::plan_path`) on a costmap of the lane map with the solid cells added
@@ -144,6 +150,5 @@ which sits in its mast.
 
 ## Next
 
-- Media for this example.
 - The crowd with camera-only localization.
 - Recoveries for the robot when people hold it up.
