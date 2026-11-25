@@ -125,8 +125,8 @@ frame. Two safeguards came from failures:
 
 ## Results
 
-The table records the forward-only baseline, with eight trials per task
-and source (`--trials 8`) using the default rule controller:
+Eight scripted trials per task and source with the default rule controller.
+The crowd rows include reverse. The other rows record the forward-only baseline.
 
 | task | perception | runs | fell | runs with contact | contacts | closest, mean (m) | closest, min (m) | < 0.8 m, mean (s) | left to goal, mean (m) | follow error (m) | wrong target | lost | safety stop, mean (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -162,14 +162,14 @@ and source (`--trials 8`) using the default rule controller:
 | room | tracker | 8 | 0 | 0 | 0 | 0.97 | 0.91 | 0.00 | 0.98 | - | - | - | 0.00 |
 | room | tracker+map | 8 | 0 | 0 | 0 | 0.93 | 0.79 | 0.04 | 0.94 | - | - | - | 0.00 |
 | room | tracker+slam | 8 | 0 | 0 | 0 | 1.01 | 0.94 | 0.00 | 0.42 | - | - | - | 0.00 |
-| crowd | oracle | 8 | 0 | 0 | 0 | 0.87 | 0.82 | 0.00 | 1.19 | - | - | - | 0.00 |
-| crowd | oracle+slam | 8 | 0 | 0 | 0 | 0.75 | 0.71 | 0.78 | 0.43 | - | - | - | 0.00 |
-| crowd | nearest | 8 | 0 | 3 | 3 | 0.55 | 0.16 | 1.48 | 1.15 | - | - | - | 0.00 |
-| crowd | nearest+map | 8 | 0 | 4 | 4 | 0.40 | 0.04 | 1.11 | 1.21 | - | - | - | 2.01 |
-| crowd | nearest+slam | 8 | 0 | 3 | 6 | 0.55 | 0.14 | 2.47 | 0.43 | - | - | - | 7.80 |
-| crowd | tracker | 8 | 0 | 3 | 4 | 0.64 | 0.28 | 0.89 | 1.20 | - | - | - | 0.00 |
-| crowd | tracker+map | 8 | 0 | 1 | 1 | 0.72 | 0.02 | 0.62 | 1.14 | - | - | - | 0.65 |
-| crowd | tracker+slam | 8 | 0 | 1 | 1 | 0.68 | 0.26 | 3.02 | 0.43 | - | - | - | 5.64 |
+| crowd | oracle | 8 | 0 | 0 | 0 | 0.87 | 0.82 | 0.00 | 1.18 | - | - | - | 0.00 |
+| crowd | oracle+slam | 8 | 0 | 0 | 0 | 0.77 | 0.72 | 0.45 | 0.42 | - | - | - | 0.00 |
+| crowd | nearest | 8 | 0 | 3 | 3 | 0.59 | 0.14 | 0.97 | 1.16 | - | - | - | 0.00 |
+| crowd | nearest+map | 8 | 0 | 4 | 4 | 0.54 | 0.21 | 1.31 | 1.16 | - | - | - | 1.05 |
+| crowd | nearest+slam | 8 | 0 | 3 | 4 | 0.53 | 0.07 | 1.51 | 0.43 | - | - | - | 8.49 |
+| crowd | tracker | 8 | 0 | 3 | 4 | 0.61 | 0.06 | 1.19 | 1.18 | - | - | - | 0.00 |
+| crowd | tracker+map | 8 | 0 | 0 | 0 | 0.80 | 0.61 | 0.59 | 1.13 | - | - | - | 0.58 |
+| crowd | tracker+slam | 8 | 0 | 1 | 1 | 0.67 | 0.04 | 1.42 | 0.43 | - | - | - | 5.56 |
 
 No run falls. A contact is a person's centre within 0.55 m of the base's
 centre. "Left to goal" is the true distance when the robot believes it has
@@ -213,9 +213,9 @@ stays clear by 0.2 m more. `--no-crowd-check` turns it off.
 
 | runs with contact of 8 (crowd) | without | first version | speed only | wall-checked forward | with reverse |
 | --- | --- | --- | --- | --- | --- |
-| scripted, nearest+map | 4 | 2 | 4 | 4 | pending |
-| scripted, tracker | 3 | 3 | 3 | 3 | pending |
-| scripted, tracker+map | 1 | 1 | 1 | 1 | pending |
+| scripted, nearest+map | 4 | 2 | 4 | 4 | 4 |
+| scripted, tracker | 3 | 3 | 3 | 3 | 3 |
+| scripted, tracker+map | 1 | 1 | 1 | 1 | 0 |
 | reactive, nearest+map | 2 (1 stuck) | 0 | 2 (4 stuck) | 0 (1 stuck) | 0 |
 | reactive, tracker+map | 1 (1 stuck) | 1 | 0 (1 stuck) | 0 (1 stuck) | 0 |
 | corridor runs that fell (scripted, real perception), of 48 | 0 | 7 | 0 | 0 | pending |
@@ -350,6 +350,44 @@ retreat. Trial 2 for `nearest+map` finished in 71.8 s and trial 6 for
   used the unfiltered cloud; the modelled rig returns marked the rear
   occupied in every frame of both stuck trials. Both still finished
   with over 9 m left to go.
+
+## Person observation memory
+
+Opt in with `--people-awareness` to compare three related changes with the
+default rule controller:
+
+- The controller records the last measured position and time for nearby
+  confirmed tracks. It holds that position for up to 1.5 s when detections
+  stop. The trace marks those entries as unobserved. Prediction-only
+  tracker outputs cannot refresh the memory.
+- The online static map skips returns around recently observed people.
+  Person-sized detections near those observations remain eligible for
+  tracking even on cells already marked static.
+- A person last measured within 0.8 m ahead can trigger the existing
+  guarded retreat if the observation drops out or if the person was
+  walking and has been observed standing still for at least 0.5 s.
+  A stop is evidence that someone may be yielding. The reason for the
+  stop remains unknown. The selected follow target is exempt.
+
+```sh
+cargo run --release -p go2_people --example 151_go2_people -- \
+    --task crowd --reactive-people --people-awareness --trials 8 \
+    --sources nearest+map --out target/go2_people_awareness
+```
+
+The trace's `person_observations` entries include the last measured position
+in the controller's odometry frame, the measurement time, the current
+observation flag and the yielding estimate. A single LiDAR frame cannot
+establish whether an unobserved person is occluded or has left. The radius
+used to protect people in the map can also temporarily exclude a nearby
+piece of structure.
+
+With the default controller and reverse enabled, scripted crowd contact
+runs fell from 15 to 14 out of 64. Reactive crowd had three contact runs
+out of 64 in each version. The built-in tracker went from two to one, and
+the external tracker without the map went from one to two. Across both
+64-run crowd batches, reverse had no falls. All 64 reactive runs finished
+with at most 1.69 m remaining.
 
 ## Camera and VLM
 

@@ -21,6 +21,7 @@ pub(crate) struct Track {
     pub(crate) id: u64,
     pub(crate) position: [f64; 2],
     pub(crate) velocity: [f64; 2],
+    pub(crate) prediction_only: bool,
 }
 
 /// A person-sized cluster in the odometry frame.
@@ -82,10 +83,27 @@ impl StaticMap {
 
     /// Counts the cells this frame's person-band returns fall in (once each).
     pub(crate) fn update(&mut self, points: &[[f64; 3]], odom: [f64; 3]) {
+        self.update_excluding_people(points, odom, &[]);
+    }
+
+    /// Keep confirmed person returns out of the structural hit counts.
+    pub(crate) fn update_excluding_people(
+        &mut self,
+        points: &[[f64; 3]],
+        odom: [f64; 3],
+        people: &[PersonObservation],
+    ) {
         let mut cells: Vec<(i64, i64)> = points
             .iter()
             .filter(|p| p[2] >= PERSON_BAND_M.0 && p[2] <= PERSON_BAND_M.1)
-            .map(|p| Self::cell(to_odom(odom, [p[0], p[1]])))
+            .map(|p| to_odom(odom, [p[0], p[1]]))
+            .filter(|p| {
+                people.iter().all(|person| {
+                    (person.position_m[0] - p[0]).hypot(person.position_m[1] - p[1])
+                        > PERSON_MATCH_M
+                })
+            })
+            .map(Self::cell)
             .collect();
         cells.sort_unstable();
         cells.dedup();
@@ -108,6 +126,15 @@ pub(crate) fn detect_moving_people(
     points: &[[f64; 3]],
     odom: [f64; 3],
     map: Option<&StaticMap>,
+) -> Vec<Detection> {
+    detect_with_people(points, odom, map, &[])
+}
+
+pub(crate) fn detect_with_people(
+    points: &[[f64; 3]],
+    odom: [f64; 3],
+    map: Option<&StaticMap>,
+    people: &[PersonObservation],
 ) -> Vec<Detection> {
     let mut cells: BTreeMap<(i64, i64), Vec<usize>> = BTreeMap::new();
     for (index, p) in points.iter().enumerate() {
@@ -148,15 +175,6 @@ pub(crate) fn detect_moving_people(
                 hi[k] = hi[k].max(points[i][k]);
             }
         }
-        if let Some(map) = map {
-            let on_static = members
-                .iter()
-                .filter(|&&i| map.is_static(to_odom(odom, [points[i][0], points[i][1]])))
-                .count();
-            if on_static as f64 > STATIC_SHARE * members.len() as f64 {
-                continue;
-            }
-        }
         let width = (hi[0] - lo[0]).hypot(hi[1] - lo[1]);
         if members.len() < MIN_POINTS
             || width > MAX_PERSON_WIDTH_M
@@ -165,8 +183,23 @@ pub(crate) fn detect_moving_people(
             continue;
         }
         let local = [(lo[0] + hi[0]) / 2.0, (lo[1] + hi[1]) / 2.0];
+        let position = to_odom(odom, local);
+        if let Some(map) = map {
+            let on_static = members
+                .iter()
+                .filter(|&&i| map.is_static(to_odom(odom, [points[i][0], points[i][1]])))
+                .count();
+            if on_static as f64 > STATIC_SHARE * members.len() as f64
+                && people.iter().all(|p| {
+                    (p.position_m[0] - position[0]).hypot(p.position_m[1] - position[1])
+                        > PERSON_MATCH_M
+                })
+            {
+                continue;
+            }
+        }
         detections.push(Detection {
-            position: to_odom(odom, local),
+            position,
             points: members.len(),
         });
     }
@@ -180,6 +213,98 @@ pub(crate) fn to_odom(odom: [f64; 3], local: [f64; 2]) -> [f64; 2] {
         odom[0] + cos * local[0] - sin * local[1],
         odom[1] + sin * local[0] + cos * local[1],
     ]
+}
+
+/// Retain the last measured position while a nearby person is unobserved.
+const PERSON_MEMORY_S: f64 = 1.5;
+const PERSON_MATCH_M: f64 = 0.4;
+const PERSON_MEMORY_RANGE_M: f64 = 3.0;
+const WALKING_SPEED_M_S: f64 = 0.3;
+const STILL_SPEED_M_S: f64 = 0.15;
+const YIELD_SETTLE_S: f64 = 0.5;
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct PersonObservation {
+    pub(crate) id: u64,
+    pub(crate) position_m: [f64; 2],
+    pub(crate) last_seen_s: f64,
+    pub(crate) observed: bool,
+    walked: bool,
+    still_since_s: Option<f64>,
+}
+
+impl PersonObservation {
+    /// Motion evidence consistent with yielding. The person's intent is unknown.
+    pub(crate) fn may_be_yielding(self, time_s: f64) -> bool {
+        self.observed
+            && self.walked
+            && self
+                .still_since_s
+                .is_some_and(|since_s| time_s - since_s >= YIELD_SETTLE_S)
+    }
+}
+
+/// Attach recent measurement evidence to confirmed tracks. Reserve each
+/// detection for one track, starting with the closest matches.
+pub(crate) fn observe_people(
+    people: &mut Vec<PersonObservation>,
+    tracks: &[Track],
+    detections: &[Detection],
+    odom: [f64; 3],
+    time_s: f64,
+) {
+    people.retain(|p| time_s - p.last_seen_s <= PERSON_MEMORY_S);
+    for p in people.iter_mut() {
+        p.observed = false;
+    }
+    let mut pairs = Vec::new();
+    for (i, track) in tracks.iter().enumerate() {
+        if track.prediction_only
+            || (track.position[0] - odom[0]).hypot(track.position[1] - odom[1])
+                > PERSON_MEMORY_RANGE_M
+        {
+            continue;
+        }
+        for (j, detection) in detections.iter().enumerate() {
+            let d_m = (track.position[0] - detection.position[0])
+                .hypot(track.position[1] - detection.position[1]);
+            if d_m <= PERSON_MATCH_M {
+                pairs.push((d_m, i, j));
+            }
+        }
+    }
+    pairs.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let mut matched_tracks = vec![false; tracks.len()];
+    let mut matched_detections = vec![false; detections.len()];
+    for (_, i, j) in pairs {
+        if matched_tracks[i] || matched_detections[j] {
+            continue;
+        }
+        matched_tracks[i] = true;
+        matched_detections[j] = true;
+        let track = tracks[i];
+        let speed_m_s = track.velocity[0].hypot(track.velocity[1]);
+        let prior = people.iter().find(|p| p.id == track.id).copied();
+        let still_since_s = (speed_m_s <= STILL_SPEED_M_S).then(|| {
+            prior
+                .filter(|p| time_s - p.last_seen_s <= 0.2)
+                .and_then(|p| p.still_since_s)
+                .unwrap_or(time_s)
+        });
+        let observation = PersonObservation {
+            id: track.id,
+            position_m: detections[j].position,
+            last_seen_s: time_s,
+            observed: true,
+            walked: speed_m_s >= WALKING_SPEED_M_S || prior.is_some_and(|p| p.walked),
+            still_since_s,
+        };
+        if let Some(previous) = people.iter_mut().find(|p| p.id == track.id) {
+            *previous = observation;
+        } else {
+            people.push(observation);
+        }
+    }
 }
 
 /// Perfect perception: every person within `range_m`, with its true velocity
@@ -210,6 +335,7 @@ impl Oracle {
                 }
                 let local = [cos * dx + sin * dy, -sin * dx + cos * dy];
                 Some(Track {
+                    prediction_only: false,
                     id: *id,
                     position: to_odom(odom, local),
                     velocity: [c2 * v[0] - s2 * v[1], s2 * v[0] + c2 * v[1]],
@@ -318,6 +444,7 @@ impl NearestTracker {
                 let age = time_s - t.last_seen_s;
                 Track {
                     id: t.id,
+                    prediction_only: age > 0.0,
                     position: [
                         t.position[0] + t.velocity[0] * age,
                         t.position[1] + t.velocity[1] * age,
@@ -412,6 +539,7 @@ impl ExternalTracker {
                     let v = t["velocity"].as_array()?;
                     Some(Track {
                         id: t["track_id"].as_u64()?,
+                        prediction_only: t["prediction_only"].as_bool().unwrap_or(false),
                         position: [p[0].as_f64()?, p[1].as_f64()?],
                         velocity: [v[0].as_f64()?, v[1].as_f64()?],
                     })
@@ -444,6 +572,53 @@ mod tests {
             }
         }
         points
+    }
+
+    #[test]
+    fn person_memory_preserves_observations_across_short_gaps_and_map_updates() {
+        let origin = [0.0; 3];
+        let points = blob([0.5, 0.0]);
+        let detection = detect_people(&points, origin)[0];
+        let mut people = Vec::new();
+        let mut track = Track {
+            id: 1,
+            position: detection.position,
+            velocity: [-0.5, 0.0],
+            prediction_only: false,
+        };
+        observe_people(&mut people, &[track], &[detection], origin, 0.0);
+        track.velocity = [0.0; 2];
+        for frame in 1..=7 {
+            observe_people(
+                &mut people,
+                &[track],
+                &[detection],
+                origin,
+                f64::from(frame) / 10.0,
+            );
+        }
+        assert!(people[0].may_be_yielding(0.7));
+        track.prediction_only = true;
+        observe_people(&mut people, &[track], &[detection], origin, 1.0);
+        assert!(!people[0].observed);
+        assert_eq!(people[0].last_seen_s, 0.7);
+        assert!(!people[0].may_be_yielding(1.0));
+
+        let mut map = StaticMap::default();
+        for _ in 0..70 {
+            map.update_excluding_people(&points, origin, &people);
+        }
+        assert!(!map.is_static(detection.position));
+        for _ in 0..70 {
+            map.update(&points, origin);
+        }
+        assert!(detect_moving_people(&points, origin, Some(&map)).is_empty());
+        assert_eq!(
+            detect_with_people(&points, origin, Some(&map), &people),
+            vec![detection]
+        );
+        observe_people(&mut people, &[], &[], origin, 2.3);
+        assert!(people.is_empty());
     }
 
     #[test]

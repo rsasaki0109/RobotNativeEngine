@@ -1629,6 +1629,7 @@ fn run(
     reactive: bool,
     vlm_command: Option<&[String]>,
     crowd_check: bool,
+    people_awareness: bool,
 ) -> (Value, Vec<Value>) {
     let mut sim =
         UrdfSceneSim::from_scene_path(&repo_path("assets/scenes/unitree_go2_jump.rne.scene.toml"))
@@ -1707,6 +1708,7 @@ fn run(
     let mut trace = Vec::new();
     let mut safety_hold_until_s = f64::NEG_INFINITY;
     let mut retreat_until_s = None;
+    let mut person_observations = Vec::new();
     let task_walls: Vec<Wall> = task
         .walls
         .iter()
@@ -1782,6 +1784,9 @@ fn run(
             .as_ref()
             .map_or(odom_raw, |l| l.estimate(odom_raw));
         let detections = match perceiver.map.as_mut() {
+            Some(map) if people_awareness => {
+                perception::detect_with_people(&points, odom, Some(map), &person_observations)
+            }
             Some(map) => {
                 // Filter with what was static before this frame, then add it.
                 let detections = perception::detect_moving_people(&points, odom, Some(map));
@@ -1835,6 +1840,18 @@ fn run(
             }
         }
         let tracks = perceiver.tracks(&detections, &people_now, truth, odom, time_s);
+        if people_awareness {
+            perception::observe_people(
+                &mut person_observations,
+                &tracks,
+                &detections,
+                odom,
+                time_s,
+            );
+            if let Some(map) = perceiver.map.as_mut() {
+                map.update_excluding_people(&points, odom, &person_observations);
+            }
+        }
         let observed = sim.observe();
         let speed_now = observed
             .base_linear_velocity_x_m_s
@@ -1855,6 +1872,7 @@ fn run(
                         id: static_track_id(position),
                         position,
                         velocity: [0.0, 0.0],
+                        prediction_only: false,
                     }
                 }),
         );
@@ -1870,7 +1888,25 @@ fn run(
             })
             .collect();
         let (mut next, chosen) = controller.command(&plan_tracks, odom, time_s, speed_now);
-        let blocking_person = static_person_blocking(&static_people);
+        let mut blocking_person = static_person_blocking(&static_people);
+        if people_awareness && safety {
+            let (sin, cos) = odom[2].sin_cos();
+            let nearby_people = person_observations
+                .iter()
+                .filter(|p| !p.observed || p.may_be_yielding(time_s))
+                .filter(|p| controller.target != Some(p.id))
+                .map(|p| {
+                    let [x, y] = [p.position_m[0] - odom[0], p.position_m[1] - odom[1]];
+                    [cos * x + sin * y, -sin * x + cos * y]
+                })
+                .filter(|c| {
+                    c[0] >= 0.0 && c[0] <= RETREAT_TRIGGER_M && c[1].abs() < SAFETY_HALF_WIDTH_M
+                });
+            blocking_person = blocking_person
+                .into_iter()
+                .chain(nearby_people)
+                .min_by(|a, b| a[0].total_cmp(&b[0]));
+        }
         if let Some(c) = blocking_person {
             safety_hold_until_s = safety_hold_until_s.max(time_s + SAFETY_HOLD_S);
             // Turn away from them until they are out of the way: a
@@ -1917,6 +1953,10 @@ fn run(
             "lane": controller.last_lane,
             "blocked": blocked, "blocking_person": blocking_person,
             "retreating": retreating, "rear_clear": controller.rear_clear,
+            "person_observations": person_observations.iter().map(|p| json!({
+                "id": p.id, "position_m": p.position_m, "last_seen_s": p.last_seen_s,
+                "observed": p.observed, "may_be_yielding": p.may_be_yielding(time_s),
+            })).collect::<Vec<_>>(),
             "people": people_now.iter().map(|(id, p, v)| json!([id, p, v])).collect::<Vec<_>>(),
         }));
         if let Mission::Follow { target } = task.mission {
@@ -1999,6 +2039,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut safety = true;
     let mut reactive = false;
     let mut crowd_check = true;
+    let mut people_awareness = false;
     let mut vlm: Option<Vec<String>> = None;
     let mut only_sources: Option<Vec<String>> = None;
     let mut args = std::env::args().skip(1);
@@ -2010,6 +2051,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "--no-safety" => safety = false,
             "--reactive-people" => reactive = true,
             "--no-crowd-check" => crowd_check = false,
+            "--people-awareness" => people_awareness = true,
             // The VLM command, as one argument (split on whitespace); it
             // adds the tracker+map+vlm source.
             "--vlm" => {
@@ -2123,6 +2165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             reactive,
                             vlm.as_deref(),
                             crowd_check,
+                            people_awareness,
                         );
                         result["trial"] = json!(trial);
                         mine.push((index, result, trace));
@@ -2199,6 +2242,7 @@ mod tests {
             id,
             position,
             velocity,
+            prediction_only: false,
         }
     }
 
@@ -2287,6 +2331,7 @@ mod tests {
             false,
             None,
             true,
+            false,
         );
         assert_eq!(trace.len(), 2);
         assert!(trace.iter().all(|frame| frame["rear_clear"] == true));
