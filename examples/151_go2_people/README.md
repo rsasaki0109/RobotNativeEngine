@@ -402,7 +402,25 @@ use reverse and the same trial seeds.
 | `tracker+map` | 0 | 0 | 1.28 |
 
 The previously timed-out trial completed in 97.2 s with 1.37 m remaining.
-The awareness option was evaluated on reactive crowd for these three sources.
+The three sources were also compared on scripted crowd and corridor
+using the same eight trial seeds for each on/off pair.
+
+| Scripted task | Source | Contact runs, off → on | Contact events, off → on | Max remaining (m), off → on |
+| --- | --- | ---: | ---: | ---: |
+| crowd | `nearest+map` | 4 → 4 | 4 → 4 | 1.32 → 1.35 |
+| crowd | `tracker` | 3 → 3 | 4 → 5 | 1.43 → 1.77 |
+| crowd | `tracker+map` | 0 → 0 | 0 → 0 | 1.25 → 1.23 |
+| corridor | `nearest+map` | 0 → 0 | 0 → 0 | 1.34 → 1.33 |
+| corridor | `tracker` | 0 → 0 | 0 → 0 | 1.44 → 1.44 |
+| corridor | `tracker+map` | 1 → 1 | 1 → 1 | 1.37 → 1.37 |
+
+Neither setting fell or finished with more than 5 m remaining. In the
+corridor, the same trial accounted for both contact counts, and no
+reverse command ran in a frame with a blocked rear scan. In scripted
+crowd trial 2 with `tracker`, a lost observation triggered a retreat
+during the first close pass. The robot later touched another person at
+about 56.6 s while moving forward. The extra contact and the longer
+maximum residual support keeping the option opt-in.
 
 With the default controller and reverse enabled, scripted crowd contact
 runs fell from 15 to 14 out of 64. Reactive crowd had three contact runs
