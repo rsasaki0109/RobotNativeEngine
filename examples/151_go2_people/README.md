@@ -330,8 +330,11 @@ used eight trials per source:
   lasts up to 2 s at up to 0.1 m/s, with the turn away from the person.
   Every new scan checks the rear corridor (0.8 m deep, ±0.35 m wide).
   A return more than 0.05 m above the floor in that corridor cancels
-  reverse immediately. This check includes returns within 0.4 m of the
-  base, which the person detector and map exclude.
+  reverse immediately. The rear check shares the 0.4 m near-base
+  exclusion with mapping and detection. The first reverse version
+  used the unfiltered cloud; the modelled rig returns marked the rear
+  occupied in every frame of both stuck trials. Both still finished
+  with over 9 m left to go.
 
 ## Camera and VLM
 
@@ -441,6 +444,7 @@ The numbers above are after these fixes, each found from the traces:
 - **DWA**: people only; walls and furniture are not obstacles to it.
 - **Crowd check**: people move at constant velocity in its rollout; walls
   are the scan returns of the moment, within 2 m. Reverse depends on
-  what the rear LiDAR can see in the latest frame.
+  what the rear LiDAR can see in the latest frame, outside the 0.4 m
+  self-return mask.
 - **Camera**: one standing pose for every person; the image is rendered from
   the true pose, and the VLM sees no motion blur or exposure changes.

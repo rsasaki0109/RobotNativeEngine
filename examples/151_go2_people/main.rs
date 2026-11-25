@@ -1117,15 +1117,16 @@ fn closest_person(people: &[(u64, [f64; 2], [f64; 2])], truth: Pose) -> f64 {
 }
 
 /// A frame's returns as `[forward, left, height above floor]` in the base
-/// frame at the frame's end.
+/// frame at the frame's end, beyond 0.4 m.
 fn base_frame_points(cloud: &rne_data::PointCloud, truth: Pose) -> Vec<[f64; 3]> {
     let (sin, cos) = truth[2].sin_cos();
     cloud
         .points_m
         .iter()
-        .map(|p| {
+        .filter_map(|p| {
             let (dx, dy) = (p.x - truth[0], -p.z - truth[1]);
-            [cos * dx + sin * dy, -sin * dx + cos * dy, p.y]
+            let local = [cos * dx + sin * dy, -sin * dx + cos * dy];
+            (local[0].hypot(local[1]) > 0.4).then_some([local[0], local[1], p.y])
         })
         .collect()
 }
@@ -1765,10 +1766,8 @@ fn run(
         frame_start = end;
         frame += 1;
         let truth = true_pose(&sim);
-        let mut points = base_frame_points(&cloud, truth);
+        let points = base_frame_points(&cloud, truth);
         controller.rear_clear = rear_clear(&points);
-        // Keep the established near-base exclusion for mapping and detection.
-        points.retain(|p| p[0].hypot(p[1]) > 0.4);
         if let Some(localizer) = localizer.as_mut() {
             // Person clusters in the base frame (identity pose).
             let people: Vec<[f64; 2]> = detect_people(&points, [0.0, 0.0, 0.0])
@@ -2273,6 +2272,27 @@ mod tests {
     }
 
     #[test]
+    fn rig_self_returns_do_not_block_an_empty_rear_corridor() {
+        let mut task = tasks()
+            .into_iter()
+            .find(|task| task.name == "crowd")
+            .expect("crowd task");
+        task.duration_s = 2.0 * FRAME_S;
+        let (_, trace) = run(
+            &task,
+            Source::NearestMap,
+            None,
+            ControllerKind::Rule,
+            true,
+            false,
+            None,
+            true,
+        );
+        assert_eq!(trace.len(), 2);
+        assert!(trace.iter().all(|frame| frame["rear_clear"] == true));
+    }
+
+    #[test]
     fn safety_retreat_is_bounded_and_stops_on_a_rear_return() {
         let mut until_s = None;
         assert!(!safety_retreat(&mut until_s, 0.0, false, true, true));
@@ -2283,7 +2303,7 @@ mod tests {
         assert!(!safety_retreat(&mut until_s, 2.0, true, true, true));
         assert!(!safety_retreat(&mut until_s, 2.1, false, false, true));
 
-        let rear_points = [[-0.3, 0.0, 0.1]];
+        let rear_points = [[-0.6, 0.0, 0.1]];
         assert!(!rear_clear(&rear_points));
         assert!(rear_clear(&[[-0.6, 0.0, 0.0], [-0.6, 0.4, 0.2]]));
         assert!(safety_retreat(&mut until_s, 2.2, true, true, true));
