@@ -13,10 +13,14 @@
 //! counter-clockwise about z. [`map_to_rne`] turns a point into RNE's y-up world, as the
 //! bundle's splat manifest does.
 
+pub mod crowd;
+
+use crowd::Crowd;
 use rne_math::Vec3;
 use rne_nav::{
-    from_map_json, plan_path, pure_pursuit_follow, Costmap, CostmapConfig, GlobalPlannerConfig,
-    GridCoord, OccupancyGrid, Path2d, Pose2d, PurePursuitConfig,
+    avoid_velocities, from_map_json, plan_path, pure_pursuit_follow, AvoidanceConfig,
+    CircularObstacle, Costmap, CostmapConfig, GlobalPlannerConfig, GridCoord, OccupancyGrid,
+    Path2d, Pose2d, PurePursuitConfig, VelocityCommand2d,
 };
 use serde::Deserialize;
 use std::fmt;
@@ -253,6 +257,21 @@ impl Street {
         })
     }
 
+    /// The bundle's crowd (`crowd.json`, visloc-rs `rne_crowd.py`), placed; `seed` seeds its
+    /// behaviour. `None` when the bundle has no crowd.
+    pub fn crowd(&self, seed: u64) -> Result<Option<Crowd>, StreetError> {
+        let path = self.dir.join("crowd.json");
+        if !path.exists() {
+            return Ok(None);
+        }
+        let text = std::fs::read_to_string(&path).map_err(|e| StreetError::Io(path.clone(), e))?;
+        let spec: crowd::CrowdSpec =
+            serde_json::from_str(&text).map_err(|e| StreetError::Parse(path, e.to_string()))?;
+        let mut crowd = Crowd::new(spec, seed, &|x, y| self.solid_at(x, y));
+        crowd.robot_radius_m = 0.6;
+        Ok(Some(crowd))
+    }
+
     /// The splat manifest.
     pub fn manifest(&self) -> PathBuf {
         self.dir.join("street.rne.splat.toml")
@@ -261,6 +280,13 @@ impl Street {
     /// Ground height at (x, y), with the road between kerbs lowered.
     pub fn ground_at(&self, x_m: f64, y_m: f64) -> f64 {
         self.ground.as_ref().map_or(0.0, |g| g.height_at(x_m, y_m))
+    }
+
+    /// Whether the cell at (x, y) is solid; outside the map counts as solid.
+    pub fn solid_at(&self, x_m: f64, y_m: f64) -> bool {
+        self.solid
+            .world_to_grid(Vec3::new(x_m, y_m, 0.0))
+            .is_none_or(|c| self.solid.is_occupied(c))
     }
 
     /// Whether a circle of `radius_m` at (x, y) covers a solid cell's centre.
@@ -432,6 +458,8 @@ pub struct DriveReport {
     pub pose_error_median_m: f64,
     /// See `pose_error_rmse_m`.
     pub pose_error_max_m: f64,
+    /// Steps a person, bike or car stopped the robot (its 0.2 m circle).
+    pub people_contacts: usize,
 }
 
 /// One localization: the true state (to render the camera from) and the robot's estimate
@@ -494,9 +522,9 @@ fn distance_to_polyline(points: &[[f64; 2]], x: f64, y: f64) -> f64 {
 pub fn drive(
     street: &Street,
     config: &NavConfig,
-    on_step: impl FnMut(&RobotState),
+    mut on_step: impl FnMut(&RobotState),
 ) -> Result<DriveReport, StreetError> {
-    drive_localized(street, config, None, on_step)
+    drive_localized(street, config, None, None, |s, _| on_step(s))
 }
 
 /// Drives the robot through the street's goals. With `localize`, the robot steers on its own
@@ -506,7 +534,8 @@ pub fn drive_localized(
     street: &Street,
     config: &NavConfig,
     mut localize: Option<&mut Localize<'_>>,
-    mut on_step: impl FnMut(&RobotState),
+    mut crowd: Option<&mut Crowd>,
+    mut on_step: impl FnMut(&RobotState, Option<&Crowd>),
 ) -> Result<DriveReport, StreetError> {
     let costmap = lane_costmap(street, config);
     let planner = GlobalPlannerConfig {
@@ -533,6 +562,7 @@ pub fn drive_localized(
     let mut t = 0.0;
     let mut speed = 0.0;
     let mut next_fix = 0.0;
+    let mut held_s = 0.0;
     let mut last_fix = 0.0;
     for (index, goal) in street.goals.iter().enumerate() {
         let path: Path2d = plan_path(
@@ -575,7 +605,10 @@ pub fn drive_localized(
                 estimate = Pose2d::new(x, y, yaw);
                 state.estimate = estimate;
             }
-            on_step(&state);
+            if let Some(crowd) = crowd.as_deref_mut() {
+                crowd.step(config.step_s, [x, y], &|px, py| street.solid_at(px, py));
+            }
+            on_step(&state, crowd.as_deref());
             for value in [x, y, yaw, estimate.x_m, estimate.y_m] {
                 hash = (hash ^ value.to_bits()).wrapping_mul(0x0100_0000_01b3);
             }
@@ -592,11 +625,28 @@ pub fn drive_localized(
             if on_edge {
                 v = v.min(config.kerb_speed_m_s);
             }
-            let w = result.command.angular_rad_s;
+            let mut w = result.command.angular_rad_s;
+            if let Some(crowd) = crowd.as_deref() {
+                let margin = held_margin(held_s);
+                let wanted = v;
+                (v, w) = avoid_people(crowd, config, [x, y, yaw], estimate, v, w, margin);
+                held_s = if wanted > 0.05 && v < 0.02 {
+                    held_s + config.step_s
+                } else {
+                    0.0
+                };
+            }
             let nyaw = yaw + w * config.step_s;
             let nx = x + v * config.step_s * nyaw.cos();
             let ny = y + v * config.step_s * nyaw.sin();
-            let moved = if street.hits_solid(nx, ny, street.robot_radius_m) {
+            let blocked_by_people = crowd
+                .as_deref()
+                .is_some_and(|c| touches_people(c, nx, ny, street.robot_radius_m));
+            report.people_contacts += usize::from(blocked_by_people && v > 0.0);
+            let moved = if blocked_by_people {
+                speed = 0.0;
+                0.0
+            } else if street.hits_solid(nx, ny, street.robot_radius_m) {
                 report.contacts += 1;
                 yaw = nyaw;
                 speed = 0.0;
@@ -608,9 +658,11 @@ pub fn drive_localized(
                 speed = v;
                 d
             };
-            if localize.is_some() {
-                estimate = odometry_step(config, estimate, moved, w);
-            }
+            estimate = if localize.is_some() {
+                odometry_step(config, estimate, moved, w)
+            } else {
+                Pose2d::new(x, y, yaw) // on ground truth
+            };
             if on_edge {
                 report.kerb_time_s += config.step_s;
                 report.kerb_max_speed_m_s = report.kerb_max_speed_m_s.max(speed);
@@ -631,6 +683,151 @@ pub fn drive_localized(
     report.trajectory_hash = hash;
     finish_report(&mut report, walk_distances, errors);
     Ok(report)
+}
+
+/// Checks on the crowd during a drive, sampled every call to [`CrowdStats::sample`].
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct CrowdStats {
+    /// Samples taken.
+    pub samples: usize,
+    /// Footprint samples of people and bikes within 3.2 m of the road's centre line while not
+    /// on the crossing.
+    pub on_road: usize,
+    /// Deepest any footprint came into the robot's drawn body (0.87 x 0.70 m; m, < 0 is a gap).
+    pub body_intrusion_m: f64,
+    /// Deepest a person's or bike's footprint came into a car's (m).
+    pub car_intrusion_m: f64,
+    /// Longest anyone stood still (s).
+    pub longest_still_s: f64,
+    still: Vec<f64>,
+    last: Vec<[f64; 2]>,
+}
+
+impl CrowdStats {
+    /// Takes one sample, `dt_s` after the last.
+    pub fn sample(&mut self, crowd: &Crowd, robot: &RobotState, dt_s: f64) {
+        if self.samples == 0 {
+            self.body_intrusion_m = f64::NEG_INFINITY;
+            self.car_intrusion_m = f64::NEG_INFINITY;
+            self.still = vec![0.0; crowd.len()];
+            self.last = (0..crowd.len()).map(|i| crowd.agent(i).1).collect();
+        }
+        self.samples += 1;
+        let (s, c) = robot.yaw_rad.sin_cos();
+        let circles = crowd.circles();
+        let line = crowd
+            .spec()
+            .road_lines
+            .as_ref()
+            .and_then(|l| l.first().copied());
+        for &(x, y, r, i) in &circles {
+            let (dx, dy) = (x - robot.x_m, y - robot.y_m);
+            let (u, v) = (c * dx + s * dy, -s * dx + c * dy);
+            let (ex, ey) = ((u.abs() - 0.435).max(0.0), (v.abs() - 0.35).max(0.0));
+            let depth = if ex > 0.0 || ey > 0.0 {
+                r - ex.hypot(ey)
+            } else {
+                r + (0.435 - u.abs()).min(0.35 - v.abs())
+            };
+            self.body_intrusion_m = self.body_intrusion_m.max(depth);
+            let kind = crowd.agent(i).0;
+            if kind == crowd::CAR {
+                continue;
+            }
+            if let Some(l) = line {
+                let lateral = (l[4] * (y - l[3]) - l[5] * (x - l[2])).abs();
+                if lateral < 3.2 && !crowd.is_crossing(i) {
+                    self.on_road += 1;
+                }
+            }
+            for &(cx, cy, cr, j) in &circles {
+                if crowd.agent(j).0 == crowd::CAR {
+                    self.car_intrusion_m =
+                        self.car_intrusion_m.max(r + cr - (x - cx).hypot(y - cy));
+                }
+            }
+        }
+        for i in 0..crowd.len() {
+            let xy = crowd.agent(i).1;
+            let moved = (xy[0] - self.last[i][0]).hypot(xy[1] - self.last[i][1]) > 0.005;
+            self.still[i] = if moved { 0.0 } else { self.still[i] + dt_s };
+            self.longest_still_s = self.longest_still_s.max(self.still[i]);
+            self.last[i] = xy;
+        }
+    }
+}
+
+/// The robot's command bent round the crowd (`rne_nav::avoid_velocities`): the people it
+/// sees, from where it really is, put round its estimate, as its scan would; the closest
+/// command that keeps its body clear of them for 2 s, or a stop.
+fn avoid_people(
+    crowd: &Crowd,
+    config: &NavConfig,
+    truth: [f64; 3],
+    estimate: Pose2d,
+    v: f64,
+    w: f64,
+    margin_m: f64,
+) -> (f64, f64) {
+    let (sd, cd) = (truth[2].sin(), truth[2].cos());
+    let (se, ce) = (estimate.yaw_rad.sin(), estimate.yaw_rad.cos());
+    let obstacles: Vec<CircularObstacle> = crowd
+        .moving_circles()
+        .into_iter()
+        .filter(|c| (c.0 - truth[0]).hypot(c.1 - truth[1]) < 5.0)
+        .map(|(x, y, r, vx, vy)| {
+            // in the robot's frame, then round the estimate
+            let (dx, dy) = (x - truth[0], y - truth[1]);
+            let (fx, fy) = (cd * dx + sd * dy, -sd * dx + cd * dy);
+            let (fvx, fvy) = (cd * vx + sd * vy, -sd * vx + cd * vy);
+            CircularObstacle {
+                center_m: Vec3::new(
+                    estimate.x_m + ce * fx - se * fy,
+                    estimate.y_m + se * fx + ce * fy,
+                    0.0,
+                ),
+                velocity_m_s: Vec3::new(ce * fvx - se * fvy, se * fvx + ce * fvy, 0.0),
+                radius_m: r,
+            }
+        })
+        .collect();
+    if obstacles.is_empty() {
+        return (v, w);
+    }
+    let command = avoid_velocities(
+        estimate,
+        config.footprint_radius_m,
+        &obstacles,
+        VelocityCommand2d::new(v, w),
+        v.max(0.05),
+        1.0,
+        &AvoidanceConfig {
+            time_horizon_s: 1.5,
+            safety_margin_m: margin_m,
+            ..AvoidanceConfig::default()
+        },
+    );
+    (command.linear_m_s, command.angular_rad_s)
+}
+
+/// How close the robot lets people come (m beyond its footprint) after `held_s` held up: the
+/// longer it waits, the closer, as people squeeze past each other.
+fn held_margin(held_s: f64) -> f64 {
+    if held_s > 6.0 {
+        0.0
+    } else if held_s > 3.0 {
+        0.05
+    } else {
+        0.2
+    }
+}
+
+/// Whether a circle of `radius_m` at (x, y) overlaps anyone's footprint.
+fn touches_people(crowd: &Crowd, x: f64, y: f64, radius_m: f64) -> bool {
+    crowd
+        .circles()
+        .iter()
+        .any(|c| (c.0 - x).hypot(c.1 - y) < c.2 + radius_m)
 }
 
 /// The estimate after a fix `since_s` after the last accepted one, or `None` when the gate
@@ -799,8 +996,14 @@ mod tests {
     fn robot_steers_on_its_estimate_with_fixes() {
         let street = street();
         let mut localize = noisy_localizer();
-        let report =
-            drive_localized(&street, &NavConfig::default(), Some(&mut localize), |_| {}).unwrap();
+        let report = drive_localized(
+            &street,
+            &NavConfig::default(),
+            Some(&mut localize),
+            None,
+            |_, _| {},
+        )
+        .unwrap();
         assert_eq!(report.reached, 2, "{report:?}");
         assert_eq!(report.contacts, 0);
         assert!(
@@ -814,8 +1017,14 @@ mod tests {
     fn odometry_alone_drifts() {
         let street = street();
         let mut never = |_: &RobotState, _: Pose2d| None;
-        let report =
-            drive_localized(&street, &NavConfig::default(), Some(&mut never), |_| {}).unwrap();
+        let report = drive_localized(
+            &street,
+            &NavConfig::default(),
+            Some(&mut never),
+            None,
+            |_, _| {},
+        )
+        .unwrap();
         assert!(report.pose_error_max_m > 0.3, "{report:?}");
     }
 

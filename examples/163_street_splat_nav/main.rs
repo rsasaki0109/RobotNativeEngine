@@ -10,6 +10,8 @@
 //!                    `visloc_map_localize_server` (default: ground truth)
 //! --map DIR          its localization map (default: the bundle's `map`)
 //! --loc-args "ARGS"  extra localizer flags (default: the Nav2 runs' tuned ones)
+//! --crowd            add the bundle's crowd (crowd.json: walkers, cyclists, cars, a crossing)
+//! --seed N           seeds the crowd's behaviour (default 0)
 //! ```
 //!
 //! The robot plans on the bundle's lane map with `rne_nav` and follows the plan by pure
@@ -24,14 +26,17 @@ use rne_render::{
     validate_gaussian_splat_manifest, Camera, HybridRenderScene, RenderScene, RenderSceneItem,
     VisualShape,
 };
-use rne_render_3dgs::{load_gaussian_splat_background, render_hybrid_scene_camera};
+use rne_render_3dgs::{
+    load_splat_actor, render_hybrid_scene_camera, GaussianSplatBackground, SplatActorAsset,
+};
 use rne_render_wgpu::WgpuRenderBackend;
 use std::cell::RefCell;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
-use street_splat_nav::{drive_localized, map_to_rne, NavConfig, RobotState, Street};
+use street_splat_nav::crowd::{Crowd, Light};
+use street_splat_nav::{drive_localized, map_to_rne, CrowdStats, NavConfig, RobotState, Street};
 
 /// The tuned localizer flags of the visloc-rs Nav2 runs.
 const TUNED: &str =
@@ -58,9 +63,19 @@ fn main() {
         street.credit
     );
 
+    let seed: u64 = arg("--seed").map_or(0, |v| v.parse().expect("seed"));
+    let mut crowd = if std::env::args().any(|a| a == "--crowd") {
+        street.crowd(seed).expect("crowd.json")
+    } else {
+        None
+    };
     let localizer = arg("--localizer");
-    let renderer =
-        RefCell::new((render_every > 0.0 || localizer.is_some()).then(|| Renderer::new(&street)));
+    let renderer = RefCell::new(
+        (render_every > 0.0 || localizer.is_some())
+            .then(|| Renderer::new(&street, crowd.as_ref().map(|c| Looks::load(&street, c)))),
+    );
+    // where everyone was at the last step: the fix camera sees them too
+    let snapshot = RefCell::new(crowd.as_ref().map(Snapshot::of).unwrap_or_default());
     let mut server = localizer.map(|bin| {
         let map = arg("--map").map_or_else(|| street.dir.join("map"), PathBuf::from);
         let loc_args = arg("--loc-args").unwrap_or_else(|| TUNED.into());
@@ -75,11 +90,12 @@ fn main() {
     .unwrap();
     let mut localize = |truth: &RobotState, estimate: Pose2d| -> Option<Pose2d> {
         let server = server.as_mut()?;
-        let image = renderer
-            .borrow_mut()
-            .as_mut()
-            .expect("renderer")
-            .front(&street, truth);
+        let image = {
+            let mut guard = renderer.borrow_mut();
+            let r = guard.as_mut().expect("renderer");
+            r.place_crowd(&street, &snapshot.borrow());
+            r.front(&street, truth)
+        };
         write_luma_pgm(&fix_pgm, &image);
         let camera_z = street.ground_at(estimate.x_m, estimate.y_m) + street.camera_height_m;
         let reply = server.ask(&fix_pgm, estimate, camera_z);
@@ -107,11 +123,30 @@ fn main() {
     let mut frame = 0usize;
     let config = NavConfig::default();
     let use_fixes = arg("--localizer").is_some();
+    let mut stats = CrowdStats::default();
+    let mut people_log = BufWriter::new(File::create(out.join("people.csv")).expect("people.csv"));
+    writeln!(people_log, "t_s,id,kind,x,y,yaw,phase").unwrap();
     let report = drive_localized(
         &street,
         &config,
         use_fixes.then_some(&mut localize as _),
-        |s| {
+        crowd.as_mut(),
+        |s, people| {
+            if let Some(people) = people {
+                *snapshot.borrow_mut() = Snapshot::of(people);
+                if ((s.t_s / config.step_s).round() as u64).is_multiple_of(10) {
+                    stats.sample(people, s, 10.0 * config.step_s);
+                    for i in 0..people.len() {
+                        let (kind, xy, yaw, phase) = people.agent(i);
+                        writeln!(
+                            people_log,
+                            "{:.2},{i},{kind},{:.3},{:.3},{yaw:.4},{phase}",
+                            s.t_s, xy[0], xy[1]
+                        )
+                        .unwrap();
+                    }
+                }
+            }
             if ((s.t_s / config.step_s).round() as u64).is_multiple_of(5) {
                 writeln!(
                     log,
@@ -122,6 +157,7 @@ fn main() {
             }
             if render_every > 0.0 && s.t_s + 1e-9 >= next_frame && frame < max_frames {
                 if let Some(r) = renderer.borrow_mut().as_mut() {
+                    r.place_crowd(&street, &snapshot.borrow());
                     r.render(&street, s, &out, frame);
                     frame += 1;
                     next_frame += render_every;
@@ -137,6 +173,8 @@ fn main() {
          \"walk_distance_median_m\": {:.2}, \"walk_distance_max_m\": {:.2}, \"frames\": {frame}, \
          \"fixes_attempted\": {}, \"fixes_accepted\": {}, \"fixes_rejected\": {}, \
          \"pose_error_rmse_m\": {:.3}, \"pose_error_median_m\": {:.3}, \"pose_error_max_m\": {:.3}, \
+         \"people_contacts\": {}, \"crowd_samples\": {}, \"people_on_road\": {}, \
+         \"people_in_robot_body_m\": {:.3}, \"people_in_cars_m\": {:.3}, \"longest_still_s\": {:.1}, \
          \"trajectory_hash\": \"{:016x}\"}}\n",
         report.reached,
         report.goals,
@@ -154,6 +192,12 @@ fn main() {
         report.pose_error_rmse_m,
         report.pose_error_median_m,
         report.pose_error_max_m,
+        report.people_contacts,
+        stats.samples,
+        stats.on_road,
+        stats.body_intrusion_m,
+        stats.car_intrusion_m,
+        stats.longest_still_s,
         report.trajectory_hash
     );
     fs::write(out.join("report.json"), &json).expect("report.json");
@@ -163,24 +207,135 @@ fn main() {
 struct Renderer {
     backend: WgpuRenderBackend,
     environment: rne_render::GaussianSplatEnvironment,
-    background: rne_render_3dgs::GaussianSplatBackground,
+    background: GaussianSplatBackground,
     front: Camera,
     chase: Camera,
+    looks: Option<Looks>,
+}
+
+/// The crowd's looks: every agent's gaussians at each gait phase (actor `i` is agent `i`),
+/// then the crossing at each light state (green, amber, red).
+struct Looks {
+    phases: Vec<Vec<SplatActorAsset>>,
+    shown: Vec<usize>,
+    decor: Vec<SplatActorAsset>,
+    light: Option<usize>,
+}
+
+/// Where everyone is, for the renderer: (kind, x, y, yaw, phase) per agent, and the light.
+#[derive(Clone, Debug, Default)]
+struct Snapshot {
+    agents: Vec<(u8, [f64; 2], f64, usize)>,
+    light: Option<Light>,
+}
+
+impl Snapshot {
+    fn of(crowd: &Crowd) -> Self {
+        Self {
+            agents: (0..crowd.len()).map(|i| crowd.agent(i)).collect(),
+            light: crowd.spec().crossing_s.map(|_| crowd.light()),
+        }
+    }
+}
+
+impl Looks {
+    fn load(street: &Street, crowd: &Crowd) -> Self {
+        let load = |name: &String| load_splat_actor(&street.dir.join(name)).expect("crowd actor");
+        let spec = crowd.spec();
+        let phases: Vec<Vec<SplatActorAsset>> = spec
+            .agents
+            .iter()
+            .map(|a| a.phases.iter().map(load).collect())
+            .collect();
+        let decor = ["green", "amber", "red"]
+            .iter()
+            .filter_map(|k| spec.decor.get(*k).map(load))
+            .collect();
+        println!(
+            "crowd looks: {} agents, {} gaussians at a time",
+            phases.len(),
+            phases.iter().map(|p| p[0].len()).sum::<usize>()
+        );
+        Self {
+            shown: vec![0; phases.len()],
+            phases,
+            decor,
+            light: None,
+        }
+    }
+
+    fn actors(&self) -> Vec<SplatActorAsset> {
+        self.phases
+            .iter()
+            .map(|p| p[0].clone())
+            .chain(self.decor.iter().cloned())
+            .collect()
+    }
+}
+
+/// An agent-frame (z up, x forward) pose into RNE's y-up world.
+fn actor_pose(x: f64, y: f64, z: f64, yaw: f64) -> Transform3 {
+    let z_up_to_y_up = Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2);
+    Transform3 {
+        translation: map_to_rne(x, y, z),
+        rotation: (Quat::from_rotation_y(yaw) * z_up_to_y_up).normalize(),
+        scale: Vec3::ONE,
+    }
 }
 
 impl Renderer {
-    fn new(street: &Street) -> Self {
+    fn new(street: &Street, looks: Option<Looks>) -> Self {
         let backend = WgpuRenderBackend::new().expect("wgpu backend");
         let environment =
             validate_gaussian_splat_manifest(&street.manifest()).expect("splat manifest");
-        let background = load_gaussian_splat_background(backend.device(), &environment)
-            .expect("splat background");
+        let background = GaussianSplatBackground::from_environment_with_actors(
+            backend.device(),
+            &environment,
+            looks.as_ref().map_or_else(Vec::new, Looks::actors),
+        )
+        .expect("splat background");
         Self {
             backend,
             environment,
             background,
             front: Camera::new(CAM_SIZE, CAM_SIZE, std::f64::consts::FRAC_PI_2),
             chase: Camera::new(CHASE_WIDTH, CHASE_HEIGHT, 60f64.to_radians()),
+            looks,
+        }
+    }
+
+    /// Puts everyone where the snapshot has them, in their gait phase, and lights the crossing.
+    fn place_crowd(&mut self, street: &Street, snap: &Snapshot) {
+        let Some(looks) = self.looks.as_mut() else {
+            return;
+        };
+        let queue = self.backend.queue();
+        for (i, &(_, xy, yaw, phase)) in snap.agents.iter().enumerate() {
+            if looks.shown[i] != phase {
+                self.background
+                    .replace_actor_asset(queue, i, looks.phases[i][phase].clone())
+                    .expect("phase");
+                looks.shown[i] = phase;
+            }
+            let pose = actor_pose(xy[0], xy[1], street.ground_at(xy[0], xy[1]), yaw);
+            self.background
+                .set_actor_pose(queue, i, Some(&pose))
+                .expect("agent pose");
+        }
+        let light = snap.light.map(|l| match l {
+            Light::Green => 0,
+            Light::Amber => 1,
+            Light::Red => 2,
+        });
+        if light != looks.light && !looks.decor.is_empty() {
+            let first = looks.phases.len();
+            for k in 0..looks.decor.len() {
+                let pose = (Some(k) == light).then(|| actor_pose(0.0, 0.0, 0.0, 0.0));
+                self.background
+                    .set_actor_pose(queue, first + k, pose.as_ref())
+                    .expect("crossing");
+            }
+            looks.light = light;
         }
     }
 

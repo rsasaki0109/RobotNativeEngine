@@ -90,7 +90,54 @@ lavapipe differ slightly from run to run, and the two runs above part at the sec
 Runs on ground truth repeat exactly. Headless with localization the drive takes 6 minutes on
 CPU (about 570 front-camera renders and fixes).
 
+## The crowd (`--crowd`)
+
+The street's walkers, cyclists, dog walkers, strollers and cars, and a zebra crossing with a
+traffic light, are a port of the visloc-rs simulator's crowd (`people.Crowd`, in
+`crowd.rs`).
+
+- **Start.** visloc-rs `rne_crowd.py` writes the bundle's `crowd.json`: who starts where,
+  how fast and which way, from its crowd built with the run's seed.
+- **Looks.** It also writes `crowd/*.ply`: every agent's gaussians at 12 gait phases (a
+  car's wheel turn and shadow, padded to one count per agent), and the crossing at each
+  light state.
+- **Behaviour.** People move along the route at a side offset from the walk.
+  - They step aside, follow or stop short of whoever is ahead, so footprints never overlap
+    by more than 2 cm.
+  - They keep inside the pavement's edge except on the crossing, and within 0.9 m of the
+    walk between kerbs.
+  - Now and then they stand still or drift across, and they turn back after 8 s stuck.
+  - Walkers who reach the crossing on red mostly cross it and come back.
+  - Cars keep right, brake for the light and for whoever is ahead, and U-turn in a half
+    circle at the road's ends.
+  - The behaviour's randomness is seeded (`--seed`).
+- **Drawing.** Each agent is a splat actor. Its gait phase is swapped in with
+  `GaussianSplatBackground::replace_actor_asset` (new: same count, rewritten in place), so
+  the 11 agents add 41,000 gaussians rather than one actor per phase.
+- **The robot.** People keep 0.6 m from the robot's centre. The robot bends its pure-pursuit
+  command round them with `rne_nav::avoid_velocities`: their footprints, as seen from where
+  it is and put round its estimate, with a 0.2 m margin. The margin shrinks to 0.05 m after
+  3 s held up and to 0 after 6 s, so it does not deadlock with someone who cannot pass.
+
+Ground truth, OverMaps360 street, 4 walkers, 2 cyclists, a dog walker, a stroller, 3 cars:
+
+| seed | goals | contacts (walls / people) | time | people on the road | nearest to the robot's body | nearest to a car | longest still |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 4/4 | 0 / 0 | 518 s | 0 | 6 cm clear | 1.48 m | 45 s |
+| 1 | 4/4 | 0 / 0 | 536 s | 0 | 10 cm clear | 1.23 m | 40 s |
+| 2 | 4/4 | 0 / 0 | 470 s | 0 | 9 cm clear | 0.86 m | 31 s |
+| 3 | 4/4 | 0 / 0 | 520 s | 0 | 10 cm clear | 1.65 m | 27 s |
+
+"People on the road" counts footprint samples within 3.2 m of the road's centre line, off the
+crossing. Headless, each run takes about 2 s. With a front camera and a chase view each
+simulated second, 200 frames, it takes 6.5 minutes.
+
+The longest holds are the robot waiting by a sign post on the narrowest stretch, while a
+cyclist and a stroller come the other way. It always gets through, but slowly: the robot
+neither backs up nor turns round, as Nav2's recoveries would.
+
 ## Next
 
-The crowd and the cars from the visloc-rs simulator, as splat actors. The plan is in
-visloc-rs `docs/rne_migration.md`.
+- Media for this example (the robot drawn as the delivery robot, not a box).
+- The crowd with camera-only localization.
+- Recoveries for the robot when people hold it up.
