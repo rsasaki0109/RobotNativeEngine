@@ -1,0 +1,27 @@
+[package]
+name = "street_splat_nav"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+png = { workspace = true }
+rne_math = { workspace = true }
+rne_nav = { workspace = true }
+rne_render = { workspace = true }
+rne_render_3dgs = { workspace = true }
+rne_render_wgpu = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[[example]]
+name = "163_street_splat_nav"
+path = "main.rs"
