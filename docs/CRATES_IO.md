@@ -1,8 +1,9 @@
 # Publishing to crates.io
 
-Status: **nothing is published to crates.io yet.** The workspace is ready for
-it, and a dry run of every publishable crate passes. Publishing is a manual,
-irreversible step (see [Publishing](#publishing)).
+Status: **version 0.4.0 of all 35 publishable crates is on crates.io**
+(published from commit `275d655`). A dry run of the workspace passes in CI
+(`crates.io dry run`). Publishing is a manual, irreversible step (see
+[Publishing](#publishing)).
 
 The Python package is separate: `rne_py` ships to PyPI through
 `.github/workflows/pypi.yml`.
@@ -65,11 +66,17 @@ replaced or deleted, and the crate names become taken.
    ```
 
    crates.io rate-limits new crates (a short burst, then one every several
-   minutes), so all 35 can take hours. If it stops part-way, check which crates
-   reached crates.io and publish the remaining ones with `-p <name>` (a
-   published version cannot be uploaded again).
+   minutes), so all 35 take hours (0.4.0 took about five hours). The command
+   stops at the first rate-limit error. `cargo publish --workspace` does **not**
+   skip crates that are already published: rerunning it fails with
+   `crate <name>@<version> already exists on crates.io index`. Work out which
+   crates are missing (`curl -s -o /dev/null -w '%{http_code}\n'
+   https://crates.io/api/v1/crates/<name>/<version>` is `200` once published)
+   and rerun with `--exclude <name>` for every published crate, once the
+   rate-limit time in the error message has passed.
 4. Tag the release and publish `rne_py` to PyPI as usual.
 
-Consider adding the crates.io Trusted Publishing flow to a workflow once the
-first manual publish has created the crates (it is configured per existing
-crate).
+The crates now exist, so crates.io Trusted Publishing can be configured per
+crate and used from a workflow for later releases. Use a token scoped to
+`rne_*` with only the publish scopes for a manual publish, and revoke it
+afterwards.
