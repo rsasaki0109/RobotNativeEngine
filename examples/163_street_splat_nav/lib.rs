@@ -167,6 +167,7 @@ struct RawStreet {
     kerbs: Vec<Kerb>,
     ground: Option<RawGround>,
     credit: Option<String>,
+    robot_actor: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -202,6 +203,8 @@ pub struct Street {
     pub solid: OccupancyGrid,
     /// The map the robot plans on: the lane free, off it costly, walls occupied.
     pub lane: OccupancyGrid,
+    /// The robot drawn in the chase view (a splat actor PLY in the bundle), if any.
+    pub robot_actor: Option<PathBuf>,
     /// The footage's credit line.
     pub credit: String,
 }
@@ -253,6 +256,7 @@ impl Street {
             ground,
             solid: map("solid.rne.map")?,
             lane: map("lane.rne.map")?,
+            robot_actor: raw.robot_actor.map(|f| dir.join(f)),
             credit: raw.credit.unwrap_or_default(),
         })
     }
@@ -627,14 +631,8 @@ pub fn drive_localized(
             }
             let mut w = result.command.angular_rad_s;
             if let Some(crowd) = crowd.as_deref() {
-                let margin = held_margin(held_s);
-                let wanted = v;
-                (v, w) = avoid_people(crowd, config, [x, y, yaw], estimate, v, w, margin);
-                held_s = if wanted > 0.05 && v < 0.02 {
-                    held_s + config.step_s
-                } else {
-                    0.0
-                };
+                (v, w, held_s) =
+                    steer_round_people(crowd, config, [x, y, yaw], estimate, [v, w], held_s);
             }
             let nyaw = yaw + w * config.step_s;
             let nx = x + v * config.step_s * nyaw.cos();
@@ -656,7 +654,7 @@ pub fn drive_localized(
                 report.distance_m += d;
                 (x, y, yaw) = (nx, ny, nyaw);
                 speed = v;
-                d
+                d * v.signum() // backing up: negative
             };
             estimate = if localize.is_some() {
                 odometry_step(config, estimate, moved, w)
@@ -810,16 +808,33 @@ fn avoid_people(
     (command.linear_m_s, command.angular_rad_s)
 }
 
-/// How close the robot lets people come (m beyond its footprint) after `held_s` held up: the
-/// longer it waits, the closer, as people squeeze past each other.
-fn held_margin(held_s: f64) -> f64 {
-    if held_s > 6.0 {
+/// The command round the crowd and the time held up. The longer the robot is held up, the
+/// closer it lets people come (0.2 m margin, 0.05 m after 3 s, none after 6 s), as people
+/// squeeze past each other. Backing up instead was worse: with people all round, it backed
+/// into them, and runs deadlocked.
+fn steer_round_people(
+    crowd: &Crowd,
+    config: &NavConfig,
+    truth: [f64; 3],
+    estimate: Pose2d,
+    command: [f64; 2],
+    held_s: f64,
+) -> (f64, f64, f64) {
+    let [v, w] = command;
+    let margin = if held_s > 6.0 {
         0.0
     } else if held_s > 3.0 {
         0.05
     } else {
         0.2
-    }
+    };
+    let (nv, nw) = avoid_people(crowd, config, truth, estimate, v, w, margin);
+    let held = if v > 0.05 && nv < 0.02 {
+        held_s + config.step_s
+    } else {
+        0.0
+    };
+    (nv, nw, held)
 }
 
 /// Whether a circle of `radius_m` at (x, y) overlaps anyone's footprint.
@@ -848,11 +863,11 @@ fn accept_fix(config: &NavConfig, estimate: Pose2d, fix: Pose2d, since_s: f64) -
     ))
 }
 
-/// One step of wheel odometry: the distance the wheels really moved and the commanded yaw
-/// rate, with `config`'s errors.
+/// One step of wheel odometry: the distance the wheels really moved (negative backwards) and
+/// the commanded yaw rate, with `config`'s errors.
 fn odometry_step(config: &NavConfig, estimate: Pose2d, moved_m: f64, w_rad_s: f64) -> Pose2d {
     let ov = moved_m / config.step_s * (1.0 + config.odom_scale_error);
-    let moving = moved_m > 1e-6 || w_rad_s.abs() > 1e-6;
+    let moving = moved_m.abs() > 1e-6 || w_rad_s.abs() > 1e-6;
     let ow = w_rad_s * (1.0 + config.odom_yaw_scale_error)
         + if moving {
             config.odom_yaw_bias_rad_s
@@ -929,6 +944,7 @@ mod tests {
                 drop: 0.1,
             }]),
             ground: None,
+            robot_actor: None,
             solid: grid(solid),
             lane: grid(lane),
             credit: String::new(),

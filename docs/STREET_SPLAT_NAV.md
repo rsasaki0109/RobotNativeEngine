@@ -132,12 +132,18 @@ Ground truth, OverMaps360 street, 4 walkers, 2 cyclists, a dog walker, a strolle
 crossing. Headless, each run takes about 2 s. With a front camera and a chase view each
 simulated second, 200 frames, it takes 6.5 minutes.
 
-The longest holds are the robot waiting by a sign post on the narrowest stretch, while a
-cyclist and a stroller come the other way. It always gets through, but slowly: the robot
-neither backs up nor turns round, as Nav2's recoveries would.
+The robot stops for 6 to 15 s at a time where people crowd round it, once for 45 s, by a
+sign post on the narrowest stretch with a cyclist and a stroller coming the other way. It
+always gets through, but slowly. A back-up recovery (0.3 m after 5 s held up, with a fixed
+margin) was worse: with people all round, the robot backed into them (0.33 m into its body)
+and one run deadlocked for 522 s at 2/4 goals. The margin that shrinks while it waits stays.
+
+The chase view draws the delivery robot from the bundle's `robot.ply` (visloc-rs
+`rne_bundle.py` turns its robot model into gaussians). It is left out of the front camera,
+which sits in its mast.
 
 ## Next
 
-- Media for this example (the robot drawn as the delivery robot, not a box).
+- Media for this example.
 - The crowd with camera-only localization.
 - Recoveries for the robot when people hold it up.

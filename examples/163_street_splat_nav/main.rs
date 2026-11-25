@@ -17,7 +17,7 @@
 //! The robot plans on the bundle's lane map with `rne_nav` and follows the plan by pure
 //! pursuit (see the library). Each rendered frame has the robot's front camera (the
 //! bundle's camera height, 90 degree field of view) and a chase view 3.2 m behind and
-//! 2.75 m up, with the robot drawn as a box the size of the delivery robot.
+//! 2.75 m up, with the robot drawn from the bundle's `robot.ply` (else a box its size).
 
 use png::{BitDepth, ColorType, Encoder};
 use rne_math::{Quat, Transform3, Vec3};
@@ -211,6 +211,8 @@ struct Renderer {
     front: Camera,
     chase: Camera,
     looks: Option<Looks>,
+    /// The robot's actor (after the crowd's), when the bundle draws it.
+    robot: Option<usize>,
 }
 
 /// The crowd's looks: every agent's gaussians at each gait phase (actor `i` is agent `i`),
@@ -288,10 +290,15 @@ impl Renderer {
         let backend = WgpuRenderBackend::new().expect("wgpu backend");
         let environment =
             validate_gaussian_splat_manifest(&street.manifest()).expect("splat manifest");
+        let mut actors = looks.as_ref().map_or_else(Vec::new, Looks::actors);
+        let robot = street.robot_actor.as_ref().map(|path| {
+            actors.push(load_splat_actor(path).expect("robot actor"));
+            actors.len() - 1
+        });
         let background = GaussianSplatBackground::from_environment_with_actors(
             backend.device(),
             &environment,
-            looks.as_ref().map_or_else(Vec::new, Looks::actors),
+            actors.clone(),
         )
         .expect("splat background");
         Self {
@@ -301,6 +308,7 @@ impl Renderer {
             front: Camera::new(CAM_SIZE, CAM_SIZE, std::f64::consts::FRAC_PI_2),
             chase: Camera::new(CHASE_WIDTH, CHASE_HEIGHT, 60f64.to_radians()),
             looks,
+            robot,
         }
     }
 
@@ -341,6 +349,12 @@ impl Renderer {
 
     /// The front camera at the true pose, RGBA8.
     fn front(&mut self, street: &Street, s: &RobotState) -> rne_render::ImageFrame {
+        if let Some(index) = self.robot {
+            // the camera sits in the robot's mast: leave the robot out of its own view
+            self.background
+                .set_actor_pose(self.backend.queue(), index, None)
+                .expect("robot actor");
+        }
         let heading = Quat::from_rotation_y(s.yaw_rad);
         let body = (heading * Quat::from_rotation_z(s.pitch_rad)).normalize();
         let base = map_to_rne(s.x_m, s.y_m, s.z_m);
@@ -395,20 +409,32 @@ impl Renderer {
             (heading * look_forward * Quat::from_rotation_x(-16f64.to_radians())).normalize(),
         );
         let mut foreground = RenderScene::new();
-        foreground.items.push(RenderSceneItem {
-            transform: Transform3 {
-                translation: base + body * Vec3::new(0.0, BODY_M[1] / 2.0 + 0.08, 0.0),
-                rotation: body,
+        if let Some(index) = self.robot {
+            let z_up_to_y_up = Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2);
+            let pose = Transform3 {
+                translation: base,
+                rotation: (body * z_up_to_y_up).normalize(),
                 scale: Vec3::ONE,
-            },
-            shape: VisualShape::Box {
-                size_m: Vec3::new(BODY_M[0], BODY_M[1], BODY_M[2]),
-            },
-            color_rgba: [0.93, 0.93, 0.9, 1.0],
-            mesh: None,
-            base_color_texture: None,
-            material: Default::default(),
-        });
+            };
+            self.background
+                .set_actor_pose(self.backend.queue(), index, Some(&pose))
+                .expect("robot actor");
+        } else {
+            foreground.items.push(RenderSceneItem {
+                transform: Transform3 {
+                    translation: base + body * Vec3::new(0.0, BODY_M[1] / 2.0 + 0.08, 0.0),
+                    rotation: body,
+                    scale: Vec3::ONE,
+                },
+                shape: VisualShape::Box {
+                    size_m: Vec3::new(BODY_M[0], BODY_M[1], BODY_M[2]),
+                },
+                color_rgba: [0.93, 0.93, 0.9, 1.0],
+                mesh: None,
+                base_color_texture: None,
+                material: Default::default(),
+            });
+        }
         let hybrid = HybridRenderScene::new(self.environment.clone(), foreground);
         let image = render_hybrid_scene_camera(
             &mut self.backend,
