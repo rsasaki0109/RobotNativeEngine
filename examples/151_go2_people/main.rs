@@ -1709,6 +1709,8 @@ fn run(
     let mut safety_hold_until_s = f64::NEG_INFINITY;
     let mut retreat_until_s = None;
     let mut person_observations = Vec::new();
+    let mut people_backed_away_from = Vec::new();
+    let mut retreat_person_id = None;
     let task_walls: Vec<Wall> = task
         .walls
         .iter()
@@ -1888,25 +1890,39 @@ fn run(
             })
             .collect();
         let (mut next, chosen) = controller.command(&plan_tracks, odom, time_s, speed_now);
-        let mut blocking_person = static_person_blocking(&static_people);
+        let mut blocker = static_person_blocking(&static_people).map(|c| (c, None));
         if people_awareness && safety {
+            people_backed_away_from.retain(|id| {
+                !person_observations.iter().any(|p| {
+                    p.id == *id
+                        && p.observed
+                        && (p.position_m[0] - odom[0]).hypot(p.position_m[1] - odom[1])
+                            > SAFETY_AHEAD_M.1
+                })
+            });
+            let active_retreat = retreat_until_s.is_some_and(|end_s| time_s < end_s);
             let (sin, cos) = odom[2].sin_cos();
             let nearby_people = person_observations
                 .iter()
                 .filter(|p| !p.observed || p.may_be_yielding(time_s))
                 .filter(|p| controller.target != Some(p.id))
+                .filter(|p| {
+                    !people_backed_away_from.contains(&p.id)
+                        || (active_retreat && retreat_person_id == Some(p.id))
+                })
                 .map(|p| {
                     let [x, y] = [p.position_m[0] - odom[0], p.position_m[1] - odom[1]];
-                    [cos * x + sin * y, -sin * x + cos * y]
+                    ([cos * x + sin * y, -sin * x + cos * y], Some(p.id))
                 })
-                .filter(|c| {
+                .filter(|(c, _)| {
                     c[0] >= 0.0 && c[0] <= RETREAT_TRIGGER_M && c[1].abs() < SAFETY_HALF_WIDTH_M
                 });
-            blocking_person = blocking_person
+            blocker = blocker
                 .into_iter()
                 .chain(nearby_people)
-                .min_by(|a, b| a[0].total_cmp(&b[0]));
+                .min_by(|a, b| a.0[0].total_cmp(&b.0[0]));
         }
+        let blocking_person = blocker.map(|(position, _)| position);
         if let Some(c) = blocking_person {
             safety_hold_until_s = safety_hold_until_s.max(time_s + SAFETY_HOLD_S);
             // Turn away from them until they are out of the way: a
@@ -1920,6 +1936,7 @@ fn run(
             next.yaw_rate_rad_s = away * MAX_YAW_RATE_RAD_S;
         }
         let blocked = time_s < safety_hold_until_s;
+        let starting_retreat = retreat_until_s.is_none();
         let retreating = safety_retreat(
             &mut retreat_until_s,
             time_s,
@@ -1927,6 +1944,12 @@ fn run(
             blocking_person.is_some_and(|c| c[0] <= RETREAT_TRIGGER_M),
             controller.rear_clear,
         );
+        if starting_retreat && retreating {
+            retreat_person_id = blocker.and_then(|(_, id)| id);
+            if let Some(id) = retreat_person_id {
+                people_backed_away_from.push(id);
+            }
+        }
         if let Some(end_s) = retreat_until_s {
             safety_hold_until_s = safety_hold_until_s.max(end_s);
         }

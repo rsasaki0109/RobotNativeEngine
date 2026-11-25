@@ -367,7 +367,9 @@ default rule controller:
   guarded retreat if the observation drops out or if the person was
   walking and has been observed standing still for at least 0.5 s.
   A stop is evidence that someone may be yielding. The reason for the
-  stop remains unknown. The selected follow target is exempt.
+  stop remains unknown. The selected follow target is exempt. After a
+  retreat, the same track can trigger another only once it has been
+  observed farther than 1.25 m away.
 
 ```sh
 cargo run --release -p go2_people --example 151_go2_people -- \
@@ -381,6 +383,13 @@ observation flag and the yielding estimate. A single LiDAR frame cannot
 establish whether an unobserved person is occluded or has left. The radius
 used to protect people in the map can also temporarily exclude a nearby
 piece of structure.
+
+The first awareness run eliminated contacts in 24 reactive crowd trials
+(eight each for `nearest+map`, `tracker`, and `tracker+map`). One
+`tracker` trial timed out with 5.47 m remaining. Its trace showed seven
+retreats from the same person as observations and the yielding estimate
+flickered. The updated controller requires separation before it can
+retreat again for that track.
 
 With the default controller and reverse enabled, scripted crowd contact
 runs fell from 15 to 14 out of 64. Reactive crowd had three contact runs
