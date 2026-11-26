@@ -523,6 +523,11 @@ river banks, car parks, and a start with no idea where it is.
 
 ![A synthetic suburb: GNSS takes charge across 500 m of fields where the LiDAR sees only the ground; the localizer without GNSS, which has neither the RTK positions nor the dual-antenna heading, curves 235 m off](../../docs/media/plateau-gnss-suburb.gif)
 
+The same run from a low camera behind the robot (`--render-cinematic`,
+encoded with `--width 640 --colors 192`):
+
+![The suburb from behind the robot: houses, parked cars and utility poles, then the fields where only GNSS holds it](../../docs/media/plateau-gnss-suburb-promo.gif)
+
 ![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 
 ### An aged map (`--aged-map`)
