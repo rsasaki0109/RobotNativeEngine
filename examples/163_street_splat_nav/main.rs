@@ -12,6 +12,7 @@
 //! --loc-args "ARGS"  extra localizer flags (default: the Nav2 runs' tuned ones)
 //! --crowd            add the bundle's crowd (crowd.json: walkers, cyclists, cars, a crossing)
 //! --seed N           seeds the crowd's behaviour (default 0)
+//! --replan-after S   held up by people this long, plan again round them (default 0: never)
 //! ```
 //!
 //! The robot plans on the bundle's lane map with `rne_nav` and follows the plan by pure
@@ -36,7 +37,9 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 use street_splat_nav::crowd::{Crowd, Light};
-use street_splat_nav::{drive_localized, map_to_rne, CrowdStats, NavConfig, RobotState, Street};
+use street_splat_nav::{
+    drive_localized, map_to_rne, CrowdStats, DriveReport, NavConfig, RobotState, Street,
+};
 
 /// The tuned localizer flags of the visloc-rs Nav2 runs.
 const TUNED: &str =
@@ -121,7 +124,10 @@ fn main() {
     writeln!(log, "t_s,x,y,z,yaw,pitch,speed,goal").unwrap();
     let mut next_frame = 0.0;
     let mut frame = 0usize;
-    let config = NavConfig::default();
+    let mut config = NavConfig::default();
+    if let Some(s) = arg("--replan-after") {
+        config.replan_after_s = s.parse().expect("seconds");
+    }
     let use_fixes = arg("--localizer").is_some();
     let mut stats = CrowdStats::default();
     let mut people_log = BufWriter::new(File::create(out.join("people.csv")).expect("people.csv"));
@@ -167,13 +173,20 @@ fn main() {
     )
     .expect("drive");
     log.flush().unwrap();
-    let json = format!(
+    let json = report_json(&report, &stats, frame);
+    fs::write(out.join("report.json"), &json).expect("report.json");
+    print!("{json}");
+}
+
+/// The drive's numbers as one line of JSON.
+fn report_json(report: &DriveReport, stats: &CrowdStats, frame: usize) -> String {
+    format!(
         "{{\"reached\": {}, \"goals\": {}, \"contacts\": {}, \"time_s\": {:.1}, \"distance_m\": {:.1}, \
          \"kerb_time_s\": {:.1}, \"kerb_max_speed_m_s\": {:.3}, \"min_solid_clearance_m\": {:.2}, \
          \"walk_distance_median_m\": {:.2}, \"walk_distance_max_m\": {:.2}, \"frames\": {frame}, \
          \"fixes_attempted\": {}, \"fixes_accepted\": {}, \"fixes_rejected\": {}, \
          \"pose_error_rmse_m\": {:.3}, \"pose_error_median_m\": {:.3}, \"pose_error_max_m\": {:.3}, \
-         \"people_contacts\": {}, \"crowd_samples\": {}, \"people_on_road\": {}, \
+         \"people_contacts\": {}, \"replans\": {}, \"crowd_samples\": {}, \"people_on_road\": {}, \
          \"people_in_robot_body_m\": {:.3}, \"people_in_cars_m\": {:.3}, \"longest_still_s\": {:.1}, \
          \"trajectory_hash\": \"{:016x}\"}}\n",
         report.reached,
@@ -193,15 +206,14 @@ fn main() {
         report.pose_error_median_m,
         report.pose_error_max_m,
         report.people_contacts,
+        report.replans,
         stats.samples,
         stats.on_road,
         stats.body_intrusion_m,
         stats.car_intrusion_m,
         stats.longest_still_s,
         report.trajectory_hash
-    );
-    fs::write(out.join("report.json"), &json).expect("report.json");
-    print!("{json}");
+    )
 }
 
 struct Renderer {
