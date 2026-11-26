@@ -25,6 +25,7 @@ pub mod lio_inertial;
 pub mod localization;
 pub mod odometry3d;
 pub mod point_to_plane;
+pub mod pointcloud_map;
 pub mod pose_graph;
 pub mod pose_graph3d;
 pub mod relocalize;
@@ -66,6 +67,9 @@ pub use odometry3d::{voxel_downsample, IcpOdometry, IcpOdometryConfig, IcpOdomet
 pub use point_to_plane::{
     estimate_normals, IcpPointToPlane, PointToPlaneConfig, PointToPlaneError, PointToPlaneResult,
     VoxelPointIndex,
+};
+pub use pointcloud_map::{
+    PointCloudMap, PointCloudMapError, PointCloudMatch, PointCloudMatchConfig,
 };
 pub use pose_graph::{PoseGraph, PoseGraphEdge, PoseGraphError};
 pub use pose_graph3d::{PoseGraph3d, PoseGraph3dEdge, PoseGraph3dError, POSE3D_DIM};

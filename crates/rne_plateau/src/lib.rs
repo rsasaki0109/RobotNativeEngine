@@ -305,6 +305,18 @@ pub struct SourceTriangle {
     /// longitude degrees for geographic CRSs), wound like the source polygon
     /// (counter-clockwise seen from outside in `CityGML`).
     pub vertices: [[f64; 3]; 3],
+    /// The surface's photo texture, when its polygon has one.
+    pub texture: Option<TriangleTexture>,
+}
+
+/// Where a triangle samples its building's photo texture.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TriangleTexture {
+    /// Index into [`BuildingTriangles::images`].
+    pub image: u32,
+    /// Texture coordinates of the three vertices (`CityGML`'s: origin at the
+    /// image's lower left, v up).
+    pub uv: [[f64; 2]; 3],
 }
 
 /// A building's triangulated LOD2 boundary surfaces (or LOD1 solid).
@@ -318,76 +330,84 @@ pub struct BuildingTriangles {
     pub measured_height_m: Option<f64>,
     /// Triangles of every surface.
     pub triangles: Vec<SourceTriangle>,
+    /// Image URIs of the building's photo textures, relative to the
+    /// `CityGML` file (`app:ParameterizedTexture`).
+    pub images: Vec<String>,
 }
 
 /// Parses and triangulates every building of a `CityGML` document without
 /// writing any asset, for consumers that need raw geometry (for example a
 /// GNSS ray tracer). Buildings are sorted by id; polygons that cannot be
-/// triangulated are skipped.
+/// triangulated are skipped. Photo textures (`app:ParameterizedTexture`) are
+/// attached where the polygon's texture coordinates match its outer ring;
+/// a texture that does not fit is left off rather than reported.
 ///
 /// # Errors
 ///
 /// Returns an error when the XML is malformed or a building has no id or
 /// invalid coordinates.
 pub fn parse_building_triangles(xml: &str) -> Result<Vec<BuildingTriangles>, ImportError> {
+    parse_feature_triangles(xml, "Building")
+}
+
+/// Parses and triangulates every bridge of a `CityGML` bridge document
+/// (`brid:Bridge`, including pedestrian decks and railway viaducts) like
+/// [`parse_building_triangles`]. PLATEAU's LOD2 bridges have no semantic
+/// surfaces, so every triangle is [`BuildingSurface::Unknown`].
+///
+/// # Errors
+///
+/// Returns an error when the XML is malformed or a bridge has no id or
+/// invalid coordinates.
+pub fn parse_bridge_triangles(xml: &str) -> Result<Vec<BuildingTriangles>, ImportError> {
+    parse_feature_triangles(xml, "Bridge")
+}
+
+fn parse_feature_triangles(
+    xml: &str,
+    feature: &str,
+) -> Result<Vec<BuildingTriangles>, ImportError> {
     let document = Document::parse(xml).map_err(|error| ImportError::Xml(error.to_string()))?;
     let source_crs = document
         .descendants()
         .find_map(|node| node.attribute("srsName"))
         .map(str::to_owned);
     let mode = resolve_coordinate_mode(CoordinateMode::Auto, source_crs.as_deref());
-    let mut buildings = parse_buildings(&document, &HashMap::new())?;
+    let appearances = parse_appearance_textures(&document, false)?;
+    let mut buildings = parse_features(&document, feature, &appearances, false)?;
     buildings.sort_by(|left, right| left.id.cmp(&right.id));
     Ok(buildings
         .into_iter()
         .map(|building| {
             let mut triangles = Vec::new();
+            let mut images: Vec<String> = Vec::new();
             for polygon in &building.polygons {
-                let Some(first) = polygon.geometry.exterior.first() else {
+                // A texture fits only an outer ring with one UV per vertex.
+                let texture = polygon.texture.as_ref().filter(|t| {
+                    polygon.geometry.interiors.is_empty()
+                        && t.texcoords.len() == polygon.geometry.exterior.len()
+                });
+                let image = texture.map(|t| {
+                    images
+                        .iter()
+                        .position(|uri| *uri == t.image_uri)
+                        .unwrap_or_else(|| {
+                            images.push(t.image_uri.clone());
+                            images.len() - 1
+                        }) as u32
+                });
+                let Some((source, indices)) = triangulate_source(&polygon.geometry, mode) else {
                     continue;
                 };
-                // Triangulate in a local metric frame around the polygon.
-                let origin = SourceOrigin {
-                    first_deg_or_m: first.first_deg_or_m,
-                    second_deg_or_m: first.second_deg_or_m,
-                    height_m: first.height_m,
-                };
-                let local = |ring: &[SourcePoint]| -> Vec<[f64; 3]> {
-                    ring.iter()
-                        .map(|p| source_to_local(*p, mode, origin))
-                        .collect()
-                };
-                let exterior = local(&polygon.geometry.exterior);
-                let interiors: Vec<Vec<[f64; 3]>> = polygon
-                    .geometry
-                    .interiors
-                    .iter()
-                    .map(|r| local(r))
-                    .collect();
-                let Ok(indices) = triangulate_polygon_with_holes(&exterior, &interiors) else {
-                    continue;
-                };
-                let source: Vec<SourcePoint> = polygon
-                    .geometry
-                    .exterior
-                    .iter()
-                    .chain(polygon.geometry.interiors.iter().flatten())
-                    .copied()
-                    .collect();
-                let points: Vec<[f64; 3]> = exterior
-                    .iter()
-                    .chain(interiors.iter().flatten())
-                    .copied()
-                    .collect();
-                let ring_normal = newell_normal(&exterior);
                 for [a, b, c] in indices {
-                    let n = triangle_normal(points[a], points[b], points[c]);
-                    let dot = n[0] * ring_normal[0] + n[1] * ring_normal[1] + n[2] * ring_normal[2];
-                    let [a, b, c] = if dot < 0.0 { [a, c, b] } else { [a, b, c] };
                     let triple = |p: SourcePoint| [p.first_deg_or_m, p.second_deg_or_m, p.height_m];
                     triangles.push(SourceTriangle {
                         surface: polygon.surface,
                         vertices: [triple(source[a]), triple(source[b]), triple(source[c])],
+                        texture: texture.zip(image).map(|(t, image)| TriangleTexture {
+                            image,
+                            uv: [t.texcoords[a], t.texcoords[b], t.texcoords[c]],
+                        }),
                     });
                 }
             }
@@ -395,6 +415,115 @@ pub fn parse_building_triangles(xml: &str) -> Result<Vec<BuildingTriangles>, Imp
                 id: building.id,
                 lod: building.lod,
                 measured_height_m: building.measured_height_m,
+                triangles,
+                images,
+            }
+        })
+        .collect())
+}
+
+/// Triangulates a polygon in a local metric frame around it: the source
+/// points (outer ring, then holes) and triangles wound like the outer ring.
+fn triangulate_source(
+    polygon: &ParsedPolygon,
+    mode: CoordinateMode,
+) -> Option<(Vec<SourcePoint>, Vec<[usize; 3]>)> {
+    let first = polygon.exterior.first()?;
+    let origin = SourceOrigin {
+        first_deg_or_m: first.first_deg_or_m,
+        second_deg_or_m: first.second_deg_or_m,
+        height_m: first.height_m,
+    };
+    let local = |ring: &[SourcePoint]| -> Vec<[f64; 3]> {
+        ring.iter()
+            .map(|p| source_to_local(*p, mode, origin))
+            .collect()
+    };
+    let exterior = local(&polygon.exterior);
+    let interiors: Vec<Vec<[f64; 3]>> = polygon.interiors.iter().map(|r| local(r)).collect();
+    let indices = triangulate_polygon_with_holes(&exterior, &interiors).ok()?;
+    let source: Vec<SourcePoint> = polygon
+        .exterior
+        .iter()
+        .chain(polygon.interiors.iter().flatten())
+        .copied()
+        .collect();
+    let points: Vec<[f64; 3]> = exterior
+        .iter()
+        .chain(interiors.iter().flatten())
+        .copied()
+        .collect();
+    let ring_normal = newell_normal(&exterior);
+    let indices = indices
+        .into_iter()
+        .map(|[a, b, c]| {
+            let n = triangle_normal(points[a], points[b], points[c]);
+            let dot = n[0] * ring_normal[0] + n[1] * ring_normal[1] + n[2] * ring_normal[2];
+            if dot < 0.0 {
+                [a, c, b]
+            } else {
+                [a, b, c]
+            }
+        })
+        .collect();
+    Some((source, indices))
+}
+
+/// A road's triangulated surface (`tran:Road`, LOD1 or the traffic areas
+/// of LOD2/3), in source coordinates.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RoadTriangles {
+    /// `gml:id` of the road.
+    pub id: String,
+    /// `tran:function` codes of the road.
+    pub functions: Vec<String>,
+    /// Triangles as `[first, second, height]` source triples.
+    pub triangles: Vec<[[f64; 3]; 3]>,
+}
+
+/// Parses and triangulates every road of a `CityGML` transportation
+/// document, for drawing. Roads are sorted by id; polygons that cannot be
+/// triangulated are skipped.
+///
+/// # Errors
+///
+/// Returns an error when the XML is malformed or a road has no id or
+/// invalid coordinates.
+pub fn parse_road_triangles(xml: &str) -> Result<Vec<RoadTriangles>, ImportError> {
+    let document = Document::parse(xml).map_err(|error| ImportError::Xml(error.to_string()))?;
+    let source_crs = document
+        .descendants()
+        .find_map(|node| node.attribute("srsName"))
+        .map(str::to_owned);
+    let mode = resolve_coordinate_mode(CoordinateMode::Auto, source_crs.as_deref());
+    let mut roads = parse_roads(&document)?;
+    roads.sort_by(|left, right| left.id.cmp(&right.id));
+    Ok(roads
+        .into_iter()
+        .map(|road| {
+            let polygons = if road.polygons.is_empty() {
+                road.areas
+                    .iter()
+                    .flat_map(|area| &area.polygons)
+                    .collect::<Vec<_>>()
+            } else {
+                road.polygons.iter().collect()
+            };
+            let mut triangles = Vec::new();
+            for polygon in polygons {
+                let Some((source, indices)) = triangulate_source(polygon, mode) else {
+                    continue;
+                };
+                let triple = |p: SourcePoint| [p.first_deg_or_m, p.second_deg_or_m, p.height_m];
+                triangles.extend(
+                    indices
+                        .into_iter()
+                        .map(|[a, b, c]| [triple(source[a]), triple(source[b]), triple(source[c])]),
+                );
+            }
+            RoadTriangles {
+                id: road.id,
+                functions: road.functions,
                 triangles,
             }
         })
@@ -565,8 +694,8 @@ fn import_citygml_impl(
         .descendants()
         .find_map(|node| node.attribute("srsName"))
         .map(str::to_owned);
-    let appearances = parse_appearance_textures(&document)?;
-    let mut buildings = parse_buildings(&document, &appearances)?;
+    let appearances = parse_appearance_textures(&document, true)?;
+    let mut buildings = parse_features(&document, "Building", &appearances, true)?;
     buildings.sort_by(|left, right| left.id.cmp(&right.id));
     let mut roads = parse_roads(&document)?;
     roads.sort_by(|left, right| left.id.cmp(&right.id));
@@ -828,20 +957,26 @@ fn validate_options(options: &ImportOptions) -> Result<(), ImportError> {
     Ok(())
 }
 
+/// Texture bindings by polygon id. With `strict` false, malformed bindings
+/// are skipped instead of reported.
 fn parse_appearance_textures(
     document: &Document<'_>,
+    strict: bool,
 ) -> Result<HashMap<String, TextureBinding>, ImportError> {
     let mut textures = HashMap::new();
     for parameterized in document
         .descendants()
         .filter(|node| node.is_element() && node.tag_name().name() == "ParameterizedTexture")
     {
-        let image_uri = descendant_text(parameterized, "imageURI").ok_or_else(|| {
-            ImportError::InvalidTexture {
-                uri: "<missing>".into(),
-                message: "ParameterizedTexture has no imageURI".into(),
+        let Some(image_uri) = descendant_text(parameterized, "imageURI") else {
+            if strict {
+                return Err(ImportError::InvalidTexture {
+                    uri: "<missing>".into(),
+                    message: "ParameterizedTexture has no imageURI".into(),
+                });
             }
-        })?;
+            continue;
+        };
         for target in parameterized
             .descendants()
             .filter(|node| node.is_element() && node.tag_name().name() == "target")
@@ -854,20 +989,33 @@ fn parse_appearance_textures(
             else {
                 continue;
             };
-            let coordinates = target
+            let parsed = target
                 .descendants()
                 .find(|node| node.is_element() && node.tag_name().name() == "textureCoordinates")
                 .ok_or_else(|| ImportError::InvalidTexture {
                     uri: image_uri.clone(),
                     message: format!("target #{polygon_id} has no textureCoordinates"),
-                })?;
-            let values = parse_numbers(coordinates.text().unwrap_or_default(), polygon_id)?;
-            if values.len() < 6 || !values.len().is_multiple_of(2) {
-                return Err(ImportError::InvalidTexture {
-                    uri: image_uri.clone(),
-                    message: format!("target #{polygon_id} must contain at least three UV pairs"),
+                })
+                .and_then(|coordinates| {
+                    parse_numbers(coordinates.text().unwrap_or_default(), polygon_id)
+                })
+                .and_then(|values| {
+                    if values.len() < 6 || !values.len().is_multiple_of(2) {
+                        Err(ImportError::InvalidTexture {
+                            uri: image_uri.clone(),
+                            message: format!(
+                                "target #{polygon_id} must contain at least three UV pairs"
+                            ),
+                        })
+                    } else {
+                        Ok(values)
+                    }
                 });
-            }
+            let values = match parsed {
+                Ok(values) => values,
+                Err(error) if strict => return Err(error),
+                Err(_) => continue,
+            };
             let mut texcoords: Vec<[f64; 2]> = values
                 .chunks_exact(2)
                 .map(|value| [value[0], value[1]])
@@ -879,7 +1027,7 @@ fn parse_appearance_textures(
                 image_uri: image_uri.clone(),
                 texcoords,
             };
-            if textures.insert(polygon_id.to_owned(), binding).is_some() {
+            if textures.insert(polygon_id.to_owned(), binding).is_some() && strict {
                 return Err(ImportError::InvalidTexture {
                     uri: image_uri.clone(),
                     message: format!("polygon #{polygon_id} has multiple texture targets"),
@@ -890,15 +1038,19 @@ fn parse_appearance_textures(
     Ok(textures)
 }
 
-fn parse_buildings(
+/// Buildings (or other `feature` elements, such as `Bridge`) with their polygons. With `strict` false, a texture that does
+/// not fit its polygon is kept for the caller to check instead of reported.
+fn parse_features(
     document: &Document<'_>,
+    feature: &str,
     appearances: &HashMap<String, TextureBinding>,
+    strict: bool,
 ) -> Result<Vec<ParsedBuilding>, ImportError> {
     let mut seen = HashSet::new();
     let mut buildings = Vec::new();
     for node in document
         .descendants()
-        .filter(|node| node.is_element() && node.tag_name().name() == "Building")
+        .filter(|node| node.is_element() && node.tag_name().name() == feature)
     {
         let id = node
             .attributes()
@@ -940,7 +1092,7 @@ fn parse_buildings(
                     .as_ref()
                     .and_then(|polygon_id| appearances.get(polygon_id))
                     .cloned();
-                if let Some(texture) = &texture {
+                if let Some(texture) = texture.as_ref().filter(|_| strict) {
                     if !geometry.interiors.is_empty() {
                         return Err(ImportError::InvalidTexture {
                             uri: texture.image_uri.clone(),
@@ -2380,7 +2532,8 @@ mod tests {
             </CityModel>
         "#;
         let document = Document::parse(xml).expect("test XML");
-        let buildings = parse_buildings(&document, &HashMap::new()).expect("parse hole");
+        let buildings =
+            parse_features(&document, "Building", &HashMap::new(), true).expect("parse hole");
         let geometry = &buildings[0].polygons[0].geometry;
         assert_eq!(geometry.exterior.len(), 4);
         assert_eq!(geometry.interiors.len(), 1);
@@ -2451,6 +2604,36 @@ mod tests {
         assert!(roads[0].functions.is_empty());
         assert_eq!(roads[0].areas[0].functions, ["1010"]);
         assert_eq!(roads[0].areas[0].lod, 3);
+    }
+
+    #[test]
+    fn road_triangles_cover_the_road_surface() {
+        let xml = r#"
+            <core:CityModel
+                xmlns:core="urn:core" xmlns:gml="urn:gml" xmlns:tran="urn:tran">
+              <tran:Road gml:id="road-b">
+                <tran:function>3</tran:function>
+                <tran:lod1MultiSurface><gml:MultiSurface><gml:surfaceMember><gml:Polygon>
+                  <gml:exterior><gml:LinearRing><gml:posList>
+                    0 0 0 10 0 0 10 3 0 4 3 0 4 8 0 0 8 0 0 0 0
+                  </gml:posList></gml:LinearRing></gml:exterior>
+                </gml:Polygon></gml:surfaceMember></gml:MultiSurface></tran:lod1MultiSurface>
+              </tran:Road>
+            </core:CityModel>
+        "#;
+        let roads = parse_road_triangles(xml).expect("parse roads");
+        assert_eq!(roads.len(), 1);
+        assert_eq!(roads[0].functions, ["3"]);
+        // The L-shaped surface: 10 x 3 plus 4 x 5 square meters.
+        let area: f64 = roads[0]
+            .triangles
+            .iter()
+            .map(|[a, b, c]| {
+                0.5 * ((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])).abs()
+            })
+            .sum();
+        assert!((area - 50.0).abs() < 1.0e-9, "{area}");
+        assert_eq!(roads[0].triangles.len(), 4);
     }
 
     #[test]

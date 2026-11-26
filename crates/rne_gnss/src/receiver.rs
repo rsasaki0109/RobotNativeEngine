@@ -556,11 +556,12 @@ impl GnssReceiver {
             );
 
             for signal in signals {
-                // Four noise rows per satellite: GPS and QZSS use rows 0-1,
-                // Galileo rows 2-3 (so adding QZSS changes no other draw).
+                // Four noise rows per satellite: GPS, QZSS and BeiDou use rows
+                // 0-1, Galileo rows 2-3 (so adding a system changes no other
+                // draw).
                 let row = match signal {
-                    SignalKind::GpsL1Ca | SignalKind::QzsL1Ca => 0,
-                    SignalKind::GpsL2C | SignalKind::QzsL2C => 1,
+                    SignalKind::GpsL1Ca | SignalKind::QzsL1Ca | SignalKind::BdsB1I => 0,
+                    SignalKind::GpsL2C | SignalKind::QzsL2C | SignalKind::BdsB3I => 1,
                     SignalKind::GalE1 => 2,
                     SignalKind::GalE5a => 3,
                 };
