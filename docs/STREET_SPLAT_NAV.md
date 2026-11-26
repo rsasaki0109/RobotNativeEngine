@@ -196,6 +196,7 @@ Two things the first street had hidden came up:
 | crowd, 4 seeds | 4/4 each | 0 / 0 | 276 to 542 s | - | - |
 | camera only | 3/4 | 0 | 207 s | 175 of 415 | 16 / 7 / 61 cm |
 | camera only, crowd (seed 1) | 4/4 | 0 / 0 | 307 s | 310 of 614 | 11 / 6.5 / 40 cm |
+| camera only, `--min_inliers 12` | 4/4 | 0 | 218 s | 238 of 436 | 23 / 12 / 78 cm |
 
 The road is found on 3 of the 4 stretches, about 10 m right of the walk, with the
 crossing at 17 m. Nobody walks on it, and people keep at least 4.5 m from the cars.
@@ -204,6 +205,11 @@ Localization is the weak part here. Even with the true pose as the prior, half t
 camera's frames localize (25 of 50, 7 cm median). The renders are clean, but most of what
 the camera sees is lawn, sky and plain concrete: few features, against the brick facades of
 the first street (97 % with the prior).
+
+Lowering the localizer's inlier floor from 20 to 12 (`--loc-args`) brings 39 of the 50
+frames to a fix, and the drive reaches all 4 goals, but the extra fixes are poorer: the
+pose error is twice as large, and the 0.25 m gate turns away 120 of them. The fewer, better
+fixes of the default are kept.
 
 ## Next
 
