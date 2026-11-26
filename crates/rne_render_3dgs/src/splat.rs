@@ -126,6 +126,22 @@ impl GaussianSplatBackground {
         Ok(())
     }
 
+    /// Replaces actor `index`'s Gaussians (its own frame) with `asset`, which must have the
+    /// same count: a walking figure's next gait phase, say. The actor is hidden until the next
+    /// [`Self::set_actor_pose`].
+    pub fn replace_actor_asset(
+        &mut self,
+        queue: &wgpu::Queue,
+        index: usize,
+        asset: SplatActorAsset,
+    ) -> Result<(), GaussianSplatError> {
+        self.layout
+            .check_replacement(index, asset.len())
+            .map_err(GaussianSplatError::Actor)?;
+        self.actors[index] = asset;
+        self.set_actor_pose(queue, index, None)
+    }
+
     /// Stable renderer identity from the manifest.
     #[must_use]
     pub fn renderer_identity(&self) -> &str {

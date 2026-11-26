@@ -122,11 +122,34 @@ impl ActorLayout {
     pub(crate) fn len(&self) -> usize {
         self.ranges.len()
     }
+
+    /// Checks that `asset_len` Gaussians fit actor `index`'s range exactly.
+    pub(crate) fn check_replacement(&self, index: usize, asset_len: usize) -> Result<(), String> {
+        let (_, len) = self
+            .range(index)
+            .ok_or_else(|| format!("actor {index} out of range ({} loaded)", self.len()))?;
+        if asset_len == len {
+            Ok(())
+        } else {
+            Err(format!(
+                "actor {index} holds {len} Gaussians; a replacement must have the same count, not {asset_len}"
+            ))
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_replacement_must_fill_the_actor_exactly() {
+        let layout = ActorLayout::new(100, &[3, 5]);
+        assert!(layout.check_replacement(0, 3).is_ok());
+        assert!(layout.check_replacement(1, 5).is_ok());
+        assert!(layout.check_replacement(1, 4).is_err());
+        assert!(layout.check_replacement(2, 5).is_err());
+    }
     use glam::U8Vec4;
     use rne_math::{Quat, Vec3};
 
