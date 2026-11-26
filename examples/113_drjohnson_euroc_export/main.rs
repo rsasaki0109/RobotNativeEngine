@@ -18,10 +18,14 @@
 //!   route. Their positions go to `people.csv`.
 //! - `RNE_START_WAYPOINT=N`: start the route at waypoint N (0), for a query
 //!   episode that differs from the map's.
+//! - Always: `wheel_odom.tum`, the base's wheel odometry (2 % distance and
+//!   3 % turn error, see `wheel_odom.rs`) in its own z-up frame (x forward,
+//!   y left), seconds. The body is the IMU rotated by -90 deg about x.
 //! - `RNE_NO_PREVIEW=1`: skip the colour previews (every 20th `cam0` one is
 //!   kept) and the fixed overview camera, which halves the rendering.
 
 mod walkers;
+mod wheel_odom;
 
 use std::error::Error;
 use std::fs::{self, File};
@@ -360,6 +364,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         "#timestamp [ns],w_RS_S_x [rad s^-1],w_RS_S_y [rad s^-1],w_RS_S_z [rad s^-1],a_RS_S_x [m s^-2],a_RS_S_y [m s^-2],a_RS_S_z [m s^-2]\n",
     );
     let mut gt_tum = String::new();
+    let mut wheel = wheel_odom::WheelOdometry::new(11);
+    let mut wheel_tum = String::from("# timestamp tx ty tz qx qy qz qw\n");
     let mut frames = 0_u64;
     let mut imu_count = 0_u64;
 
@@ -492,6 +498,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             )?;
         }
 
+        let odometry = wheel.step(
+            observation.base_x_m,
+            observation.base_z_m,
+            observation.base_yaw_rad,
+        );
+        wheel_tum.push_str(&wheel_odom::tum_line(timestamp_ns, odometry));
         let q = Quat::from_rotation_y(observation.base_yaw_rad);
         gt_tum.push_str(&format!(
             "{timestamp_ns} {} {} {} {} {} {} {}\n",
@@ -507,6 +519,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     fs::write(output.join("mav0/cam1/data.csv"), cam1_csv)?;
     fs::write(output.join("mav0/imu0/data.csv"), imu_csv)?;
     fs::write(output.join("gt.tum"), gt_tum)?;
+    fs::write(output.join("wheel_odom.tum"), wheel_tum)?;
     if walkers.is_some() {
         fs::write(output.join("people.csv"), people_csv)?;
     }

@@ -120,6 +120,10 @@ RNE_WALKERS=walkers RNE_START_WAYPOINT=2 RNE_NO_PREVIEW=1 \
   cargo run --release -p drjohnson_euroc_export --example 113_drjohnson_euroc_export -- target/drjohnson_people
 ```
 
+Every export also writes `wheel_odom.tum`: the base's wheel odometry with a 2 % distance
+and 3 % turn error, in its own z-up frame (x forward, y left; the body is the IMU turned
+-90 degrees about x), which people walking past cannot disturb.
+
 visloc-rs measures its map localization among these walkers in
 `docs/dynamic_obstacle_localization.md`.
 

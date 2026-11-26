@@ -11,7 +11,9 @@ All notable changes to Robot Native Engine are documented in this file.
   phase following the distance walked (`people.csv` logs them); `RNE_WALKER_MODE=ahead` keeps
   them crossing just in front of the robot. `RNE_START_WAYPOINT` starts
   the route elsewhere for a query episode, and `RNE_NO_PREVIEW` skips the preview images.
-  The walkers' PLYs come from visloc-rs `walker_splat_plys.py`. See `docs/DEMOS.md`.
+  The walkers' PLYs come from visloc-rs `walker_splat_plys.py`. Every export also writes
+  `wheel_odom.tum`, the base's wheel odometry (2 % distance, 3 % turn error). See
+  `docs/DEMOS.md`.
 
 - Example 163 (`street_splat_nav`) drives a delivery robot along a real street rebuilt from
   a 360-degree video by visloc-rs (`real2sim.py --export-rne`, a *street bundle*):
