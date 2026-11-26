@@ -5,6 +5,11 @@
 //! for `RNE_WALKER_COUNT` walkers (default 4), scaled by `RNE_WALKER_SCALE`
 //! (default 1). Each walks back and forth along its own line across the
 //! route, cycling its gait phases with the distance walked.
+//!
+//! With `RNE_WALKER_MODE=ahead` they keep instead to the robot: walker `i`
+//! stays `AHEAD_M[i]` in front of it and crosses its view from side to side,
+//! as people walking just ahead of a robot do, so they hide much of what the
+//! camera sees.
 
 use std::path::{Path, PathBuf};
 
@@ -22,10 +27,17 @@ const LINES: &[([f64; 2], [f64; 2])] = &[
 ];
 const SPEEDS: &[f64] = &[0.8, 0.6, 0.7, 0.9, 0.75, 0.65];
 const STRIDE: f64 = 1.4;
+/// `ahead` mode: distance in front of the robot, sideways amplitude and
+/// period of each walker's crossing, in metres and seconds.
+const AHEAD_M: &[f64] = &[0.8, 1.2, 1.6, 2.0, 1.0, 1.4];
+const SWAY_M: &[f64] = &[0.6, 0.8, 1.0, 1.2, 0.7, 0.9];
+const SWAY_PERIOD_S: &[f64] = &[5.0, 6.0, 7.0, 8.0, 5.5, 6.5];
 
 pub(crate) struct Walkers {
     pub(crate) phases: Vec<Vec<SplatActorAsset>>,
     pub(crate) scale: f64,
+    /// `RNE_WALKER_MODE=ahead`: keep in front of the robot.
+    pub(crate) ahead: bool,
     shown: Vec<usize>,
 }
 
@@ -47,10 +59,12 @@ impl Walkers {
             "walkers: {count} x {} phases, scale {scale}",
             phases.first().map_or(0, Vec::len)
         );
+        let ahead = std::env::var("RNE_WALKER_MODE").is_ok_and(|mode| mode == "ahead");
         Some(Self {
             shown: vec![0; count],
             phases,
             scale,
+            ahead,
         })
     }
 
@@ -84,6 +98,47 @@ impl Walkers {
         (pose, phase)
     }
 
+    /// `ahead` mode: walker `i` at time `t_s` in front of a robot at
+    /// (`base_x`, `base_z`) heading `base_yaw` (its forward is the base's +x),
+    /// facing the way it crosses; the gait follows the sideways distance.
+    pub(crate) fn state_ahead(
+        &self,
+        i: usize,
+        t_s: f64,
+        base_x: f64,
+        base_z: f64,
+        base_yaw: f64,
+    ) -> (Transform3, usize) {
+        let s = self.scale;
+        let (forward, side) = (
+            (base_yaw.cos(), -base_yaw.sin()),
+            (base_yaw.sin(), base_yaw.cos()),
+        );
+        let omega = std::f64::consts::TAU / SWAY_PERIOD_S[i];
+        let start = 1.3 * i as f64;
+        let angle = omega * t_s + start;
+        let sway = SWAY_M[i] * s * angle.sin();
+        let (x, z) = (
+            base_x + forward.0 * AHEAD_M[i] * s + side.0 * sway,
+            base_z + forward.1 * AHEAD_M[i] * s + side.1 * sway,
+        );
+        // Moving towards +side while cos > 0.
+        let sign = if angle.cos() >= 0.0 { 1.0 } else { -1.0 };
+        let yaw = (-(side.1 * sign)).atan2(side.0 * sign);
+        let z_up_to_y_up = Quat::from_rotation_x(-std::f64::consts::FRAC_PI_2);
+        let pose = Transform3 {
+            translation: Vec3::new(x, 0.0, z),
+            rotation: (Quat::from_rotation_y(yaw) * z_up_to_y_up).normalize(),
+            scale: Vec3::splat(s),
+        };
+        // Sideways distance walked: 4 amplitudes per period.
+        let periods = (angle - start) / std::f64::consts::TAU;
+        let walked = 4.0 * SWAY_M[i] * s * periods;
+        let phases = self.phases[i].len();
+        let phase = ((walked / (STRIDE * s)) * phases as f64).floor().max(0.0) as usize % phases;
+        (pose, phase)
+    }
+
     /// Whether walker `i` must swap to `phase`; records it.
     pub(crate) fn swap(&mut self, i: usize, phase: usize) -> bool {
         let changed = self.shown[i] != phase;
@@ -108,7 +163,34 @@ mod tests {
         Walkers {
             phases: vec![vec![SplatActorAsset::new(Vec::new()); phases]; count],
             scale,
+            ahead: false,
             shown: vec![0; count],
+        }
+    }
+
+    #[test]
+    fn ahead_walkers_stay_in_front_of_the_robot_and_cross_its_view() {
+        let w = walkers(4, 12, 1.0);
+        for (yaw, bx, bz) in [(0.0, -2.0, -4.0), (1.0, -1.0, -3.0), (-2.5, 0.5, 0.2)] {
+            let (forward, side) = (
+                (f64::cos(yaw), -f64::sin(yaw)),
+                (f64::sin(yaw), f64::cos(yaw)),
+            );
+            for i in 0..4 {
+                let mut lateral = Vec::new();
+                for k in 0..80 {
+                    let t = f64::from(k) * 0.1;
+                    let p = w.state_ahead(i, t, bx, bz, yaw).0.translation;
+                    let (dx, dz) = (p.x - bx, p.z - bz);
+                    let ahead = dx * forward.0 + dz * forward.1;
+                    assert!((ahead - AHEAD_M[i]).abs() < 1e-9);
+                    lateral.push(dx * side.0 + dz * side.1);
+                }
+                // It crosses: both sides within a period.
+                let max = lateral.iter().copied().fold(f64::MIN, f64::max);
+                let min = lateral.iter().copied().fold(f64::MAX, f64::min);
+                assert!(max > 0.5 * SWAY_M[i] && min < -0.5 * SWAY_M[i]);
+            }
         }
     }
 

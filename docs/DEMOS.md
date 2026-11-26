@@ -109,6 +109,8 @@ splat actors (sorted with the scene, so they occlude it and are occluded by
 it), pacing lines across the route with their gait phase following the
 distance walked. `DIR` holds `walker_<i>_phase_<k>.ply`, written by
 visloc-rs `ros2/visloc-ros2/gs/walker_splat_plys.py`.
+`RNE_WALKER_MODE=ahead` keeps them crossing from side to side just in front
+of the robot instead, so they hide much of its view.
 `RNE_START_WAYPOINT=N` starts the route elsewhere for a query episode, and
 `RNE_NO_PREVIEW=1` skips the preview images:
 

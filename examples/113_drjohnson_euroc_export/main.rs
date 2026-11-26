@@ -13,8 +13,9 @@
 //!
 //! - `RNE_WALKERS=DIR`: people walking across the route, as splat actors
 //!   sorted with the scene (see `walkers.rs`); `RNE_WALKER_COUNT` (4, at
-//!   most 6) and `RNE_WALKER_SCALE` (1). Their positions go to
-//!   `people.csv`.
+//!   most 6) and `RNE_WALKER_SCALE` (1). `RNE_WALKER_MODE=ahead` keeps them
+//!   crossing just in front of the robot instead of pacing lines across its
+//!   route. Their positions go to `people.csv`.
 //! - `RNE_START_WAYPOINT=N`: start the route at waypoint N (0), for a query
 //!   episode that differs from the map's.
 //! - `RNE_NO_PREVIEW=1`: skip the colour previews (every 20th `cam0` one is
@@ -335,7 +336,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map_err(|error| io::Error::other(format!("wgpu unavailable: {error}")))?;
     let splat_env = validate_gaussian_splat_manifest_with_override(&manifest, None)
         .map_err(|error| io::Error::other(format!("splat manifest: {error}")))?;
-    // Local experiment: walkers (RNE_WALKERS), a shifted start waypoint
+    // Optional: walkers (RNE_WALKERS), a shifted start waypoint
     // (RNE_START_WAYPOINT), no preview images (RNE_NO_PREVIEW).
     let mut walkers = walkers::Walkers::from_env();
     let mut background = match &walkers {
@@ -403,7 +404,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Some(w) = walkers.as_mut() {
                 let t_s = timestamp_ns as f64 * 1e-9;
                 for i in 0..w.phases.len() {
-                    let (pose, phase) = w.state(i, t_s);
+                    let (pose, phase) = if w.ahead {
+                        w.state_ahead(
+                            i,
+                            t_s,
+                            observation.base_x_m,
+                            observation.base_z_m,
+                            observation.base_yaw_rad,
+                        )
+                    } else {
+                        w.state(i, t_s)
+                    };
                     if w.swap(i, phase) {
                         background
                             .replace_actor_asset(backend.queue(), i, w.phases[i][phase].clone())

@@ -8,7 +8,8 @@ All notable changes to Robot Native Engine are documented in this file.
 
 - Example 113 (`drjohnson_euroc_export`) can put people in the Dr Johnson interior:
   `RNE_WALKERS=DIR` adds walkers as splat actors pacing lines across the route, their gait
-  phase following the distance walked (`people.csv` logs them). `RNE_START_WAYPOINT` starts
+  phase following the distance walked (`people.csv` logs them); `RNE_WALKER_MODE=ahead` keeps
+  them crossing just in front of the robot. `RNE_START_WAYPOINT` starts
   the route elsewhere for a query episode, and `RNE_NO_PREVIEW` skips the preview images.
   The walkers' PLYs come from visloc-rs `walker_splat_plys.py`. See `docs/DEMOS.md`.
 
