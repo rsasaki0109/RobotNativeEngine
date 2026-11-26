@@ -173,7 +173,39 @@ The chase view draws the delivery robot from the bundle's `robot.ply` (visloc-rs
 `rne_bundle.py` turns its robot model into gaussians). It is left out of the front camera,
 which sits in its mast.
 
+## A second street
+
+The same flow on another OverMaps360 walk, 3886d218: a concrete pavement between lawns
+beside a suburban road, 300 frames, 70 m. `real2sim.py --export-rne` took 1 h 40 min on
+4 CPU cores (SfM 39 min, 3DGS 34 min, map 17 min). `rne_crowd.py` added the crowd. Nothing
+was tuned for it.
+
+Two things the first street had hidden came up:
+
+- **The ground.** `make_gs_scene.py --terrain` took the ground as the capture camera's
+  height less the robot's camera height (1.2 m). OverMaps360 carries the camera on a pole
+  2.3 to 2.5 m up, so the ground came out about 1.2 m high, and the road search, which
+  looks near the ground, found no road. The ground is now the densest layer of the splat
+  under each camera.
+- **The road and pavement** now come from the splat in the export itself (`rne_bundle.py`),
+  as no ROS 2 run of this street exists.
+
+| | goals | contacts (walls / people) | time | fixes accepted | pose error RMSE / median / max |
+| --- | --- | --- | --- | --- | --- |
+| ground truth | 4/4 | 0 | 198 s | - | - |
+| crowd, 4 seeds | 4/4 each | 0 / 0 | 276 to 542 s | - | - |
+| camera only | 3/4 | 0 | 207 s | 175 of 415 | 16 / 7 / 61 cm |
+| camera only, crowd (seed 1) | 4/4 | 0 / 0 | 307 s | 310 of 614 | 11 / 6.5 / 40 cm |
+
+The road is found on 3 of the 4 stretches, about 10 m right of the walk, with the
+crossing at 17 m. Nobody walks on it, and people keep at least 4.5 m from the cars.
+
+Localization is the weak part here. Even with the true pose as the prior, half the front
+camera's frames localize (25 of 50, 7 cm median). The renders are clean, but most of what
+the camera sees is lawn, sky and plain concrete: few features, against the brick facades of
+the first street (97 % with the prior).
+
 ## Next
 
 - A recovery that keeps people off the robot's body while it squeezes past.
-- More streets: the same flow on another OverMaps360 walk.
+- Localization on low-texture streets (lawns, plain pavement).
