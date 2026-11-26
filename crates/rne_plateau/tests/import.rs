@@ -378,3 +378,76 @@ fn building_triangles_cover_roofs_and_walls_with_consistent_winding() {
         assert!(volume.abs() > 0.2 * unsigned, "{volume} vs {unsigned}");
     }
 }
+
+#[test]
+fn building_triangles_carry_their_photo_texture_coordinates() {
+    let xml = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/plateau_lod2_textured.gml"),
+    )
+    .expect("fixture");
+    let buildings = rne_plateau::parse_building_triangles(&xml).expect("parse");
+    let building = &buildings[0];
+    assert_eq!(building.images, ["appearance/facade.png"]);
+    let mut textured = 0;
+    for triangle in &building.triangles {
+        match (triangle.surface, triangle.texture) {
+            (rne_plateau::BuildingSurface::Wall, Some(texture)) => {
+                assert_eq!(texture.image, 0);
+                // The wall spans x 0..10 and height 0..10 with UV (x, z) / 10.
+                for (vertex, uv) in triangle.vertices.iter().zip(texture.uv) {
+                    assert!(
+                        (uv[0] - vertex[0] / 10.0).abs() < 1.0e-12,
+                        "{uv:?} {vertex:?}"
+                    );
+                    assert!(
+                        (uv[1] - vertex[2] / 10.0).abs() < 1.0e-12,
+                        "{uv:?} {vertex:?}"
+                    );
+                }
+                textured += 1;
+            }
+            (rne_plateau::BuildingSurface::Wall, None) => panic!("the wall lost its texture"),
+            (_, texture) => assert!(texture.is_none()),
+        }
+    }
+    assert_eq!(textured, 2);
+}
+
+#[test]
+fn bridges_parse_like_buildings() {
+    let xml = r##"
+        <core:CityModel xmlns:core="urn:core" xmlns:gml="urn:gml" xmlns:brid="urn:brid"
+            xmlns:app="urn:app">
+          <core:cityObjectMember>
+            <brid:Bridge gml:id="deck">
+              <brid:lod2MultiSurface><gml:MultiSurface><gml:surfaceMember>
+                <gml:Polygon gml:id="deck-top"><gml:exterior><gml:LinearRing><gml:posList>
+                  0 0 6 20 0 6 20 4 6 0 4 6 0 0 6
+                </gml:posList></gml:LinearRing></gml:exterior></gml:Polygon>
+              </gml:surfaceMember></gml:MultiSurface></brid:lod2MultiSurface>
+            </brid:Bridge>
+          </core:cityObjectMember>
+          <app:appearanceMember><app:Appearance><app:surfaceDataMember>
+            <app:ParameterizedTexture>
+              <app:imageURI>deck.jpg</app:imageURI>
+              <app:target uri="#deck-top"><app:TexCoordList>
+                <app:textureCoordinates ring="#r">0 0 1 0 1 1 0 1 0 0</app:textureCoordinates>
+              </app:TexCoordList></app:target>
+            </app:ParameterizedTexture>
+          </app:surfaceDataMember></app:Appearance></app:appearanceMember>
+        </core:CityModel>
+    "##;
+    let bridges = rne_plateau::parse_bridge_triangles(xml).expect("parse bridges");
+    assert_eq!(bridges.len(), 1);
+    assert_eq!(bridges[0].id, "deck");
+    assert_eq!(bridges[0].images, ["deck.jpg"]);
+    assert_eq!(bridges[0].triangles.len(), 2);
+    assert!(bridges[0]
+        .triangles
+        .iter()
+        .all(|t| t.surface == rne_plateau::BuildingSurface::Unknown && t.texture.is_some()));
+    // Buildings are not bridges.
+    assert!(rne_plateau::parse_building_triangles(xml)
+        .expect("parse")
+        .is_empty());
+}

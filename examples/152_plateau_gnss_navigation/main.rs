@@ -10,14 +10,22 @@
 //! ```
 
 // Shared with example 151, which uses all of it.
+mod avoid;
 mod crowd;
+mod explain;
 #[allow(dead_code)]
 #[path = "../151_gnss_lidar_navigation/gnss.rs"]
 mod gnss;
+mod lidar3d;
 mod nav;
 mod plateau;
 #[cfg(feature = "capture")]
 mod render;
+#[cfg(feature = "capture")]
+mod streets;
+mod suburb;
+mod traffic;
+mod urbannav;
 
 #[cfg(feature = "capture")]
 fn render_area(
@@ -28,6 +36,16 @@ fn render_area(
     run: &RunReport,
 ) -> Result<(), String> {
     render::render(dir, city, route, base, run).map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "capture")]
+fn preview_area(dir: &Path, city: &PlateauCity, route: &[(f64, f64)]) -> Result<(), String> {
+    render::preview(dir, city, route).map_err(|e| e.to_string())
+}
+
+#[cfg(not(feature = "capture"))]
+fn preview_area(_dir: &Path, _city: &PlateauCity, _route: &[(f64, f64)]) -> Result<(), String> {
+    Err("--render-preview needs `--features capture`".into())
 }
 
 #[cfg(not(feature = "capture"))]
@@ -61,9 +79,12 @@ struct Area {
     /// RTK reference station: a pole in a nearby park (latitude, longitude
     /// degrees), beyond the loaded buildings so its sky is open.
     base: (f64, f64),
+    /// Run only when named with `--area` (the open areas that show what
+    /// GNSS adds), not by default.
+    by_name_only: bool,
 }
 
-const AREAS: [Area; 2] = [
+const AREAS: [Area; 4] = [
     Area {
         name: "Shibuya",
         slug: "shibuya",
@@ -75,6 +96,7 @@ const AREAS: [Area; 2] = [
         waypoints: &[(-40.0, 47.0), (-180.0, 70.0), (25.0, 250.0), (-40.0, 47.0)],
         // Yoyogi Park, about 1.3 km north-west.
         base: (35.6690, 139.6950),
+        by_name_only: false,
     },
     Area {
         name: "Shinjuku",
@@ -92,8 +114,47 @@ const AREAS: [Area; 2] = [
         ],
         // Shinjuku Gyoen, about 1.4 km east-south-east.
         base: (35.6850, 139.7090),
+        by_name_only: false,
+    },
+    Area {
+        name: "Shinjuku Central Park",
+        slug: "park",
+        tiles: &["53394524", "53394525", "53394534", "53394535"],
+        // The park west of the Nishi-Shinjuku towers: open sky, and nothing
+        // a LiDAR map of buildings has within reach in the middle of it.
+        center: (35.6895, 139.6905),
+        ground_tp_m: 40.0,
+        // From the towers west into the park, its length north to south, and
+        // back.
+        waypoints: &[
+            (100.0, -60.0),
+            (-60.0, -10.0),
+            (-70.0, 200.0),
+            (-60.0, -200.0),
+            (100.0, -60.0),
+        ],
+        // Shinjuku Gyoen, about 1.8 km east-south-east.
+        base: (35.6850, 139.7090),
+        by_name_only: true,
+    },
+    Area {
+        name: "Suburb",
+        slug: "suburb",
+        // No tiles: [`suburb::build`], a straight road with houses at
+        // both ends and fields in the middle.
+        tiles: &[],
+        center: (35.7000, 139.4500),
+        ground_tp_m: 0.0,
+        waypoints: &[(-560.0, 0.0), (560.0, 0.0)],
+        // A field about 1 km south.
+        base: (35.6910, 139.4500),
+        by_name_only: true,
     },
 ];
+
+/// The synthetic suburb's road length and its open middle, meters.
+const SUBURB_LENGTH_M: f64 = 1200.0;
+const SUBURB_OPEN_M: f64 = 500.0;
 
 /// Radius of buildings loaded around each station, meters.
 const LOAD_RADIUS_M: f64 = 450.0;
@@ -104,6 +165,37 @@ const ANTENNA_HEIGHT_M: f64 = 1.5;
 const ELEVATION_MASK_DEG: f64 = 10.0;
 const SKY_EPOCH_S: f64 = 20_000.0;
 
+/// The area's PLATEAU buildings, or the synthetic suburb for an area
+/// without tiles.
+fn load_city(area: &Area, data: &Path) -> Result<PlateauCity, String> {
+    if area.tiles.is_empty() {
+        return Ok(suburb::build(
+            area.name,
+            area.center,
+            SUBURB_LENGTH_M,
+            SUBURB_OPEN_M,
+        ));
+    }
+    let paths: Vec<PathBuf> = area
+        .tiles
+        .iter()
+        .map(|mesh| data.join(format!("{mesh}_bldg_6697_2_op.gml")))
+        .collect();
+    if let Some(missing) = paths.iter().find(|p| !p.exists()) {
+        return Err(format!(
+            "{} is missing: run `python3 scripts/fetch_plateau_tokyo.py` first",
+            missing.display()
+        ));
+    }
+    PlateauCity::load(
+        area.name,
+        &paths,
+        area.center,
+        area.ground_tp_m,
+        LOAD_RADIUS_M,
+    )
+}
+
 fn main() -> Result<(), String> {
     let data = PathBuf::from(
         std::env::args()
@@ -113,6 +205,9 @@ fn main() -> Result<(), String> {
     );
     let survey_only = std::env::args().any(|a| a == "--survey");
     let quick = std::env::args().any(|a| a == "--quick");
+    let use_lidar3d = std::env::args().any(|a| a == "--lidar3d");
+    let avoid = std::env::args().any(|a| a == "--avoid");
+    let beidou = std::env::args().any(|a| a == "--beidou");
     let conditions = std::env::args().any(|a| a == "--conditions");
     let seeds: u64 = std::env::args()
         .skip_while(|a| a != "--seeds")
@@ -124,37 +219,17 @@ fn main() -> Result<(), String> {
         .skip_while(|a| a != "--render")
         .nth(1)
         .map(PathBuf::from);
-    let constellations = [
-        ("GPS+Galileo", Constellation::gps_galileo_nominal()),
-        (
-            "GPS+Galileo+QZSS",
-            Constellation::gps_galileo_qzss_nominal(),
-        ),
-    ];
+    let constellations = survey_constellations();
+    if let Some(csv) = std::env::args().skip_while(|a| a != "--urbannav").nth(1) {
+        return urbannav::run(&data, Path::new(&csv));
+    }
     let only = std::env::args().skip_while(|a| a != "--area").nth(1);
-    for area in AREAS
-        .iter()
-        .filter(|a| only.as_ref().is_none_or(|o| o.eq_ignore_ascii_case(a.slug)))
-    {
-        let paths: Vec<PathBuf> = area
-            .tiles
-            .iter()
-            .map(|mesh| data.join(format!("{mesh}_bldg_6697_2_op.gml")))
-            .collect();
-        if let Some(missing) = paths.iter().find(|p| !p.exists()) {
-            return Err(format!(
-                "{} is missing: run `python3 scripts/fetch_plateau_tokyo.py` first",
-                missing.display()
-            ));
-        }
+    for area in AREAS.iter().filter(|a| {
+        only.as_ref()
+            .map_or(!a.by_name_only, |o| o.eq_ignore_ascii_case(a.slug))
+    }) {
         let started = std::time::Instant::now();
-        let mut city = PlateauCity::load(
-            area.name,
-            &paths,
-            area.center,
-            area.ground_tp_m,
-            LOAD_RADIUS_M,
-        )?;
+        let mut city = load_city(area, &data)?;
         println!(
             "{}: {} buildings, {} triangles, {} diffraction edges within {LOAD_RADIUS_M} m ({:.1} s)",
             city.name,
@@ -177,7 +252,12 @@ fn main() -> Result<(), String> {
             continue;
         }
         let route = nav::plan_route(&city, area.waypoints);
-        let furniture = city.add_street_furniture(&route);
+        // The synthetic suburb has its own poles.
+        let furniture = if area.tiles.is_empty() {
+            0
+        } else {
+            city.add_street_furniture(&route)
+        };
         let length: f64 = route
             .windows(2)
             .map(|s| (s[1].0 - s[0].0).hypot(s[1].1 - s[0].1))
@@ -190,6 +270,13 @@ fn main() -> Result<(), String> {
             base.y,
             base.z
         );
+        if let Some(dir) = std::env::args()
+            .skip_while(|a| a != "--render-preview")
+            .nth(1)
+        {
+            preview_area(&Path::new(&dir).join(area.slug), &city, &route)?;
+            continue;
+        }
         let mut main_run = None;
         let runs = if conditions {
             condition_runs()
@@ -199,6 +286,9 @@ fn main() -> Result<(), String> {
                 std::env::args().any(|a| a == "--render-weather"),
             )
         };
+        // The 3D LiDAR's prior map: the mesh and terrain along the route.
+        let cloud = use_lidar3d
+            .then(|| lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0, map_edit()));
         for (label, options, glass_from_m) in runs {
             if quick && main_run.is_some() {
                 break;
@@ -213,8 +303,20 @@ fn main() -> Result<(), String> {
             let mut summary = Vec::new();
             for seed in 0..seeds {
                 let started = std::time::Instant::now();
-                let options = RunOptions { seed, ..options };
-                let report = nav::run(styled.as_ref().unwrap_or(&city), &route, base, options);
+                let options = with_flags(RunOptions {
+                    seed,
+                    lidar3d: use_lidar3d,
+                    beidou,
+                    avoid,
+                    ..options
+                });
+                let report = nav::run(
+                    styled.as_ref().unwrap_or(&city),
+                    &route,
+                    base,
+                    options,
+                    cloud.as_ref(),
+                );
                 print_report(label, &report, started.elapsed().as_secs_f64());
                 summary.push(report.summary());
                 if seed == 0 {
@@ -235,14 +337,60 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
+/// The constellations the sky survey compares.
+/// `--ghost` and `--unknown-start` on a run's options.
+fn with_flags(options: RunOptions) -> RunOptions {
+    RunOptions {
+        ghost: std::env::args().any(|a| a == "--ghost"),
+        unknown_start: std::env::args().any(|a| a == "--unknown-start"),
+        lidarloc: std::env::args().any(|a| a == "--lidarloc"),
+        ..options
+    }
+}
+
+/// `--map-gap S0:S1` leaves the stretch of the route from S0 to S1 meters
+/// out of the 3D LiDAR's map; `--map-shift S0:S1:DX:DY` moves the facades
+/// along that stretch by (DX, DY) meters in the map, as if they had been
+/// rebuilt since the survey.
+fn map_edit() -> lidar3d::MapEdit {
+    let numbers = |flag: &str| {
+        std::env::args().skip_while(|a| a != flag).nth(1).map(|v| {
+            v.split(':')
+                .map(|n| {
+                    n.parse::<f64>()
+                        .unwrap_or_else(|e| panic!("{flag} {v}: {e}"))
+                })
+                .collect::<Vec<_>>()
+        })
+    };
+    lidar3d::MapEdit {
+        gap: numbers("--map-gap").map(|v| (v[0], v[1])),
+        shift: numbers("--map-shift").map(|v| ((v[0], v[1]), (v[2], v[3]))),
+    }
+}
+
+fn survey_constellations() -> [(&'static str, Constellation); 3] {
+    [
+        ("GPS+Galileo", Constellation::gps_galileo_nominal()),
+        (
+            "GPS+Galileo+QZSS",
+            Constellation::gps_galileo_qzss_nominal(),
+        ),
+        (
+            "+BeiDou (all four)",
+            Constellation::gps_galileo_qzss_beidou_nominal(),
+        ),
+    ]
+}
+
 /// The configurations compared by default, as `(label, options, glass
 /// curtain walls from this height)`; `record` keeps frames of the first,
-/// which runs in a crowd and rain with `weather`.
+/// which runs at rush hour in the rain with `weather`.
 fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, f64)> {
     vec![
         (
             if weather {
-                "map-aided GNSS + QZSS, crowd + rain"
+                "map-aided GNSS + QZSS, rush hour + rain"
             } else {
                 "map-aided GNSS + QZSS"
             },
@@ -253,13 +401,21 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: false,
                 weather: if weather {
                     Weather {
-                        pedestrians: PEDESTRIANS,
+                        pedestrians: RUSH_HOUR_PEDESTRIANS,
                         rain: true,
+                        scramble: SCRAMBLE_CROSSERS,
+                        vehicles: RUSH_HOUR_VEHICLES,
                     }
                 } else {
                     Weather::default()
                 },
                 seed: 0,
+                lidar3d: false,
+                beidou: false,
+                avoid: false,
+                ghost: false,
+                unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -271,6 +427,12 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: false,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
+                beidou: false,
+                avoid: false,
+                ghost: false,
+                unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -282,6 +444,12 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: true,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
+                beidou: false,
+                avoid: false,
+                ghost: false,
+                unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -293,6 +461,12 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: true,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
+                beidou: false,
+                avoid: false,
+                ghost: false,
+                unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -304,6 +478,12 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 factor_graph: false,
                 weather: Weather::default(),
                 seed: 0,
+                lidar3d: false,
+                beidou: false,
+                avoid: false,
+                ghost: false,
+                unknown_start: false,
+                lidarloc: false,
             },
         ),
     ]
@@ -314,6 +494,12 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
 
 /// Pedestrians along the route in the crowd conditions.
 const PEDESTRIANS: usize = 60;
+/// Pedestrians along the route at rush hour, and people on the scramble
+/// crossing at the route's start.
+const RUSH_HOUR_PEDESTRIANS: usize = 150;
+const SCRAMBLE_CROSSERS: usize = 120;
+/// Vehicles on the street at rush hour.
+const RUSH_HOUR_VEHICLES: usize = 40;
 
 /// `--conditions`: the main configuration, hybrid and factor graph, in clear
 /// weather, in a crowd, in rain, and with more glass, as `(label, options, glass curtain walls from this height)`.
@@ -325,14 +511,32 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         factor_graph,
         weather,
         seed: 0,
+        lidar3d: false,
+        beidou: false,
+        avoid: false,
+        ghost: false,
+        unknown_start: false,
+        lidarloc: false,
     };
     let crowd = Weather {
         pedestrians: PEDESTRIANS,
         rain: false,
+        scramble: 0,
+        vehicles: 0,
     };
     let rain = Weather {
         pedestrians: PEDESTRIANS,
         rain: true,
+        scramble: 0,
+        vehicles: 0,
+    };
+    // Rush hour: a denser crowd along the route, a scramble crossing at its
+    // start and end, and traffic on the street.
+    let rush = Weather {
+        pedestrians: RUSH_HOUR_PEDESTRIANS,
+        rain: false,
+        scramble: SCRAMBLE_CROSSERS,
+        vehicles: RUSH_HOUR_VEHICLES,
     };
     let glass = plateau::GLASS_TOWER_HEIGHT_M;
     let clear = Weather::default();
@@ -345,6 +549,8 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         ("crowd + rain, factor graph", options(rain, true), glass),
         ("glass from 20 m, hybrid", options(clear, false), 20.0),
         ("glass from 20 m, factor graph", options(clear, true), 20.0),
+        ("rush hour, hybrid", options(rush, false), glass),
+        ("rush hour, factor graph", options(rush, true), glass),
     ]
 }
 
@@ -376,7 +582,7 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
     println!(
         "  {:<24} sky: {:.1} tracked ({:.1} LOS, {:.1} NLOS/diffracted); GNSS {:.0} s, LiDAR {:.0} s, \
          dead reckoning {:.0} s (longest {:.1} s, {} safety stops); waited for obstacles {:.0} s; \
-         min LiDAR clearance {:.2} m [{wall_s:.0} s]",
+         someone within 0.5 m {:.1} s; min LiDAR clearance {:.2} m [{wall_s:.0} s]",
         "",
         report.tracked / epochs,
         report.los / epochs,
@@ -387,8 +593,18 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
         report.longest_dead_reckoning_s,
         report.safety_stops,
         report.obstacle_wait_s,
+        report.close_s,
         report.clearance_m,
     );
+    if !report.ghost_errors.is_empty() {
+        let e = &report.ghost_errors;
+        let rmse = (e.iter().map(|v| v * v).sum::<f64>() / e.len() as f64).sqrt();
+        println!(
+            "  {:<24} without GNSS (--ghost): error RMSE {rmse:.2} m, max {:.2} m",
+            "",
+            e.iter().copied().fold(0.0, f64::max)
+        );
+    }
 }
 
 /// One line over several seeds: goals reached, median and worst RMSE, the

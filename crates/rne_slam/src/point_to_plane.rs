@@ -138,6 +138,11 @@ impl VoxelPointIndex {
         self.points.is_empty()
     }
 
+    /// The indexed point at `index`.
+    pub(crate) fn point(&self, index: usize) -> Vec3 {
+        self.points[index]
+    }
+
     /// Nearest indexed point to `query`, returning its index and distance.
     pub fn nearest(&self, query: Vec3) -> Option<(usize, f64)> {
         let center = key(query, self.voxel_size_m);

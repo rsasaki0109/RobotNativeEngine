@@ -9,7 +9,7 @@ pub(crate) const PEDESTRIAN_RADIUS_M: f64 = 0.28;
 /// Pedestrians keep at least this far from the robot's centre, meters.
 pub(crate) const PERSONAL_SPACE_M: f64 = 0.9;
 /// Height of a pedestrian, meters.
-const PEDESTRIAN_HEIGHT_M: f64 = 1.7;
+pub(crate) const PEDESTRIAN_HEIGHT_M: f64 = 1.7;
 
 /// Conditions of a run.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -19,6 +19,12 @@ pub(crate) struct Weather {
     /// Rain: LiDAR dropouts, noise and drop returns; wet, stronger GNSS
     /// reflectors.
     pub rain: bool,
+    /// People crossing the intersection at the start of the route in waves
+    /// on the walk signal, straight across and diagonally (a scramble
+    /// crossing).
+    pub scramble: usize,
+    /// Vehicles on the street beside the route.
+    pub vehicles: usize,
 }
 
 /// One pedestrian walking back and forth along a stretch of the route.
@@ -31,14 +37,32 @@ struct Walker {
     phase_m: f64,
 }
 
+/// One pedestrian of a scramble crossing: from one corner to another on each
+/// walk phase, waiting at the corner otherwise.
+#[derive(Clone, Copy, Debug)]
+struct Crosser {
+    corners: [(f64, f64); 2],
+    delay_s: f64,
+    speed_m_s: f64,
+}
+
+/// Signal cycle of the scramble crossing, seconds, and its walk phase.
+const SIGNAL_CYCLE_S: f64 = 100.0;
+const WALK_PHASE_S: f64 = 45.0;
+/// Half-size of the crossing (corner to centre along each axis), meters.
+const CROSSING_HALF_M: f64 = 14.0;
+
 /// Pedestrians walking the sidewalks along a route, 1.2-3 m to either side
 /// of it, at 0.9-1.6 m/s, each turning back at the ends of its 30-90 m
-/// stretch. Deterministic from the seed.
+/// stretch, and optionally a scramble crossing at the route's start.
+/// Deterministic from the seed.
 #[derive(Clone, Debug)]
 pub(crate) struct Crowd {
     route: Vec<(f64, f64)>,
     cumulative_m: Vec<f64>,
     walkers: Vec<Walker>,
+    crossing: (f64, f64),
+    crossers: Vec<Crosser>,
 }
 
 impl Crowd {
@@ -71,19 +95,80 @@ impl Crowd {
             route: route.to_vec(),
             cumulative_m,
             walkers,
+            crossing: route[0],
+            crossers: Vec::new(),
         }
     }
 
-    /// Pedestrian positions at `time_s`; anyone who would come closer than
-    /// [`PERSONAL_SPACE_M`] to the robot at `robot` steps around it.
+    /// Adds `count` people crossing the intersection at the route's start:
+    /// each walk phase every one walks from its corner to another one
+    /// (straight across or diagonally), leaving within the first 10 s.
+    pub(crate) fn with_scramble(mut self, count: usize, seed: u64) -> Self {
+        let mut rng = DeterministicRng::new(seed);
+        let h = CROSSING_HALF_M;
+        let corners = [(h, h), (-h, h), (-h, -h), (h, -h)];
+        self.crossers = (0..count)
+            .map(|_| {
+                let from = (rng.uniform_f64(0.0, 4.0) as usize).min(3);
+                let step = 1 + (rng.uniform_f64(0.0, 3.0) as usize).min(2);
+                let jitter = |rng: &mut DeterministicRng, c: (f64, f64)| {
+                    (
+                        c.0 + rng.uniform_f64(-2.0, 2.0),
+                        c.1 + rng.uniform_f64(-2.0, 2.0),
+                    )
+                };
+                let a = jitter(&mut rng, corners[from]);
+                let b = jitter(&mut rng, corners[(from + step) % 4]);
+                Crosser {
+                    corners: [a, b],
+                    delay_s: rng.uniform_f64(0.0, 10.0),
+                    speed_m_s: rng.uniform_f64(1.0, 1.5),
+                }
+            })
+            .collect();
+        self
+    }
+
+    /// Where a crosser is at `time_s`: it goes one way per walk phase.
+    fn crosser_at(&self, c: &Crosser, time_s: f64) -> (f64, f64) {
+        let cycle = (time_s / SIGNAL_CYCLE_S).floor();
+        let into = time_s - cycle * SIGNAL_CYCLE_S;
+        // Even cycles a -> b, odd cycles b -> a.
+        let [a, b] = if cycle as i64 % 2 == 0 {
+            c.corners
+        } else {
+            [c.corners[1], c.corners[0]]
+        };
+        let length = (b.0 - a.0).hypot(b.1 - a.1).max(1.0e-9);
+        let walked = if into < WALK_PHASE_S {
+            ((into - c.delay_s) * c.speed_m_s).clamp(0.0, length)
+        } else {
+            length
+        };
+        let f = walked / length;
+        (
+            self.crossing.0 + a.0 + f * (b.0 - a.0),
+            self.crossing.1 + a.1 + f * (b.1 - a.1),
+        )
+    }
+
+    /// Pedestrian positions at `time_s`; anyone walking the sidewalk who
+    /// would come closer than [`PERSONAL_SPACE_M`] to the robot at `robot`
+    /// steps around it. People on the scramble crossing do not: the robot
+    /// has to find its way through them.
     pub(crate) fn positions(&self, time_s: f64, robot: (f64, f64)) -> Vec<(f64, f64)> {
-        self.walkers
-            .iter()
-            .map(|w| {
-                // Back and forth over the span.
-                let d = (w.phase_m + w.speed_m_s * time_s).rem_euclid(2.0 * w.span_m);
-                let along = if d < w.span_m { d } else { 2.0 * w.span_m - d };
-                let (x, y) = self.point_beside(w.start_m + along, w.lateral_m);
+        let walking = self.walkers.iter().map(|w| {
+            // Back and forth over the span.
+            let d = (w.phase_m + w.speed_m_s * time_s).rem_euclid(2.0 * w.span_m);
+            let along = if d < w.span_m { d } else { 2.0 * w.span_m - d };
+            (
+                self.point_beside(w.start_m + along, w.lateral_m),
+                w.lateral_m,
+            )
+        });
+        let crossing = self.crossers.iter().map(|c| self.crosser_at(c, time_s));
+        walking
+            .map(|((x, y), side)| {
                 let (dx, dy) = (x - robot.0, y - robot.1);
                 let distance = dx.hypot(dy);
                 if distance >= PERSONAL_SPACE_M {
@@ -92,9 +177,10 @@ impl Crowd {
                     let scale = PERSONAL_SPACE_M / distance;
                     (robot.0 + dx * scale, robot.1 + dy * scale)
                 } else {
-                    (robot.0 + w.lateral_m.signum() * PERSONAL_SPACE_M, robot.1)
+                    (robot.0 + side.signum() * PERSONAL_SPACE_M, robot.1)
                 }
             })
+            .chain(crossing)
             .collect()
     }
 
@@ -205,6 +291,37 @@ mod tests {
                 assert!((x - robot.0).hypot(y - robot.1) >= PERSONAL_SPACE_M - 1e-9);
             }
         }
+    }
+
+    #[test]
+    fn the_scramble_crossing_moves_on_the_walk_signal() {
+        let route = [(0.0, 0.0), (100.0, 0.0)];
+        let crowd = Crowd::new(&route, 0, 3).with_scramble(30, 4);
+        let far = (1.0e4, 1.0e4);
+        let at = |t: f64| crowd.positions(t, far);
+        // Everyone stays on the crossing (corners at +-14 m, jitter 2 m).
+        for t in [0.0, 20.0, 44.0, 60.0, 130.0] {
+            for (x, y) in at(t) {
+                assert!(x.abs() <= 16.5 && y.abs() <= 16.5, "({x}, {y}) at {t}");
+            }
+        }
+        // They walk during the walk phase and stand still after it.
+        let moved = |a: f64, b: f64| {
+            at(a)
+                .iter()
+                .zip(at(b))
+                .filter(|(p, q)| (p.0 - q.0).hypot(p.1 - q.1) > 0.5)
+                .count()
+        };
+        assert!(moved(12.0, 18.0) >= 25, "{}", moved(12.0, 18.0));
+        assert_eq!(moved(60.0, 90.0), 0);
+        // The next cycle takes them back.
+        let start = at(0.0);
+        let back = at(2.0 * SIGNAL_CYCLE_S);
+        assert!(start
+            .iter()
+            .zip(&back)
+            .all(|(p, q)| (p.0 - q.0).hypot(p.1 - q.1) < 1.0e-9));
     }
 
     #[test]

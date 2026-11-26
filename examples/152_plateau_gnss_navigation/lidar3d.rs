@@ -1,0 +1,349 @@
+//! A 16-ring 3D LiDAR on the robot, ray traced through the PLATEAU mesh,
+//! and its prior map: points sampled from the same mesh and the terrain.
+
+use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
+use crate::nav::gaussian;
+use crate::plateau::PlateauCity;
+use crate::traffic::{vehicle_range, Movers};
+use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig};
+use rne_core::DeterministicRng;
+use rne_math::Vec3;
+use rne_math::{DQuat, Mat4};
+use rne_nav::Pose2d;
+use rne_slam::{voxel_downsample, PointCloudMap, PointCloudMatch, PointCloudMatchConfig};
+
+/// Rings from -15 to +15 degrees, 2 degrees apart (a VLP-16-like sensor).
+pub(crate) const RINGS: usize = 16;
+/// Azimuth steps per revolution.
+pub(crate) const AZIMUTHS: usize = 360;
+/// Maximum range, meters.
+pub(crate) const RANGE_M: f64 = 60.0;
+/// Height of the sensor above the ground, meters; it is held level.
+pub(crate) const SENSOR_HEIGHT_M: f64 = 0.6;
+const NOISE_M: f64 = 0.02;
+/// Map points are kept up to this height above the local ground, meters
+/// (the top ring reaches 0.6 + 60 tan 15° ≈ 16.7 m at full range).
+const MAP_MAX_HEIGHT_M: f64 = 18.0;
+/// Spacing of the map's samples on facades and the ground, meters.
+const MAP_SPACING_M: f64 = 0.4;
+/// Scan voxel size for matching, meters.
+const SCAN_VOXEL_M: f64 = 0.6;
+
+fn elevation(ring: usize) -> f64 {
+    (-15.0 + 2.0 * ring as f64).to_radians()
+}
+
+/// One scan in the level sensor frame (x forward), from the sensor at
+/// `pose` (planar) and height `ground_m + SENSOR_HEIGHT_M`. Pedestrians are
+/// upright cylinders; rain drops returns, adds noise and returns some beams
+/// early off drops. The random draws per ray are fixed, so runs stay
+/// comparable.
+pub(crate) fn scan(
+    city: &PlateauCity,
+    movers: &Movers,
+    rain: bool,
+    pose: Pose2d,
+    ground_m: f64,
+    rng: &mut DeterministicRng,
+) -> Vec<Vec3> {
+    let origin = Vec3::new(pose.x_m, pose.y_m, ground_m + SENSOR_HEIGHT_M);
+    let mut out = Vec::with_capacity(RINGS * AZIMUTHS);
+    for ring in 0..RINGS {
+        let (sin_el, cos_el) = elevation(ring).sin_cos();
+        for k in 0..AZIMUTHS {
+            let az = std::f64::consts::TAU * k as f64 / AZIMUTHS as f64;
+            let (noise, drop, rain_hit, rain_range) = (
+                gaussian(rng),
+                rng.uniform_f64(0.0, 1.0),
+                rng.uniform_f64(0.0, 1.0),
+                rng.uniform_f64(0.3, 4.0),
+            );
+            let (sin_w, cos_w) = (pose.yaw_rad + az).sin_cos();
+            let world = Vec3::new(cos_el * cos_w, cos_el * sin_w, sin_el);
+            let mut range = city
+                .mesh
+                .raycast(origin, world, RANGE_M)
+                .map_or(f64::INFINITY, |(t, _)| t);
+            if let Some(t) = ground_hit(city, origin, world, range) {
+                range = t;
+            }
+            if let Some(t) = person_hit(city, &movers.people, origin, world) {
+                range = range.min(t);
+            }
+            if let Some(t) = vehicle_range(&movers.vehicles, origin, world) {
+                range = range.min(t);
+            }
+            if !range.is_finite() || range > RANGE_M {
+                continue;
+            }
+            let range = if rain {
+                if drop < 0.15 {
+                    continue;
+                }
+                if rain_hit < 0.02 && rain_range < range {
+                    rain_range
+                } else {
+                    range + 3.0 * NOISE_M * noise
+                }
+            } else {
+                range + NOISE_M * noise
+            };
+            let (sin_a, cos_a) = az.sin_cos();
+            out.push(Vec3::new(cos_el * cos_a, cos_el * sin_a, sin_el) * range);
+        }
+    }
+    out
+}
+
+/// First crossing of the terrain along a downward ray before `max_t`.
+fn ground_hit(city: &PlateauCity, origin: Vec3, dir: Vec3, max_t: f64) -> Option<f64> {
+    if dir.z >= -1.0e-3 {
+        return None;
+    }
+    // The terrain is smooth: a few fixed-point steps on its height.
+    let mut t = (origin.z - city.ground_m(origin.x, origin.y)) / -dir.z;
+    for _ in 0..4 {
+        let p = origin + dir * t;
+        t = (origin.z - city.ground_m(p.x, p.y)) / -dir.z;
+    }
+    (t > 0.0 && t < max_t).then_some(t)
+}
+
+/// Range to the nearest pedestrian (an upright cylinder) along a ray.
+fn person_hit(city: &PlateauCity, people: &[(f64, f64)], origin: Vec3, dir: Vec3) -> Option<f64> {
+    let horizontal = dir.x.hypot(dir.y);
+    if horizontal < 1.0e-9 {
+        return None;
+    }
+    let (dx, dy) = (dir.x / horizontal, dir.y / horizontal);
+    people
+        .iter()
+        .filter_map(|&(px, py)| {
+            let (fx, fy) = (origin.x - px, origin.y - py);
+            let b = fx * dx + fy * dy;
+            let c = fx * fx + fy * fy - PEDESTRIAN_RADIUS_M * PEDESTRIAN_RADIUS_M;
+            let disc = b * b - c;
+            let along = -b - disc.max(0.0).sqrt();
+            if disc < 0.0 || along <= 0.0 {
+                return None;
+            }
+            let t = along / horizontal;
+            let z = origin.z + dir.z * t - city.ground_m(px, py);
+            (0.0..=PEDESTRIAN_HEIGHT_M).contains(&z).then_some(t)
+        })
+        .fold(None, |best: Option<f64>, t| {
+            Some(best.map_or(t, |b| b.min(t)))
+        })
+}
+
+/// How the prior map differs from the city, by stretches of the route
+/// (meters along it: a point belongs to the stretch its nearest route point
+/// lies in).
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct MapEdit {
+    /// Nothing mapped here yet.
+    pub gap: Option<(f64, f64)>,
+    /// The buildings here were rebuilt since the survey: the map has their
+    /// facades this far (east, north, meters) from where they stand.
+    pub shift: Option<((f64, f64), (f64, f64))>,
+}
+
+/// The prior map: the mesh's surfaces and the open terrain within
+/// `corridor_m` of the route, up to `MAP_MAX_HEIGHT_M` above the ground,
+/// sampled every `MAP_SPACING_M`, with exact normals, as edited by `edit`.
+/// Prints its size.
+/// The 3D LiDAR's prior map: indexed for matching, and its points (for
+/// lidar_localization_ros2's registration with `--lidarloc`).
+pub(crate) struct Map3d {
+    pub(crate) cloud: PointCloudMap,
+    pub(crate) points: Vec<Vec3>,
+}
+
+pub(crate) fn build_map(
+    city: &PlateauCity,
+    route: &[(f64, f64)],
+    corridor_m: f64,
+    edit: MapEdit,
+) -> Map3d {
+    let started = std::time::Instant::now();
+    let within = |s: f64, range: (f64, f64)| (range.0..=range.1).contains(&s);
+    // Where a sample goes in the map, if anywhere.
+    let place = |p: Vec3, facade: bool| {
+        let (d, s) = crate::nav::station_on_route(route, p.x, p.y);
+        if d > corridor_m || edit.gap.is_some_and(|g| within(s, g)) {
+            return None;
+        }
+        match edit.shift {
+            Some((range, (dx, dy))) if facade && within(s, range) => {
+                Some(Vec3::new(p.x + dx, p.y + dy, p.z))
+            }
+            _ => Some(p),
+        }
+    };
+    let (mut points, mut normals) = (Vec::new(), Vec::new());
+    for triangle in city.mesh.triangles() {
+        let [a, b, c] = triangle.vertices;
+        let normal = triangle.normal;
+        let longest = (b - a).length().max((c - b).length()).max((a - c).length());
+        let k = (longest / MAP_SPACING_M).ceil().max(1.0) as usize;
+        for i in 0..=k {
+            for j in 0..=(k - i) {
+                let (u, v) = (i as f64 / k as f64, j as f64 / k as f64);
+                let p = a + (b - a) * u + (c - a) * v;
+                let height = p.z - city.ground_m(p.x, p.y);
+                if height <= MAP_MAX_HEIGHT_M {
+                    if let Some(q) = place(p, height > 0.5) {
+                        points.push(q);
+                        normals.push(normal);
+                    }
+                }
+            }
+        }
+    }
+    // The open ground, with normals from the terrain's slope.
+    if let Some((lo, hi)) = city.mesh.bounds() {
+        let mut y = lo.y;
+        while y <= hi.y {
+            let mut x = lo.x;
+            while x <= hi.x {
+                let z = city.ground_m(x, y);
+                if place(Vec3::new(x, y, z), false).is_some()
+                    && !city.mesh.contains(Vec3::new(x, y, z + 0.3))
+                {
+                    {
+                        let e = 0.5;
+                        let gx = (city.ground_m(x + e, y) - city.ground_m(x - e, y)) / (2.0 * e);
+                        let gy = (city.ground_m(x, y + e) - city.ground_m(x, y - e)) / (2.0 * e);
+                        points.push(Vec3::new(x, y, z));
+                        normals.push(Vec3::new(-gx, -gy, 1.0));
+                    }
+                }
+                x += MAP_SPACING_M;
+            }
+            y += MAP_SPACING_M;
+        }
+    }
+    let map = PointCloudMap::new(&points, &normals, 1.0).expect("point-cloud map");
+    println!(
+        "  3D LiDAR map: {} points ({:.1} s)",
+        map.len(),
+        started.elapsed().as_secs_f64()
+    );
+    Map3d { cloud: map, points }
+}
+
+/// lidar_localization_ros2's registration on the map (`--lidarloc`):
+/// NDT_OMP at 1 m on the whole map, one thread so that runs repeat exactly,
+/// the scans already reduced by [`downsample`].
+pub(crate) fn lidarloc(map: &Map3d) -> Result<LidarLoc, String> {
+    let mut loc = LidarLoc::new(&LidarLocConfig {
+        registration_method: "NDT_OMP".into(),
+        ndt_num_threads: 1,
+        filter_scan: false,
+        inlier_ratio_min_points: 50,
+        ..LidarLocConfig::default()
+    })
+    .map_err(|e| e.to_string())?;
+    loc.set_map(&map.points).map_err(|e| e.to_string())?;
+    Ok(loc)
+}
+
+/// A match from lidar_localization_ros2: its pose, with the fit and the
+/// covariance of the map's point-to-plane residuals there (one evaluation of
+/// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
+/// it does its own matches.
+pub(crate) fn lidarloc_match(
+    loc: &mut LidarLoc,
+    map: &PointCloudMap,
+    points: &[Vec3],
+    pose: Pose2d,
+    z_m: f64,
+) -> Option<PointCloudMatch> {
+    let guess = Mat4::from_rotation_translation(
+        DQuat::from_rotation_z(pose.yaw_rad),
+        Vec3::new(pose.x_m, pose.y_m, z_m),
+    );
+    let aligned = loc.align(points, &guess).ok()?;
+    if !aligned.target_ready || !aligned.converged {
+        return None;
+    }
+    let t = aligned.pose.w_axis;
+    let at = Pose2d::new(t.x, t.y, aligned.pose.x_axis.y.atan2(aligned.pose.x_axis.x));
+    let evaluated = map.match_scan(
+        points,
+        at,
+        t.z,
+        &PointCloudMatchConfig {
+            max_iterations: 1,
+            ..match_config()
+        },
+    )?;
+    Some(PointCloudMatch {
+        pose: at,
+        z_m: t.z,
+        ..evaluated
+    })
+}
+
+/// The scan reduced for matching.
+pub(crate) fn downsample(points: &[Vec3]) -> Vec<Vec3> {
+    voxel_downsample(points, SCAN_VOXEL_M)
+}
+
+/// Matching tuning: a scan's points beyond a metre from the map are ignored.
+pub(crate) fn match_config() -> PointCloudMatchConfig {
+    PointCloudMatchConfig {
+        max_correspondence_distance_m: 1.0,
+        min_inlier_fraction: 0.5,
+        ..PointCloudMatchConfig::default()
+    }
+}
+
+/// Position variance, m², above which a match pins no horizontal direction:
+/// on open ground the scan holds only the ground, which fits anywhere.
+const UNCONSTRAINED_VARIANCE_M2: f64 = 25.0;
+
+/// Whether a match is good enough to use: most of the scan lies on mapped
+/// surfaces (the RMS residual would also count people next to walls), and
+/// something in it pins the position in at least one horizontal direction.
+pub(crate) fn acceptable(m: &PointCloudMatch) -> bool {
+    let [[xx, xy], [_, yy]] = m.position_covariance_m2;
+    let smaller = 0.5 * (xx + yy) - (0.25 * (xx - yy).powi(2) + xy * xy).sqrt();
+    m.fit_fraction >= 0.6 && smaller < UNCONSTRAINED_VARIANCE_M2
+}
+
+/// A relocalizing match: tries starts on a grid over `±window_m` around
+/// `around` and keeps the best acceptable one (most of the scan on mapped
+/// surfaces).
+pub(crate) fn search(
+    map: &PointCloudMap,
+    points: &[Vec3],
+    around: Pose2d,
+    z_m: f64,
+    window_m: f64,
+) -> Option<PointCloudMatch> {
+    let step = (window_m / 3.0).max(0.75);
+    let n = (window_m / step).round() as i32;
+    let config = match_config();
+    let mut best: Option<PointCloudMatch> = None;
+    for i in -n..=n {
+        for j in -n..=n {
+            let seed = Pose2d::new(
+                around.x_m + f64::from(i) * step,
+                around.y_m + f64::from(j) * step,
+                around.yaw_rad,
+            );
+            let Some(m) = map.match_scan(points, seed, z_m, &config) else {
+                continue;
+            };
+            // A match that slid out of the window is not an answer to this
+            // search (it fits some other street).
+            let inside =
+                (m.pose.x_m - around.x_m).hypot(m.pose.y_m - around.y_m) <= window_m * 1.5 + 1.0;
+            if inside && acceptable(&m) && best.is_none_or(|b| m.fit_fraction > b.fit_fraction) {
+                best = Some(m);
+            }
+        }
+    }
+    best
+}

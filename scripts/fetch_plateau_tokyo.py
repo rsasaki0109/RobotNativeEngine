@@ -4,10 +4,16 @@
 The official archive (3D City Model, Tokyo 23 wards, 2020, CityGML v2) is a
 5.3 GB zip. Zip files keep a central directory at the end, so this script
 reads it with HTTP range requests and then extracts only the requested
-members (a building and a road file per mesh, 10-50 MB each).
+members (a building, a road and a bridge file per mesh, 10-50 MB each).
 
     python3 scripts/fetch_plateau_tokyo.py            # Shibuya and Shinjuku
     python3 scripts/fetch_plateau_tokyo.py 53393586   # one third-level mesh
+    python3 scripts/fetch_plateau_tokyo.py --textures # also the facade photos
+
+`--textures` also extracts the buildings' and bridges' photo textures (a JPEG per
+building, 0.1-1 MB each, over 500 MB for some Nishi-Shinjuku meshes) and
+shrinks each to at most `--texture-size` pixels on its longer side as it
+goes (needs Pillow), so they take a few percent of that on disk.
 
 Files land in target/plateau/tokyo23/. Data: 3D City Model (Tokyo 23 wards)
 2020, Project PLATEAU / MLIT, under the PLATEAU site policy (compatible with
@@ -78,6 +84,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("meshes", nargs="*", help="third-level mesh codes (default: Shibuya, Shinjuku)")
     parser.add_argument("--output", type=pathlib.Path, default=pathlib.Path("target/plateau/tokyo23"))
+    parser.add_argument("--textures", action="store_true", help="also the buildings' photo textures")
+    parser.add_argument("--texture-size", type=int, default=256, help="longer side of a texture, pixels")
     args = parser.parse_args()
     meshes = args.meshes or list(DEFAULT_MESHES)
     args.output.mkdir(parents=True, exist_ok=True)
@@ -88,7 +96,9 @@ def main():
         wanted = [
             n
             for n in names
-            if n.startswith(f"{ROOT}/bldg/{mesh}_bldg") or n.startswith(f"{ROOT}/tran/{mesh}_tran")
+            if n.startswith(f"{ROOT}/bldg/{mesh}_bldg")
+            or n.startswith(f"{ROOT}/tran/{mesh}_tran")
+            or n.startswith(f"{ROOT}/brid/{mesh}_brid")
         ]
         wanted = [n for n in wanted if n.endswith(".gml")]
         if not wanted:
@@ -103,6 +113,35 @@ def main():
                     sink.write(chunk)
             label = DEFAULT_MESHES.get(mesh, mesh)
             print(f"wrote {target} ({target.stat().st_size / 1e6:.1f} MB, {label})")
+        if args.textures:
+            for theme in ("bldg", "brid"):
+                fetch_textures(archive, names, mesh, theme, args.output, args.texture_size)
+
+
+def fetch_textures(archive, names, mesh, theme, output, size):
+    """Extracts a mesh's building (or bridge) textures, each shrunk to `size` pixels."""
+    from PIL import Image
+
+    prefix = f"{ROOT}/{theme}/{mesh}_{theme}_6697_appearance/"
+    images = [n for n in names if n.startswith(prefix) and not n.endswith("/")]
+    if not images:
+        return
+    folder = output / f"{mesh}_{theme}_6697_appearance"
+    folder.mkdir(exist_ok=True)
+    written = 0
+    for name in images:
+        target = folder / pathlib.Path(name).name
+        if target.exists():
+            continue
+        with archive.open(name) as source:
+            image = Image.open(io.BytesIO(source.read()))
+            image.load()
+        image = image.convert("RGB")
+        image.thumbnail((size, size), Image.LANCZOS)
+        image.save(target, quality=88)
+        written += 1
+    total = sum(p.stat().st_size for p in folder.iterdir())
+    print(f"{folder}: {len(images)} textures ({written} new), {total / 1e6:.1f} MB")
 
 
 if __name__ == "__main__":

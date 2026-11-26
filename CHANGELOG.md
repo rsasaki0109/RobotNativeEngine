@@ -6,6 +6,69 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_gnss` simulates BeiDou-3 (`Constellation::beidou_nominal`, B1I and
+  B3I): its broadcast ephemerides use the CGCS2000 constants, BeiDou time
+  and the BeiDou ICD's tilted frame for geostationary satellites, and
+  `rne_adapter_gnsspp` passes BeiDou to libgnss++, which fixes RTK with
+  GPS, Galileo, QZSS and BeiDou together.
+- Example 152: `--beidou` (with BeiDou, 63 % of Shibuya's and 79 % of
+  Nishi-Shinjuku's street points see eight or more satellites, against 29
+  and 34 %); `--urbannav` includes BeiDou; the 3D render shows PLATEAU's
+  photo textures, roads (`rne_plateau::parse_road_triangles`) and bridges
+  (`parse_bridge_triangles`; `BuildingTriangles` carries texture
+  coordinates), `--render-preview` renders still views of the city, and
+  `scripts/fetch_plateau_tokyo.py --textures` fetches the photos.
+  The render also lays out the streets PLATEAU's LOD1 roads leave out:
+  raised sidewalks with curbs, tiles and tactile paving along every road
+  at least 10 m wide, white edge lines, asphalt, and zebra crossings where
+  the roads enter PLATEAU's intersections.
+- `HybridLocalizerConfig::lidar_keeps_charge`: with point-cloud matches,
+  LiDAR stays in charge wherever the map covers the robot and RTK fixes
+  correct it instead of taking over; example 152 enables it with
+  `--lidar3d` (one hand-over a run instead of 40–50, RMSE 0.01–0.04 m).
+- With `lidar_keeps_charge`, RTK can show the LiDAR map wrong: after
+  `gnss_reanchor_fixes` consistent RTK fixed fixes that disagree with it,
+  the hybrid re-anchors on GNSS and hands it charge, and LiDAR takes back
+  over (or relocalizes) only with a match that agrees, from an estimate
+  within 2 m.
+- Example 152: `--ghost` runs a localizer without GNSS beside the real one
+  and draws it; `--unknown-start`, `--map-gap S0:S1` and
+  `--map-shift S0:S1:DX:DY` show where GNSS is needed (unknown start: 0.6
+  against 61 m RMSE; a stretch missing from the map: 0.10 against 1.06 m; a
+  rebuilt stretch: 0.13 against 1.09 m). The HUD adds a top-down map of
+  the robot's and the ghost's tracks.
+- `rne_adapter_lidarloc`: lidar_localization_ros2's scan-to-map registration
+  (NDT_OMP, GICP_OMP, small_gicp) without ROS 2, through its
+  `lidar_localization_core` C API; `scripts/build_lidarloc.sh` builds the
+  pinned core, and without it the crate is a stub. Example 152's `--lidarloc`
+  matches the 3D scans with it (Shibuya 0.09 m, the suburb 0.10 m RMSE with
+  GNSS).
+- Example 152: `--area suburb`, a synthetic straight road with 500 m of
+  rice paddies and fields between two rows of gabled houses with walls,
+  hedges, cars, trees, utility poles and wires (0.00 against 87 m RMSE), and
+  `--area park`, Shinjuku Central Park; both run only when named. A 3D
+  match that pins no horizontal direction (only open ground in reach) is no
+  longer used.
+- `FactorGraphConfig::lidar_reanchor_rtk_hold_s`: shortly after an RTK
+  fixed fix, a particle filter that wandered off from both the graph and
+  that fix is re-seeded at the graph instead of re-anchoring it.
+
+- `rne_slam::PointCloudMap` localizes a level 3D LiDAR scan in a
+  point-cloud map (Huber-weighted point-to-plane Gauss–Newton over x, y, z
+  and yaw, planar covariance from the inverse information, and the share
+  of the scan on mapped surfaces), and `HybridLocalizer` and
+  `FactorGraphLocalizer` take such matches (`update_lidar_match`).
+  `HybridLocalizerConfig::gnss_reanchor_min_travel_m` keeps a robot standing
+  still from re-anchoring on a repeated biased fix.
+- Example 152: `--lidar3d` (a 16-ring LiDAR ray traced through the PLATEAU
+  mesh and matched against a point cloud sampled from it; both localizers
+  reach the goal in all 24 crowd, rain and glass runs), `--urbannav` (the
+  ray tracer against the UrbanNav Tokyo Shinjuku drive; `urbannav.py`
+  prepares the satellites and measured C/N0), a rush-hour condition (a
+  denser crowd, a scramble crossing whose people do not yield, and buses,
+  trucks and cars that are metal GNSS reflectors and LiDAR obstacles), and
+  `--avoid` (tracked people and nearby structure, avoided with
+  `rne_nav::avoid_velocities`).
 - Example 163 (`street_splat_nav`) drives a delivery robot along a real street rebuilt from
   a 360-degree video by visloc-rs (`real2sim.py --export-rne`, a *street bundle*):
   - `rne_nav` plans on the lane costmap with the solid cells, and pure pursuit follows.

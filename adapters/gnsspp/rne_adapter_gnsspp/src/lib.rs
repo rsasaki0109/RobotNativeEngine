@@ -138,6 +138,8 @@ fn signal_code(signal: SignalKind) -> u8 {
         SignalKind::GalE5a => 3,
         SignalKind::QzsL1Ca => 4,
         SignalKind::QzsL2C => 5,
+        SignalKind::BdsB1I => 6,
+        SignalKind::BdsB3I => 7,
     }
 }
 
@@ -147,6 +149,7 @@ fn system_code(system: GnssSystem) -> u8 {
         GnssSystem::Gps => 1,
         GnssSystem::Galileo => 4,
         GnssSystem::Qzss => 0x10,
+        GnssSystem::BeiDou => 8,
     }
 }
 

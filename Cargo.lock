@@ -3835,8 +3835,10 @@ dependencies = [
 name = "plateau_gnss_navigation"
 version = "0.4.0"
 dependencies = [
+ "image",
  "png",
  "rne_adapter_gnsspp",
+ "rne_adapter_lidarloc",
  "rne_core",
  "rne_gnss",
  "rne_math",
@@ -4346,6 +4348,14 @@ version = "0.4.0"
 dependencies = [
  "cc",
  "rne_gnss",
+ "rne_math",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "rne_adapter_lidarloc"
+version = "0.4.0"
+dependencies = [
  "rne_math",
  "thiserror 2.0.18",
 ]
