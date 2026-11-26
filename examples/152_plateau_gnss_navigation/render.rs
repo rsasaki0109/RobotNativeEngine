@@ -554,9 +554,17 @@ fn push_signals(scene: &mut RenderScene, gnss_scene: &GnssScene, frame: &FrameRe
     if let Some(epoch) = &frame.epoch {
         let antenna = epoch.antenna_enu_m;
         let trace = crate::nav::receiver_config().trace;
+        let only_bent = cinematic();
         for o in &epoch.observations {
             let Some(primary) = o.primary() else { continue };
             if !primary.path.is_tracked() {
+                continue;
+            }
+            let direct = matches!(
+                primary.path,
+                SignalPath::LineOfSight | SignalPath::LineOfSightMultipath
+            );
+            if only_bent && direct {
                 continue;
             }
             let (sin_az, cos_az) = o.azimuth_rad.sin_cos();
@@ -821,13 +829,23 @@ struct Chase {
     yaw: f64,
     focus: Vec3,
     initialized: bool,
+    /// `--render-cinematic`: low and close behind the robot.
+    cinematic: bool,
+}
+
+/// `--render-cinematic`: a low camera close behind the robot, and only the
+/// reflected and diffracted signals (the scenery shows; the line-of-sight
+/// rays would hide it).
+fn cinematic() -> bool {
+    std::env::args().any(|a| a == "--render-cinematic")
 }
 
 impl Chase {
     fn update(&mut self, frame: &FrameRecord) -> CameraOrbit {
         let heading = frame.truth.yaw_rad;
         let yaw = (-heading.cos()).atan2(heading.sin());
-        let focus = p(frame.truth.x_m, frame.truth.y_m, frame.ground_m + 3.0);
+        let lift = if self.cinematic { 1.8 } else { 3.0 };
+        let focus = p(frame.truth.x_m, frame.truth.y_m, frame.ground_m + lift);
         if self.initialized {
             let mut delta = yaw - self.yaw;
             while delta > PI {
@@ -843,15 +861,25 @@ impl Chase {
                 yaw,
                 focus,
                 initialized: true,
+                cinematic: self.cinematic,
             };
         }
+        let (pitch, distance) = if self.cinematic {
+            (0.38, 19.0)
+        } else {
+            (0.95, 42.0)
+        };
         CameraOrbit {
             yaw_rad: self.yaw,
-            pitch_rad: 0.95_f64.clamp(0.2, FRAC_PI_2 - 0.1),
-            distance_m: 42.0,
+            pitch_rad: pitch_rad(pitch),
+            distance_m: distance,
             focus: self.focus,
         }
     }
+}
+
+fn pitch_rad(pitch: f64) -> f64 {
+    pitch.clamp(0.2, FRAC_PI_2 - 0.1)
 }
 
 fn write_png(path: &Path, width: u32, height: u32, rgba: &[u8]) -> Result<()> {
@@ -976,6 +1004,7 @@ pub(crate) fn render(
         yaw: 0.0,
         focus: Vec3::ZERO,
         initialized: false,
+        cinematic: cinematic(),
     };
     let started = std::time::Instant::now();
     let mut index = Vec::new();
