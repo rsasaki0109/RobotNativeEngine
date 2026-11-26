@@ -221,7 +221,8 @@ impl Aging {
 
 /// Cars parked at the kerb when the map was surveyed and gone since
 /// (`--aged-map`): every 45-75 m along the route, 3.5 m to one side where
-/// the street is open, the box surfaces of a 4.4 x 1.8 x 1.5 m car.
+/// the street is open and built up, the box surfaces of a 4.4 x 1.8 x 1.5 m
+/// car.
 fn phantom_cars(city: &PlateauCity, route: &[(f64, f64)]) -> (Vec<Vec3>, Vec<Vec3>) {
     let (mut points, mut normals) = (Vec::new(), Vec::new());
     let (mut walked, mut next, mut k) = (0.0, 30.0, 0_u64);
@@ -240,7 +241,19 @@ fn phantom_cars(city: &PlateauCity, route: &[(f64, f64)]) -> (Vec<Vec3>, Vec<Vec
                 a.1 + dy * s + dx * side * 3.5,
             );
             let ground = city.ground_m(cx, cy);
-            let free = !city.mesh.contains(Vec3::new(cx, cy, ground + 0.8))
+            // Parked where the street is built up: a facade within 20 m
+            // across from the kerb.
+            let built_up = [1.0, -1.0].iter().any(|s: &f64| {
+                city.mesh
+                    .raycast(
+                        Vec3::new(cx, cy, ground + 1.0),
+                        Vec3::new(-dy * s, dx * s, 0.0),
+                        20.0,
+                    )
+                    .is_some()
+            });
+            let free = built_up
+                && !city.mesh.contains(Vec3::new(cx, cy, ground + 0.8))
                 && crate::nav::distance_to_route(route, cx, cy) > 2.6;
             if free {
                 let along = Vec3::new(dx, dy, 0.0);
