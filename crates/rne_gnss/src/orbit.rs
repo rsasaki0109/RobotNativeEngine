@@ -1,4 +1,4 @@
-//! Keplerian satellite orbits and nominal GPS, Galileo and QZSS
+//! Keplerian satellite orbits and nominal GPS, Galileo, QZSS and BeiDou
 //! constellations.
 //!
 //! Orbits are propagated from Keplerian elements with a Newton solve of
@@ -17,6 +17,10 @@ pub const EARTH_MU_M3_S2: f64 = 3.986_005e14;
 pub const EARTH_ROTATION_RAD_S: f64 = 7.292_115_146_7e-5;
 /// Speed of light in m/s.
 pub const SPEED_OF_LIGHT_M_S: f64 = 299_792_458.0;
+/// CGCS2000 (BeiDou) Earth gravitational parameter in m^3/s^2.
+pub const BEIDOU_MU_M3_S2: f64 = 3.986_004_418e14;
+/// CGCS2000 (BeiDou) Earth rotation rate in rad/s.
+pub const BEIDOU_ROTATION_RAD_S: f64 = 7.292_115e-5;
 
 /// A satellite navigation system.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -28,6 +32,9 @@ pub enum GnssSystem {
     /// Japanese Quasi-Zenith Satellite System (Michibiki), GPS-compatible
     /// L1 C/A and L2C on GPS time.
     Qzss,
+    /// Chinese BeiDou (BDS-3): medium Earth orbits worldwide, and inclined
+    /// geosynchronous and geostationary satellites over Asia, on B1I and B3I.
+    BeiDou,
 }
 
 impl GnssSystem {
@@ -37,7 +44,16 @@ impl GnssSystem {
             Self::Gps => 'G',
             Self::Galileo => 'E',
             Self::Qzss => 'J',
+            Self::BeiDou => 'C',
         }
+    }
+}
+
+impl SatelliteId {
+    /// Whether this is a BeiDou geostationary satellite (PRN 1-5 or 59-63),
+    /// whose broadcast ephemeris is given in a frame tilted by 5°.
+    pub fn is_beidou_geo(self) -> bool {
+        self.system == GnssSystem::BeiDou && (self.prn <= 5 || (59..=63).contains(&self.prn))
     }
 }
 
@@ -270,6 +286,76 @@ impl Constellation {
         Self::new(satellites)
     }
 
+    /// Nominal BeiDou (BDS-3): 24 medium-Earth-orbit satellites in a Walker
+    /// 24/3/1 constellation at 21 528 km and 55°, three inclined
+    /// geosynchronous satellites (55°) whose figure-of-eight ground tracks
+    /// cross the equator at 118° E, and three geostationary satellites at
+    /// 140°, 80° and 110.5° E (PRNs 59-61).
+    pub fn beidou_nominal() -> Self {
+        let meo_a = 6_378_137.0 + 21_528_000.0;
+        let meo_prns: Vec<u8> = (19..=30).chain(32..=37).chain(41..=46).collect();
+        let mut satellites: Vec<Satellite> = meo_prns
+            .iter()
+            .enumerate()
+            .map(|(k, &prn)| {
+                let (plane, slot) = ((k / 8) as f64, (k % 8) as f64);
+                Satellite {
+                    id: SatelliteId {
+                        system: GnssSystem::BeiDou,
+                        prn,
+                    },
+                    orbit: KeplerOrbit::circular(
+                        meo_a,
+                        55.0_f64.to_radians(),
+                        (120.0 * plane + 30.0).to_radians(),
+                        (45.0 * slot + 15.0 * plane).to_radians(),
+                    ),
+                }
+            })
+            .collect();
+        let geo_a = (EARTH_MU_M3_S2 / EARTH_ROTATION_RAD_S.powi(2)).cbrt();
+        for (k, prn) in [38_u8, 39, 40].into_iter().enumerate() {
+            // Node 120° apart; each reaches its node when the Earth has turned
+            // it to 118° E, so the three share one ground track.
+            let k = k as f64;
+            satellites.push(Satellite {
+                id: SatelliteId {
+                    system: GnssSystem::BeiDou,
+                    prn,
+                },
+                orbit: KeplerOrbit::circular(
+                    geo_a,
+                    55.0_f64.to_radians(),
+                    (118.0 + 120.0 * k).to_radians(),
+                    (-120.0 * k).to_radians(),
+                ),
+            });
+        }
+        for (prn, longitude_deg) in [(59_u8, 140.0_f64), (60, 80.0), (61, 110.5)] {
+            satellites.push(Satellite {
+                id: SatelliteId {
+                    system: GnssSystem::BeiDou,
+                    prn,
+                },
+                orbit: KeplerOrbit::circular(
+                    geo_a,
+                    0.5_f64.to_radians(),
+                    0.0,
+                    longitude_deg.to_radians(),
+                ),
+            });
+        }
+        Self::new(satellites)
+    }
+
+    /// GPS, Galileo, QZSS and BeiDou together (a receiver in Japan tracking
+    /// four systems).
+    pub fn gps_galileo_qzss_beidou_nominal() -> Self {
+        let mut satellites = Self::gps_galileo_qzss_nominal().satellites;
+        satellites.extend(Self::beidou_nominal().satellites);
+        Self::new(satellites)
+    }
+
     /// GPS, Galileo and QZSS together (a receiver in Japan).
     pub fn gps_galileo_qzss_nominal() -> Self {
         let mut satellites = Self::gps_galileo_nominal().satellites;
@@ -324,6 +410,53 @@ pub fn wrap_two_pi(angle_rad: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn beidou_over_tokyo_has_its_geostationary_and_inclined_satellites_up() {
+        use crate::geodesy::{EnuFrame, Geodetic};
+        let tokyo = EnuFrame::new(Geodetic::from_degrees(35.69, 139.70, 40.0));
+        let beidou = Constellation::beidou_nominal();
+        assert_eq!(beidou.len(), 30);
+        let elevation = |s: &Satellite, t: f64| {
+            let enu = tokyo.ecef_to_enu(s.orbit.position_ecef(t));
+            enu.z.atan2(enu.x.hypot(enu.y)).to_degrees()
+        };
+        let by_prn = |prn: u8| {
+            beidou
+                .satellites()
+                .iter()
+                .find(|s| s.id.prn == prn)
+                .copied()
+                .expect("prn")
+        };
+        // The geostationary satellites stay put: 140° E high in the south
+        // (48.5°), 110.5° E lower (38°), 80° E low in the south-west (16°).
+        for t in [0.0, 21_600.0, 43_200.0] {
+            assert!(
+                (40.0..55.0).contains(&elevation(&by_prn(59), t)),
+                "{}",
+                elevation(&by_prn(59), t)
+            );
+            assert!((33.0..43.0).contains(&elevation(&by_prn(61), t)));
+            assert!((11.0..21.0).contains(&elevation(&by_prn(60), t)));
+        }
+        // At any time of day at least one inclined geosynchronous satellite is
+        // well up, and the whole system adds several satellites.
+        for k in 0..24 {
+            let t = 3_600.0 * f64::from(k);
+            let igso = [38, 39, 40]
+                .iter()
+                .map(|p| elevation(&by_prn(*p), t))
+                .fold(f64::MIN, f64::max);
+            assert!(igso > 25.0, "{igso} at {t}");
+            let up = beidou
+                .satellites()
+                .iter()
+                .filter(|s| elevation(s, t) > 15.0)
+                .count();
+            assert!(up >= 6, "{up} at {t}");
+        }
+    }
 
     #[test]
     fn relativistic_clock_term_vanishes_for_circular_orbits_and_is_large_for_qzo() {

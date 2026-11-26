@@ -1,0 +1,17 @@
+[package]
+name = "rne_adapter_lidarloc"
+description = "lidar_localization_ros2 adapter for Robot Native Engine: its scan-to-map registration (NDT_OMP, GICP_OMP, small_gicp) without ROS 2"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+links = "rne_lidarloc"
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_math = { workspace = true }
+thiserror = { workspace = true }

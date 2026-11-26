@@ -20,6 +20,7 @@
 use crate::hybrid::{AbsoluteHeadingFix, AbsolutePositionFix, FixKind, LocalizationSource};
 use crate::likelihood::LikelihoodField;
 use crate::localization::{Amcl, AmclConfig};
+use crate::pointcloud_map::PointCloudMatch;
 use crate::scan_match::{match_position_covariance, scan_points_2d, ScanMatchConfig, ScanMatcher};
 use rne_nav::{wrap_angle, GridError, LaserScan2d, OccupancyGrid, Pose2d};
 use serde::{Deserialize, Serialize};
@@ -102,6 +103,13 @@ pub struct FactorGraphConfig {
     pub lidar_reanchor_m: f64,
     /// Consecutive scans of such disagreement before re-anchoring.
     pub lidar_reanchor_scans: usize,
+    /// For this long after an RTK fixed fix, a particle-filter match more
+    /// than `lidar_reanchor_m` from both the graph and where that fix puts
+    /// the robot now (its offset from the graph carried along) is taken for
+    /// the particle filter having wandered (in a crowd, along a featureless
+    /// street): it is re-seeded at the graph instead of moving the graph,
+    /// seconds.
+    pub lidar_reanchor_rtk_hold_s: f64,
 }
 
 impl Default for FactorGraphConfig {
@@ -136,6 +144,7 @@ impl Default for FactorGraphConfig {
             lidar_seed_score_margin: 0.02,
             lidar_reanchor_m: 2.0,
             lidar_reanchor_scans: 10,
+            lidar_reanchor_rtk_hold_s: 5.0,
         }
     }
 }
@@ -209,6 +218,8 @@ pub struct FactorGraphLocalizer {
     next_id: u64,
     accumulated: Accumulated,
     last_gnss_s: f64,
+    /// Time of the last RTK fixed fix and its offset from the graph.
+    last_fixed: (f64, f64, f64),
     last_lidar_s: f64,
     time_s: f64,
     /// Offsets (fix − estimate) of consecutive rejected RTK fixed fixes.
@@ -250,6 +261,7 @@ impl FactorGraphLocalizer {
             next_id: 1,
             accumulated: Accumulated::default(),
             last_gnss_s: f64::NEG_INFINITY,
+            last_fixed: (f64::NEG_INFINITY, 0.0, 0.0),
             last_lidar_s: f64::NEG_INFINITY,
             time_s: 0.0,
             rejected_offsets: Vec::new(),
@@ -337,11 +349,14 @@ impl FactorGraphLocalizer {
         let Some(index) = self.index_of(node) else {
             return;
         };
+        let pose = self.nodes[index].pose;
+        if fix.kind == FixKind::Fixed {
+            self.last_fixed = (self.time_s, fix.x_m - pose[0], fix.y_m - pose[1]);
+        }
         if fix.kind != FixKind::Fixed || weight >= 0.1 {
             self.rejected_offsets.clear();
             return;
         }
-        let pose = self.nodes[index].pose;
         self.rejected_offsets
             .push((fix.x_m - pose[0], fix.y_m - pose[1]));
         let n = self.rejected_offsets.len();
@@ -435,6 +450,24 @@ impl FactorGraphLocalizer {
             (Some(g), _) => Some((g, false)),
             (None, p) => p.map(|p| (p, true)),
         };
+        let (fixed_s, dx, dy) = self.last_fixed;
+        let rtk_disagrees = |p: Pose2d| {
+            self.time_s - fixed_s <= c.lidar_reanchor_rtk_hold_s
+                && (p.x_m - graph_pose.x_m - dx).hypot(p.y_m - graph_pose.y_m - dy)
+                    > c.lidar_reanchor_m
+        };
+        let chosen = match chosen {
+            Some((p, true)) if apart(p.pose) > c.lidar_reanchor_m && rtk_disagrees(p.pose) => {
+                // A recent RTK fixed fix says the particle filter is what
+                // wandered off.
+                self.lidar_reanchor_streak = 0;
+                if graph_match.is_none() {
+                    self.reseed_particles(graph_pose, scan, odom_pose, sensor_from_base);
+                }
+                graph_match.map(|g| (g, false))
+            }
+            other => other,
+        };
         let Some((matched, from_particles)) = chosen else {
             return;
         };
@@ -456,15 +489,7 @@ impl FactorGraphLocalizer {
             if !from_particles && apart(update.estimate) > c.lidar_reanchor_m {
                 // The particle filter wandered off while the graph's match
                 // fits better: re-seed it there.
-                let config = AmclConfig {
-                    initial_translation_std_m: 0.15,
-                    initial_rotation_std_rad: 0.05,
-                    ..c.amcl
-                };
-                if let Ok(mut amcl) = Amcl::new(&self.map, matched.pose, config) {
-                    amcl.update(scan, odom_pose, sensor_from_base);
-                    self.amcl = amcl;
-                }
+                self.reseed_particles(matched.pose, scan, odom_pose, sensor_from_base);
             }
         }
         let covariance = match_position_covariance(
@@ -495,6 +520,60 @@ impl FactorGraphLocalizer {
             measurement: Measurement::Yaw {
                 yaw: matched.pose.yaw_rad,
                 info: 1.0 / c.lidar_yaw_variance_rad2,
+            },
+            origin: Origin::Lidar,
+            scale: c.lidar_huber_scale,
+            kernel: Kernel::Huber(1),
+            weight: 1.0,
+            time_s,
+        });
+        self.optimize();
+    }
+
+    /// Restarts the particle filter tightly around `pose`.
+    fn reseed_particles(
+        &mut self,
+        pose: Pose2d,
+        scan: &LaserScan2d,
+        odom_pose: Pose2d,
+        sensor_from_base: Pose2d,
+    ) {
+        let config = AmclConfig {
+            initial_translation_std_m: 0.15,
+            initial_rotation_std_rad: 0.05,
+            ..self.config.amcl
+        };
+        if let Ok(mut amcl) = Amcl::new(&self.map, pose, config) {
+            amcl.update(scan, odom_pose, sensor_from_base);
+            self.amcl = amcl;
+        }
+    }
+
+    /// Adds a 3D LiDAR scan's match in a point-cloud map as a position and a
+    /// yaw factor (Huber kernel), in place of [`Self::update_lidar`]. The
+    /// caller matches the scan from [`Self::pose`].
+    pub fn update_lidar_match(&mut self, matched: &PointCloudMatch, time_s: f64) {
+        self.time_s = self.time_s.max(time_s);
+        let c = self.config;
+        let node = self.add_node(time_s);
+        self.unaries.push(Unary {
+            node,
+            measurement: Measurement::Position {
+                x: matched.pose.x_m,
+                y: matched.pose.y_m,
+                info: invert2(matched.position_covariance_m2),
+            },
+            origin: Origin::Lidar,
+            scale: c.lidar_huber_scale,
+            kernel: Kernel::Huber(0),
+            weight: 1.0,
+            time_s,
+        });
+        self.unaries.push(Unary {
+            node,
+            measurement: Measurement::Yaw {
+                yaw: matched.pose.yaw_rad,
+                info: 1.0 / matched.yaw_variance_rad2.max(1.0e-12),
             },
             origin: Origin::Lidar,
             scale: c.lidar_huber_scale,
@@ -932,6 +1011,36 @@ mod tests {
     }
 
     #[test]
+    fn point_cloud_matches_pull_the_graph() {
+        let mut graph = FactorGraphLocalizer::new(
+            &open_map(),
+            Pose2d::new(0.0, 0.0, 0.0),
+            FactorGraphConfig::default(),
+        )
+        .unwrap();
+        for step in 0..20 {
+            graph.predict(0.1, 1.0, 0.0);
+            let t = 0.1 * f64::from(step + 1);
+            // The scans say the robot is 0.5 m north of where odometry puts it,
+            // and do not constrain it along x.
+            let matched = PointCloudMatch {
+                pose: Pose2d::new(t, 0.5, 0.0),
+                z_m: 0.6,
+                position_covariance_m2: [[100.0, 0.0], [0.0, 0.01]],
+                yaw_variance_rad2: 1.0e-4,
+                rmse_m: 0.02,
+                inlier_fraction: 0.9,
+                fit_fraction: 0.9,
+                converged: true,
+            };
+            graph.update_lidar_match(&matched, t);
+        }
+        let pose = graph.pose();
+        assert!((pose.y_m - 0.5).abs() < 0.1, "{pose:?}");
+        assert!((pose.x_m - 2.0).abs() < 0.2, "{pose:?}");
+    }
+
+    #[test]
     fn block_tridiagonal_solver_matches_a_dense_solve() {
         let diag = vec![
             diag3(4.0, 5.0, 6.0),
@@ -1070,6 +1179,58 @@ mod tests {
         }
         let pose = graph.pose();
         assert!((pose.x_m - t).abs() < 0.2, "{pose:?} vs {t}");
+    }
+
+    /// The largest along-track error of a corridor drive on RTK fixes during
+    /// which the particle filter is knocked 6 m along the corridor, where its
+    /// scans look the same.
+    fn worst_error_with_a_wandering_particle_filter(config: FactorGraphConfig) -> f64 {
+        let map = corridor();
+        let mut graph =
+            FactorGraphLocalizer::new(&map, Pose2d::new(0.0, 0.0, 0.0), config).unwrap();
+        let mut t = 0.0;
+        let mut worst: f64 = 0.0;
+        for step in 0..300 {
+            graph.predict(0.05, 1.0, 0.0);
+            t += 0.05;
+            if step == 40 {
+                let wandered = Pose2d::new(t + 6.0, 0.0, 0.0);
+                graph.reseed_particles(
+                    wandered,
+                    &corridor_scan(0.0),
+                    Pose2d::new(t, 0.0, 0.0),
+                    Pose2d::IDENTITY,
+                );
+            }
+            if step % 2 == 1 {
+                graph.update_lidar(
+                    &corridor_scan(0.0),
+                    Pose2d::new(t, 0.0, 0.0),
+                    Pose2d::IDENTITY,
+                    t,
+                );
+            }
+            if step % 4 == 3 {
+                graph.update_gnss(Some(&fix(t, 0.0, FixKind::Fixed, 0.01)), t);
+            }
+            if step > 40 {
+                worst = worst.max((graph.pose().x_m - t).abs());
+            }
+        }
+        worst
+    }
+
+    #[test]
+    fn rtk_fixes_keep_a_wandering_particle_filter_from_moving_the_graph() {
+        let held = worst_error_with_a_wandering_particle_filter(FactorGraphConfig::default());
+        assert!(held < 0.2, "{held}");
+        // Without the hold, the particle filter re-anchors the graph onto its
+        // wrong place until the rejected RTK fixes pull it back.
+        let unheld = worst_error_with_a_wandering_particle_filter(FactorGraphConfig {
+            lidar_reanchor_rtk_hold_s: -1.0,
+            ..FactorGraphConfig::default()
+        });
+        assert!(unheld > 3.0, "{unheld}");
     }
 
     #[test]

@@ -33,6 +33,7 @@
 
 use crate::likelihood::LikelihoodField;
 use crate::localization::{Amcl, AmclConfig, AmclUpdate};
+use crate::pointcloud_map::PointCloudMatch;
 use crate::scan_match::{match_position_covariance, scan_points_2d, ScanMatchConfig, ScanMatcher};
 use rne_math::Vec3;
 use rne_nav::{
@@ -44,6 +45,14 @@ use serde::{Deserialize, Serialize};
 /// With anisotropic LiDAR fusion, the particle filter's match is used unless
 /// the EKF-seeded one scores higher by more than this.
 const LIDAR_SEED_SCORE_MARGIN: f64 = 0.02;
+
+/// Squared Mahalanobis gate (2 DOF, 99 %) for a point-cloud match to take
+/// over from GNSS under `lidar_keeps_charge`.
+const LIDAR_HANDOVER_CHI_SQUARE: f64 = 9.21;
+
+/// Largest horizontal sigma of the estimate from which a point-cloud match
+/// takes over under `lidar_keeps_charge`, meters.
+const LIDAR_HANDOVER_MAX_SIGMA_M: f64 = 2.0;
 
 /// With anisotropic LiDAR fusion, a particle-filter match farther than this
 /// from the EKF re-anchors the EKF there, meters.
@@ -185,6 +194,11 @@ pub struct HybridLocalizerConfig {
     /// Largest distance of a rejected fix's offset from the run's mean
     /// offset for re-anchoring, meters.
     pub gnss_reanchor_spread_m: f64,
+    /// Least distance the wheels must cover over a run of rejected fixes
+    /// for it to re-anchor, meters. A receiver standing still in a canyon
+    /// can report the same biased float solution for minutes; once the
+    /// robot moves, the bias changes with the geometry. Zero by default.
+    pub gnss_reanchor_min_travel_m: f64,
     /// Minimum scan-match score to fuse a LiDAR pose.
     pub lidar_min_score: f64,
     /// Minimum score of the wide relocalization match that starts LiDAR mode.
@@ -245,6 +259,22 @@ pub struct HybridLocalizerConfig {
     /// travel (within `LIDAR_LOCK_RELEASE_M`), or for three windows at
     /// most. Zero (off) by default.
     pub lidar_motion_check_scans: usize,
+    /// With point-cloud matches ([`HybridLocalizer::update_lidar_match`]),
+    /// LiDAR stays in charge wherever the map covers the robot instead of
+    /// trading places with GNSS: while GNSS is in charge, the first match
+    /// that agrees with the estimate (within the 99 % gate, against both
+    /// covariances) takes over, and while LiDAR is, GNSS solutions of at
+    /// least `enter_gnss_min_kind` that pass the gate are fused as
+    /// corrections rather than taking over. GNSS takes charge again when
+    /// LiDAR mode ends, or when `gnss_reanchor_fixes` RTK fixed fixes in a
+    /// row disagree with the LiDAR-held estimate while agreeing among
+    /// themselves: the map is wrong there (rebuilt, or not the place it
+    /// claims), and LiDAR takes back over only with a match that agrees with
+    /// the re-anchored estimate. LiDAR takes over only from an estimate whose
+    /// horizontal sigma is within 2 m (from farther, a scan may fit the wrong
+    /// street). Off by default (GNSS takes over whenever `enter_gnss_epochs`
+    /// healthy solutions arrive in a row).
+    pub lidar_keeps_charge: bool,
     /// Variance of a fused AMCL yaw, in rad².
     pub lidar_yaw_variance_rad2: f64,
     /// Odometry forward-velocity variance.
@@ -281,6 +311,7 @@ impl Default for HybridLocalizerConfig {
             gate_reset_min_std_m: 3.0,
             gnss_reanchor_fixes: 0,
             gnss_reanchor_spread_m: 0.5,
+            gnss_reanchor_min_travel_m: 0.0,
             lidar_min_score: 0.35,
             lidar_init_min_score: 0.5,
             lidar_map_margin_m: 2.0,
@@ -291,6 +322,7 @@ impl Default for HybridLocalizerConfig {
             lidar_gate_chi_square: f64::INFINITY,
             lidar_anisotropic: false,
             lidar_max_variance_m2: 100.0,
+            lidar_keeps_charge: false,
             lidar_drop_unmapped_returns: false,
             lidar_unmapped_distance_m: 1.0,
             lidar_motion_check_scans: 0,
@@ -353,8 +385,12 @@ pub struct HybridLocalizer {
     /// RTK fixes starts.
     dead_reckoned: Pose2d,
     /// Offsets of the current run of gate-rejected RTK fixed fixes from
-    /// `dead_reckoned`, with their variances.
-    rejected_offsets: Vec<(f64, f64, f64)>,
+    /// `dead_reckoned`, with their variances and where `dead_reckoned` was.
+    rejected_offsets: Vec<(f64, f64, f64, (f64, f64))>,
+    /// RTK showed the map wrong where LiDAR was in charge
+    /// (`lidar_keeps_charge`): until a match agrees with the estimate again,
+    /// a relocalizing match must agree too.
+    lidar_distrusted: bool,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
 }
@@ -387,6 +423,7 @@ impl HybridLocalizer {
             motion_lock_scans: 0,
             dead_reckoned: initial_pose,
             rejected_offsets: Vec::new(),
+            lidar_distrusted: false,
             last_amcl: None,
             transitions: Vec::new(),
         })
@@ -494,6 +531,7 @@ impl HybridLocalizer {
                 self.switch(LocalizationSource::DeadReckoning, time_s);
                 self.lidar_search = true;
             }
+            LocalizationSource::Lidar if self.config.lidar_keeps_charge => {}
             LocalizationSource::Lidar | LocalizationSource::DeadReckoning
                 if self.gnss_good_streak >= self.config.enter_gnss_epochs =>
             {
@@ -507,12 +545,15 @@ impl HybridLocalizer {
         if !healthy {
             return Ok(decision);
         }
-        // Only fuse once GNSS is in charge: isolated healthy-looking fixes in
-        // a degraded stretch are often NLOS-biased.
-        if self.source != LocalizationSource::Gnss {
+        let fix = fix.ok_or(HybridError::Fusion(FusionError::NonFiniteInput))?;
+        let corrects_lidar = self.config.lidar_keeps_charge
+            && self.source == LocalizationSource::Lidar
+            && fix.kind >= self.config.enter_gnss_min_kind;
+        // Otherwise only fuse once GNSS is in charge: isolated
+        // healthy-looking fixes in a degraded stretch are often NLOS-biased.
+        if self.source != LocalizationSource::Gnss && !corrects_lidar {
             return Ok(GnssDecision::Healthy);
         }
-        let fix = fix.ok_or(HybridError::Fusion(FusionError::NonFiniteInput))?;
         self.ekf
             .update_position(fix.x_m, fix.y_m, self.gnss_variance_m2(fix))?;
         Ok(GnssDecision::Fused)
@@ -762,6 +803,7 @@ impl HybridLocalizer {
             fix.x_m - origin.x_m,
             fix.y_m - origin.y_m,
             self.gnss_variance_m2(fix),
+            (origin.x_m, origin.y_m),
         ));
         if self.rejected_offsets.len() > needed {
             self.rejected_offsets.remove(0);
@@ -773,18 +815,33 @@ impl HybridLocalizer {
         let (mx, my) = self
             .rejected_offsets
             .iter()
-            .fold((0.0, 0.0), |(a, b), (x, y, _)| (a + x / n, b + y / n));
+            .fold((0.0, 0.0), |(a, b), (x, y, _, _)| (a + x / n, b + y / n));
         let spread = self
             .rejected_offsets
             .iter()
-            .map(|(x, y, _)| (x - mx).hypot(y - my))
+            .map(|(x, y, _, _)| (x - mx).hypot(y - my))
             .fold(0.0, f64::max);
+        // Handing charge from LiDAR to GNSS, the fixes' own variance:
+        // a loose estimate would let the next (wrong) match back in.
+        let map_is_wrong =
+            self.config.lidar_keeps_charge && self.source == LocalizationSource::Lidar;
+        let floor = if map_is_wrong {
+            0.0
+        } else {
+            self.config.ekf.initial_position_variance_m2
+        };
         let variance_m2 = self
             .rejected_offsets
             .iter()
-            .map(|(_, _, v)| *v)
-            .fold(self.config.ekf.initial_position_variance_m2, f64::max);
-        if spread > self.config.gnss_reanchor_spread_m {
+            .map(|(_, _, v, _)| *v)
+            .fold(floor, f64::max);
+        let travelled = match (self.rejected_offsets.first(), self.rejected_offsets.last()) {
+            (Some(first), Some(last)) => (last.3 .0 - first.3 .0).hypot(last.3 .1 - first.3 .1),
+            _ => 0.0,
+        };
+        if spread > self.config.gnss_reanchor_spread_m
+            || travelled < self.config.gnss_reanchor_min_travel_m
+        {
             return Ok(false);
         }
         let pose = Pose2d::new(origin.x_m + mx, origin.y_m + my, self.ekf.pose().yaw_rad);
@@ -797,7 +854,13 @@ impl HybridLocalizer {
         self.gate_streak = 0;
         // The particle filter followed the old placement; search the map
         // again around the new one.
-        if self.amcl.take().is_some() || self.source == LocalizationSource::DeadReckoning {
+        if map_is_wrong {
+            // RTK says the map is wrong here: GNSS holds the robot until a
+            // match agrees with it again.
+            self.lidar_search = false;
+            self.lidar_distrusted = true;
+            self.switch(LocalizationSource::Gnss, time_s);
+        } else if self.amcl.take().is_some() || self.source == LocalizationSource::DeadReckoning {
             self.lidar_search = true;
             self.switch(LocalizationSource::DeadReckoning, time_s);
         }
@@ -857,6 +920,90 @@ impl HybridLocalizer {
         }
         let progress = (p1.0 - p0.0) * cos + (p1.1 - p0.1) * sin;
         progress * travel.signum() < 0.5 * travel.abs()
+    }
+
+    /// Processes a 3D LiDAR scan's match in a point-cloud map (or `None`
+    /// when the scan did not match), in place of [`Self::update_lidar`]:
+    /// the caller matches the scan, from [`Self::pose`] while tracking and
+    /// over [`Self::lidar_search_window_m`] while searching. A match while
+    /// searching relocalizes the robot and starts LiDAR mode; while
+    /// tracking, matches pass `lidar_gate_chi_square` (against their own
+    /// covariance) and `lidar_motion_check_scans` before they are fused, and
+    /// `lidar_max_low_scores` consecutive scans without one end LiDAR mode.
+    pub fn update_lidar_match(
+        &mut self,
+        matched: Option<&PointCloudMatch>,
+        time_s: f64,
+    ) -> Result<(), HybridError> {
+        if self.source != LocalizationSource::Lidar {
+            if let Some(m) = matched {
+                let agrees = || {
+                    self.ekf.position_mahalanobis_squared_covariance(
+                        m.pose.x_m,
+                        m.pose.y_m,
+                        m.position_covariance_m2,
+                    ) <= LIDAR_HANDOVER_CHI_SQUARE
+                };
+                let searching = self.lidar_search
+                    && self.source == LocalizationSource::DeadReckoning
+                    && (!self.lidar_distrusted || agrees());
+                let certain = {
+                    let c = self.ekf.covariance();
+                    (c[0][0] + c[1][1]).sqrt() <= LIDAR_HANDOVER_MAX_SIGMA_M
+                };
+                let takes_over = self.config.lidar_keeps_charge
+                    && self.source == LocalizationSource::Gnss
+                    && certain
+                    && agrees();
+                if (searching || takes_over) && self.map_covers(self.pose()) {
+                    self.lidar_distrusted = false;
+                    self.fuse_point_cloud_match(m)?;
+                    self.lidar_low_streak = 0;
+                    self.motion_history.clear();
+                    self.motion_lock_scans = 0;
+                    self.switch(LocalizationSource::Lidar, time_s);
+                }
+            }
+            return Ok(());
+        }
+        let gated = matched.filter(|m| {
+            self.ekf.position_mahalanobis_squared_covariance(
+                m.pose.x_m,
+                m.pose.y_m,
+                m.position_covariance_m2,
+            ) <= self.config.lidar_gate_chi_square
+        });
+        if self.matches_hold_the_robot_back(gated.map(|m| m.pose)) {
+            return Ok(());
+        }
+        match gated {
+            Some(m) => {
+                self.lidar_low_streak = 0;
+                self.fuse_point_cloud_match(m)?;
+            }
+            None => self.lidar_low_streak += 1,
+        }
+        if self.lidar_low_streak >= self.config.lidar_max_low_scores
+            || !self.map_covers(self.pose())
+        {
+            self.switch(LocalizationSource::DeadReckoning, time_s);
+            self.lidar_search = true;
+        }
+        Ok(())
+    }
+
+    /// Half-width of the area a relocalizing match should search, meters:
+    /// three sigma of the estimate, within `lidar_init_window_m`.
+    pub fn lidar_search_window_m(&self) -> f64 {
+        let covariance = self.ekf.covariance();
+        let (min_m, max_m) = self.config.lidar_init_window_m;
+        (3.0 * covariance[0][0].max(covariance[1][1]).sqrt()).clamp(min_m, max_m)
+    }
+
+    fn fuse_point_cloud_match(&mut self, m: &PointCloudMatch) -> Result<(), FusionError> {
+        self.ekf
+            .update_position_covariance(m.pose.x_m, m.pose.y_m, m.position_covariance_m2)?;
+        self.ekf.update_yaw(m.pose.yaw_rad, m.yaw_variance_rad2)
     }
 
     /// Whether the arbiter is searching the map for a LiDAR relocalization.
@@ -1274,6 +1421,22 @@ mod tests {
         assert!(pose.x_m.hypot(pose.y_m) < 0.1, "{pose:?}");
         let covariance = localizer.ekf().covariance();
         assert!(covariance[0][0] >= 0.99, "{covariance:?}");
+
+        // With a minimum travel, a robot standing still does not take the
+        // same (possibly biased) float solution repeated.
+        let still = HybridLocalizerConfig {
+            gnss_reanchor_min_travel_m: 3.0,
+            ..confident
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 20.0, 0.0), still).unwrap();
+        for step in 0..60 {
+            localizer.predict(0.2, 0.0, 0.0).unwrap();
+            localizer
+                .update_gnss(Some(&float(0.0)), f64::from(step))
+                .unwrap();
+        }
+        assert!(localizer.pose().y_m > 19.0, "{:?}", localizer.pose());
     }
 
     #[test]
@@ -1321,6 +1484,206 @@ mod tests {
         let followed = run(10);
         assert!(held < 13.5, "{held}");
         assert!(followed > 14.4, "{followed}");
+    }
+
+    fn cloud_match(x: f64, y: f64, variance: [f64; 2]) -> PointCloudMatch {
+        PointCloudMatch {
+            pose: Pose2d::new(x, y, 0.0),
+            z_m: 0.6,
+            position_covariance_m2: [[variance[0], 0.0], [0.0, variance[1]]],
+            yaw_variance_rad2: 1.0e-4,
+            rmse_m: 0.02,
+            inlier_fraction: 0.9,
+            fit_fraction: 0.9,
+            converged: true,
+        }
+    }
+
+    #[test]
+    fn point_cloud_matches_relocalize_track_and_hand_back() {
+        let config = HybridLocalizerConfig {
+            lidar_gate_chi_square: 16.0,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(13.0, 0.0, 0.0), config).unwrap();
+        // GNSS mode ignores matches.
+        localizer
+            .update_lidar_match(Some(&cloud_match(14.0, 0.0, [0.01, 0.01])), 0.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        assert!((localizer.pose().x_m - 13.0).abs() < 1e-9);
+        for step in 0..3 {
+            localizer.update_gnss(None, f64::from(step)).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        assert!(localizer.lidar_search_window_m() >= 0.5);
+        // A match relocalizes the robot (1 m off) and starts LiDAR mode.
+        localizer
+            .update_lidar_match(Some(&cloud_match(14.0, 0.0, [0.01, 0.01])), 3.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+        assert!(
+            (localizer.pose().x_m - 14.0).abs() < 0.1,
+            "{:?}",
+            localizer.pose()
+        );
+        // A match 3 m along a direction it constrains fails the gate; one
+        // whose covariance says that direction is loose passes.
+        localizer
+            .update_lidar_match(Some(&cloud_match(17.0, 0.0, [0.01, 0.01])), 3.1)
+            .unwrap();
+        assert!(
+            (localizer.pose().x_m - 14.0).abs() < 0.1,
+            "{:?}",
+            localizer.pose()
+        );
+        localizer
+            .update_lidar_match(Some(&cloud_match(17.0, 0.05, [100.0, 0.01])), 3.2)
+            .unwrap();
+        let pose = localizer.pose();
+        assert!((pose.x_m - 14.0).abs() < 0.1 && pose.y_m > 0.02, "{pose:?}");
+        // Scans without a match end LiDAR mode.
+        for step in 0..config.lidar_max_low_scores {
+            localizer
+                .update_lidar_match(None, 4.0 + 0.1 * step as f64)
+                .unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+    }
+
+    #[test]
+    fn with_lidar_keeping_charge_gnss_corrects_it_instead_of_taking_over() {
+        let config = HybridLocalizerConfig {
+            lidar_keeps_charge: true,
+            enter_gnss_min_kind: FixKind::Fixed,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(13.0, 0.0, 0.0), config).unwrap();
+        let fixed = |x: f64| AbsolutePositionFix {
+            horizontal_std_m: 0.01,
+            kind: FixKind::Fixed,
+            ..good_fix(x, 0.0)
+        };
+        for step in 0..10 {
+            localizer
+                .update_gnss(Some(&fixed(13.0)), f64::from(step))
+                .unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        // A match that disagrees with RTK does not take over; one that
+        // agrees does.
+        localizer
+            .update_lidar_match(Some(&cloud_match(14.0, 0.0, [0.01, 0.01])), 10.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        localizer
+            .update_lidar_match(Some(&cloud_match(13.01, 0.0, [0.01, 0.01])), 10.1)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+        // RTK fixed fixes keep arriving: they correct the estimate, and
+        // LiDAR stays in charge.
+        for step in 0..20 {
+            let decision = localizer
+                .update_gnss(Some(&fixed(13.05)), 11.0 + f64::from(step))
+                .unwrap();
+            assert_eq!(decision, GnssDecision::Fused);
+        }
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+        // Pulled from the match (13.01 m) toward the fixes.
+        let x = localizer.pose().x_m;
+        assert!(x > 13.025 && x < 13.051, "{x}");
+        // Once LiDAR loses the map, GNSS takes over again.
+        for step in 0..config.lidar_max_low_scores {
+            localizer
+                .update_lidar_match(None, 31.0 + 0.1 * step as f64)
+                .unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        for step in 0..config.enter_gnss_epochs {
+            localizer
+                .update_gnss(Some(&fixed(13.05)), 40.0 + step as f64)
+                .unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+    }
+
+    #[test]
+    fn consistent_rtk_disagreement_hands_charge_from_a_wrong_map_to_gnss() {
+        let config = HybridLocalizerConfig {
+            lidar_keeps_charge: true,
+            enter_gnss_min_kind: FixKind::Fixed,
+            gnss_reanchor_fixes: 5,
+            lidar_gate_chi_square: 16.0,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(13.0, 0.0, 0.0), config).unwrap();
+        let fixed = |x: f64| AbsolutePositionFix {
+            horizontal_std_m: 0.01,
+            kind: FixKind::Fixed,
+            ..good_fix(x, 0.0)
+        };
+        for step in 0..5 {
+            localizer
+                .update_gnss(Some(&fixed(13.0)), f64::from(step))
+                .unwrap();
+        }
+        localizer
+            .update_lidar_match(Some(&cloud_match(13.0, 0.0, [1e-4, 1e-4])), 5.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+        // The map is 2 m off here: the matches say 13, RTK says 15.
+        for step in 0..10 {
+            let t = 6.0 + f64::from(step);
+            localizer
+                .update_lidar_match(Some(&cloud_match(13.0, 0.0, [1e-4, 1e-4])), t)
+                .unwrap();
+            localizer.update_gnss(Some(&fixed(15.0)), t).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        assert!(
+            (localizer.pose().x_m - 15.0).abs() < 0.1,
+            "{:?}",
+            localizer.pose()
+        );
+        // A match that still disagrees does not take back over, not even
+        // while dead reckoning through a GNSS outage; one that agrees does.
+        localizer
+            .update_lidar_match(Some(&cloud_match(13.0, 0.0, [1e-4, 1e-4])), 17.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
+        for step in 0..3 {
+            localizer.update_gnss(None, 17.1 + f64::from(step)).unwrap();
+        }
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        localizer
+            .update_lidar_match(Some(&cloud_match(13.0, 0.0, [1e-4, 1e-4])), 17.5)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::DeadReckoning);
+        localizer
+            .update_lidar_match(Some(&cloud_match(15.0, 0.0, [1e-4, 1e-4])), 18.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Lidar);
+    }
+
+    #[test]
+    fn lidar_does_not_take_over_from_an_uncertain_estimate() {
+        let config = HybridLocalizerConfig {
+            lidar_keeps_charge: true,
+            ekf: EkfConfig {
+                initial_position_variance_m2: 900.0,
+                ..HybridLocalizerConfig::default().ekf
+            },
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(13.0, 0.0, 0.0), config).unwrap();
+        localizer
+            .update_lidar_match(Some(&cloud_match(14.0, 0.0, [0.01, 0.01])), 0.0)
+            .unwrap();
+        assert_eq!(localizer.source(), LocalizationSource::Gnss);
     }
 
     #[test]

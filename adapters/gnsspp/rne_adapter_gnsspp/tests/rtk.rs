@@ -274,3 +274,84 @@ fn qzss_joins_spp_and_rtk() {
     assert!(fixed >= 50, "{fixed} fixed epochs");
     assert!(last_error < 0.05, "RTK error {last_error} m");
 }
+
+#[test]
+fn beidou_joins_spp_and_rtk_with_its_geostationary_satellites() {
+    if !is_available() {
+        return;
+    }
+    let config = ReceiverConfig::default();
+    let constellation = Constellation::gps_galileo_qzss_beidou_nominal();
+    let frame = EnuFrame::new(Geodetic::from_degrees(35.68, 139.77, 40.0));
+    let scene = GnssScene::open_sky();
+    // SPP from BeiDou alone: libgnss++ must place every BeiDou satellite,
+    // the geostationary ones in their tilted frame, where the simulation
+    // put it.
+    let beidou = Constellation::beidou_nominal();
+    let antenna = Vec3::new(0.0, 0.0, 1.5);
+    for hour in [0.0, 8.0, 16.0] {
+        let t = hour * 3600.0;
+        let mut receiver = GnssReceiver::new(config).unwrap();
+        let epoch = receiver.observe(&scene, &beidou, &frame, antenna, t);
+        let geo_up = epoch
+            .observations
+            .iter()
+            .filter(|o| o.id.is_beidou_geo() && o.elevation_rad > 0.2)
+            .count();
+        assert!(geo_up >= 2, "hour {hour}: {geo_up} geostationary up");
+        let message = NavigationMessage::from_constellation(
+            &beidou,
+            config.epoch,
+            t,
+            config.atmosphere.klobuchar,
+        );
+        let solution = Spp::new(10.0)
+            .unwrap()
+            .process(&epoch, None, &Navigation::new(&message).unwrap())
+            .unwrap();
+        let error = frame.ecef_vector_to_enu(solution.position_ecef_m - frame.enu_to_ecef(antenna));
+        assert!(
+            error.length() < 8.0,
+            "hour {hour}: BeiDou-only SPP error {error:?}"
+        );
+    }
+
+    // RTK with all four systems fixes and stays at centimetres.
+    let message = NavigationMessage::from_constellation(
+        &constellation,
+        config.epoch,
+        0.0,
+        config.atmosphere.klobuchar,
+    );
+    let navigation = Navigation::new(&message).expect("navigation");
+    let base_enu = Vec3::new(-150.0, 80.0, 12.0);
+    let base_ecef = frame.enu_to_ecef(base_enu);
+    let mut base = GnssReceiver::new(ReceiverConfig { seed: 1, ..config }).unwrap();
+    let mut rover = GnssReceiver::new(ReceiverConfig { seed: 3, ..config }).unwrap();
+    let mut rtk = Rtk::new(RtkMode::Kinematic, 10.0, 3.0).unwrap();
+    rtk.set_base_position(base_ecef).unwrap();
+    let (mut fixed, mut last_error) = (0, f64::INFINITY);
+    for step in 0..100 {
+        let t = f64::from(step) * 0.2;
+        let antenna = Vec3::new(t, 0.0, 0.8);
+        let base_epoch = base.observe(&scene, &constellation, &frame, base_enu, t);
+        let rover_epoch = rover.observe(&scene, &constellation, &frame, antenna, t);
+        let solution = rtk
+            .process(
+                &rover_epoch,
+                None,
+                &base_epoch,
+                Some(base_ecef),
+                &navigation,
+            )
+            .unwrap();
+        if solution.status == SolutionStatus::Fixed {
+            fixed += 1;
+            last_error = frame
+                .ecef_vector_to_enu(solution.position_ecef_m - frame.enu_to_ecef(antenna))
+                .length();
+        }
+    }
+    assert!(fixed >= 50, "{fixed} fixed epochs");
+    assert!(last_error < 0.05, "RTK error {last_error} m");
+}

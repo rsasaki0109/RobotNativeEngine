@@ -51,6 +51,7 @@ members = [
   "adapters/ros2/rne_adapter_ros2",
   "adapters/ssl/rne_adapter_ssl",
   "adapters/gnsspp/rne_adapter_gnsspp",
+  "adapters/lidarloc/rne_adapter_lidarloc",
   "adapters/hardware/rne_hardware_gateway",
   "adapters/hardware/rne_hardware_lekiwi",
   "examples/00_hello_world",
@@ -298,6 +299,7 @@ rne_slam = { version = "=0.4.0", path = "crates/rne_slam" }
 rne_explore = { version = "=0.4.0", path = "crates/rne_explore" }
 rne_gnss = { version = "=0.4.0", path = "crates/rne_gnss" }
 rne_adapter_gnsspp = { version = "=0.4.0", path = "adapters/gnsspp/rne_adapter_gnsspp" }
+rne_adapter_lidarloc = { version = "=0.4.0", path = "adapters/lidarloc/rne_adapter_lidarloc" }
 rne_sdf = { version = "=0.4.0", path = "crates/rne_sdf" }
 rne_sensor = { version = "=0.4.0", path = "crates/rne_sensor" }
 rne_sumo = { version = "=0.4.0", path = "crates/rne_sumo" }

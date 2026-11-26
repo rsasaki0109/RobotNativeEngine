@@ -3,7 +3,8 @@
 use rne_gnss::{EnuFrame, Geodetic, MeshTriangle, SurfaceMaterial, TriangleMesh};
 use rne_math::Vec3;
 use rne_plateau::BuildingSurface;
-use std::path::PathBuf;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// Geoid height above the GRS80 ellipsoid around central Tokyo (GSIGEO2011),
@@ -21,6 +22,30 @@ pub(crate) struct Building {
     pub(crate) bounds: [f64; 4],
     /// Lowest point (ground) and highest point in ENU meters.
     pub(crate) z_range: (f64, f64),
+    /// Whether the render draws it from its photo textures
+    /// ([`PlateauCity::facades`]) or the synthetic scenery
+    /// ([`PlateauCity::scenery`]) instead of the ray-tracing mesh.
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) textured: bool,
+}
+
+/// One triangle of a photo-textured building, for drawing.
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) struct Facade {
+    /// ENU vertices, wound outward.
+    pub(crate) vertices: [Vec3; 3],
+    /// The photo and the vertices' texture coordinates (`CityGML`'s, v up),
+    /// or `None` for an untextured surface of a textured building.
+    pub(crate) texture: Option<(u32, [[f32; 2]; 3])>,
+}
+
+/// The photo textures of the loaded buildings.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Facades {
+    /// The image files ([`Facade::texture`] indexes them).
+    pub(crate) images: Vec<PathBuf>,
+    pub(crate) triangles: Vec<Facade>,
 }
 
 /// The loaded city: an ENU frame at a station and its buildings as a mesh.
@@ -30,13 +55,215 @@ pub(crate) struct PlateauCity {
     pub(crate) frame: EnuFrame,
     pub(crate) mesh: Arc<TriangleMesh>,
     pub(crate) buildings: Vec<Building>,
+    /// Photo-textured buildings' triangles, where the textures were fetched
+    /// (`fetch_plateau_tokyo.py --textures`).
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) facades: Arc<Facades>,
+    /// Road surfaces (`tran`, LOD1) as ENU triangles at height zero, for
+    /// drawing on the terrain.
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) roads: Arc<Vec<[Vec3; 3]>>,
+    /// The roads' intersections (PLATEAU's road polygons without a section
+    /// type), one triangle list per polygon.
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) junctions: Arc<Vec<Vec<[Vec3; 3]>>>,
     /// Terrain heights on a grid (see [`TERRAIN_CELL_M`]).
     terrain: Vec<f64>,
     terrain_half_cells: usize,
+    /// What the render draws of a synthetic area, instead of its mesh and
+    /// paved ground.
+    #[cfg_attr(not(feature = "capture"), allow(dead_code))]
+    pub(crate) scenery: Option<Arc<Scenery>>,
+}
+
+/// A ground cover of a synthetic area.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) enum Cover {
+    /// Lawn and verges.
+    Grass,
+    /// Flooded rice paddy, young plants in rows.
+    Paddy,
+    /// Vegetable rows on dark soil.
+    Rows,
+    /// Ploughed soil.
+    Soil,
+    /// Concrete (driveways).
+    Concrete,
+    /// Packed earth (paths between the fields).
+    Dirt,
+}
+
+/// The surface pattern of a synthetic solid, tinted by its colour.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) enum Finish {
+    Plain,
+    /// Horizontal lap siding.
+    Siding,
+    /// Rendered wall.
+    Stucco,
+    /// Roof tiles in rows down the slope.
+    Tiles,
+    /// Concrete blocks.
+    Blocks,
+    Leaves,
+    Bark,
+}
+
+/// Triangles of a synthetic area in one colour (sRGB), roughness and
+/// finish.
+pub(crate) type Solid = ([u8; 3], f32, Finish, Vec<[Vec3; 3]>);
+
+/// What the render draws of a synthetic area: solids in colours and
+/// finishes (the same objects the sensor mesh has, plus windows, doors,
+/// wires and the hills) and ground covers over the grass.
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(not(feature = "capture"), allow(dead_code))]
+pub(crate) struct Scenery {
+    /// Triangles by colour (sRGB), roughness and finish, wound outward.
+    pub(crate) solids: Vec<Solid>,
+    /// Ground covers as ENU quads.
+    pub(crate) ground: Vec<(Cover, [(f64, f64); 4])>,
 }
 
 /// Terrain grid spacing, meters.
 const TERRAIN_CELL_M: f64 = 2.0;
+
+impl Facades {
+    /// Indexes the fetched ones of `uris` (relative to `folder`).
+    fn add_images(
+        &mut self,
+        index: &mut HashMap<PathBuf, u32>,
+        folder: &Path,
+        uris: &[String],
+    ) -> Vec<Option<u32>> {
+        uris.iter()
+            .map(|uri| {
+                let path = folder.join(uri);
+                path.exists().then(|| {
+                    *index.entry(path.clone()).or_insert_with(|| {
+                        self.images.push(path);
+                        (self.images.len() - 1) as u32
+                    })
+                })
+            })
+            .collect()
+    }
+
+    /// The tiles' bridges, railway viaducts and pedestrian decks (`brid`,
+    /// next to the building files) within `radius_m`, for drawing only:
+    /// they are open surfaces, so both sides of each triangle are kept.
+    fn add_bridges(
+        &mut self,
+        paths: &[PathBuf],
+        to_enu: &dyn Fn([f64; 3]) -> Vec3,
+        radius_m: f64,
+        index: &mut HashMap<PathBuf, u32>,
+    ) -> Result<(), String> {
+        for path in paths {
+            let Some(brid) = sibling(path, "brid_6697_op.gml") else {
+                continue;
+            };
+            let Ok(xml) = std::fs::read_to_string(&brid) else {
+                continue;
+            };
+            let folder = brid.parent().map(PathBuf::from).unwrap_or_default();
+            for bridge in rne_plateau::parse_bridge_triangles(&xml)
+                .map_err(|e| format!("{}: {e}", brid.display()))?
+            {
+                let corners: Vec<[Vec3; 3]> = bridge
+                    .triangles
+                    .iter()
+                    .map(|t| t.vertices.map(to_enu))
+                    .collect();
+                if !corners.iter().flatten().any(|c| c.x.hypot(c.y) <= radius_m) {
+                    continue;
+                }
+                let images = self.add_images(index, &folder, &bridge.images);
+                for (t, [a, b, c]) in bridge.triangles.iter().zip(corners) {
+                    let texture = t.texture.and_then(|tex| {
+                        let image = images[tex.image as usize]?;
+                        Some((image, tex.uv.map(|[u, v]| [u as f32, v as f32])))
+                    });
+                    self.triangles.push(Facade {
+                        vertices: [a, b, c],
+                        texture,
+                    });
+                    self.triangles.push(Facade {
+                        vertices: [a, c, b],
+                        texture: texture.map(|(image, uv)| (image, [uv[0], uv[2], uv[1]])),
+                    });
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+/// The file of another PLATEAU theme for the same mesh as `path` (a
+/// building file): `53393586_bldg_6697_2_op.gml` and `"tran_6668_op.gml"`
+/// give `53393586_tran_6668_op.gml`.
+fn sibling(path: &Path, suffix: &str) -> Option<PathBuf> {
+    let name = path.file_name()?.to_str()?;
+    let mesh = name.split('_').next()?;
+    Some(path.with_file_name(format!("{mesh}_{suffix}")))
+}
+
+/// Road and intersection triangles.
+type Roads = (Vec<[Vec3; 3]>, Vec<Vec<[Vec3; 3]>>);
+
+/// The road surfaces of the tiles' transportation files (next to the
+/// building files) within `radius_m` of the origin, and the intersections
+/// among them: PLATEAU splits its roads into sections (`uro:sectionType`)
+/// and the intersections between them, which have none.
+fn load_roads(
+    paths: &[PathBuf],
+    to_enu: &dyn Fn([f64; 3]) -> Vec3,
+    radius_m: f64,
+) -> Result<Roads, String> {
+    let mut roads = Vec::new();
+    let mut junctions = Vec::new();
+    for path in paths {
+        let Some(tran) = sibling(path, "tran_6668_op.gml") else {
+            continue;
+        };
+        let Ok(xml) = std::fs::read_to_string(&tran) else {
+            continue;
+        };
+        let sections: std::collections::HashSet<&str> = xml
+            .split("<tran:Road gml:id=\"")
+            .skip(1)
+            .filter_map(|chunk| {
+                let id = chunk.split('"').next()?;
+                let body = chunk.split("</tran:Road>").next()?;
+                body.contains("sectionType").then_some(id)
+            })
+            .collect();
+        for road in rne_plateau::parse_road_triangles(&xml)
+            .map_err(|e| format!("{}: {e}", tran.display()))?
+        {
+            let junction = !sections.contains(road.id.as_str());
+            let mut polygon = Vec::new();
+            for triangle in road.triangles {
+                let corners = triangle.map(|v| {
+                    let p = to_enu([v[0], v[1], 0.0]);
+                    Vec3::new(p.x, p.y, 0.0)
+                });
+                if corners.iter().any(|c| c.x.hypot(c.y) <= radius_m) {
+                    roads.push(corners);
+                    if junction {
+                        polygon.push(corners);
+                    }
+                }
+            }
+            if !polygon.is_empty() {
+                junctions.push(polygon);
+            }
+        }
+    }
+    Ok((roads, junctions))
+}
 
 impl PlateauCity {
     /// Loads the buildings of `CityGML` tiles within `radius_m` of `center`
@@ -53,9 +280,12 @@ impl PlateauCity {
         for path in paths {
             let xml =
                 std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+            let folder = path.parent().map(PathBuf::from).unwrap_or_default();
             parsed.extend(
                 rne_plateau::parse_building_triangles(&xml)
-                    .map_err(|e| format!("{}: {e}", path.display()))?,
+                    .map_err(|e| format!("{}: {e}", path.display()))?
+                    .into_iter()
+                    .map(|b| (b, folder.clone())),
             );
         }
         let frame = EnuFrame::new(Geodetic::from_degrees(
@@ -68,7 +298,9 @@ impl PlateauCity {
         };
         let mut triangles = Vec::new();
         let mut buildings = Vec::new();
-        for building in parsed {
+        let mut facades = Facades::default();
+        let mut image_index: HashMap<PathBuf, u32> = HashMap::new();
+        for (building, folder) in parsed {
             let corners: Vec<[Vec3; 3]> = building
                 .triangles
                 .iter()
@@ -98,6 +330,9 @@ impl PlateauCity {
                 SurfaceMaterial::CONCRETE
             };
             let object = buildings.len() as u32;
+            // The building's photos, where they were fetched.
+            let images = facades.add_images(&mut image_index, &folder, &building.images);
+            let textured = images.iter().any(Option::is_some);
             for (t, [a, b, c]) in building.triangles.iter().zip(&corners) {
                 let material = match t.surface {
                     BuildingSurface::Wall | BuildingSurface::Unknown => wall,
@@ -111,22 +346,38 @@ impl PlateauCity {
                 if let Some(tri) = MeshTriangle::new(vertices, material, object) {
                     triangles.push(tri);
                 }
+                if textured && material != SurfaceMaterial::ABSORBER {
+                    let texture = t.texture.and_then(|tex| {
+                        let image = images[tex.image as usize]?;
+                        let uv = tex.uv.map(|[u, v]| [u as f32, v as f32]);
+                        Some((image, if flip { [uv[0], uv[2], uv[1]] } else { uv }))
+                    });
+                    facades.triangles.push(Facade { vertices, texture });
+                }
             }
             buildings.push(Building {
                 bounds: [lo.x, lo.y, hi.x, hi.y],
                 z_range: (lo.z, hi.z),
+                textured,
             });
         }
+        facades.add_bridges(paths, &to_enu, radius_m, &mut image_index)?;
         if buildings.is_empty() {
             return Err(format!("no buildings within {radius_m} m of {center:?}"));
         }
+        // Roads reach past the buildings, as far as the render's terrain.
+        let (roads, junctions) = load_roads(paths, &to_enu, radius_m + 300.0)?;
         let mut city = Self {
             name: name.to_string(),
             frame,
             mesh: Arc::new(TriangleMesh::new(triangles)),
             buildings,
+            facades: Arc::new(facades),
+            roads: Arc::new(roads),
+            junctions: Arc::new(junctions),
             terrain: Vec::new(),
             terrain_half_cells: (radius_m / TERRAIN_CELL_M).ceil() as usize + 1,
+            scenery: None,
         };
         let n = 2 * city.terrain_half_cells + 1;
         let half = city.terrain_half_cells as f64;
@@ -138,6 +389,35 @@ impl PlateauCity {
             })
             .collect();
         Ok(city)
+    }
+
+    /// A synthetic area (see [`crate::suburb`]): its sensor mesh, the
+    /// objects in it (all drawn from `scenery`), its roads, flat terrain out
+    /// to `extent_m` and what the render draws.
+    pub(crate) fn synthetic(
+        name: &str,
+        center: (f64, f64),
+        triangles: Vec<MeshTriangle>,
+        buildings: Vec<Building>,
+        roads: Vec<[Vec3; 3]>,
+        extent_m: f64,
+        scenery: Scenery,
+    ) -> Self {
+        let frame = EnuFrame::new(Geodetic::from_degrees(center.0, center.1, GEOID_TOKYO_M));
+        let terrain_half_cells = (extent_m / TERRAIN_CELL_M).ceil() as usize + 1;
+        let n = 2 * terrain_half_cells + 1;
+        Self {
+            name: name.to_string(),
+            frame,
+            mesh: Arc::new(TriangleMesh::new(triangles)),
+            buildings,
+            facades: Arc::new(Facades::default()),
+            roads: Arc::new(roads),
+            junctions: Arc::new(Vec::new()),
+            terrain: vec![0.0; n * n],
+            terrain_half_cells,
+            scenery: Some(Arc::new(scenery)),
+        }
     }
 
     /// Ground height at a point, interpolated from the terrain grid.
