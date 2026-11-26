@@ -129,20 +129,45 @@ Ground truth, OverMaps360 street, 4 walkers, 2 cyclists, a dog walker, a strolle
 
 | seed | goals | contacts (walls / people) | time | people on the road | nearest to the robot's body | nearest to a car | longest still |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 4/4 | 0 / 0 | 518 s | 0 | 6 cm clear | 1.48 m | 45 s |
-| 1 | 4/4 | 0 / 0 | 536 s | 0 | 10 cm clear | 1.23 m | 40 s |
-| 2 | 4/4 | 0 / 0 | 470 s | 0 | 9 cm clear | 0.86 m | 31 s |
-| 3 | 4/4 | 0 / 0 | 520 s | 0 | 10 cm clear | 1.65 m | 27 s |
+| 0 | 4/4 | 0 / 0 | 367 s | 0 | 6 cm clear | 1.53 m | 19 s |
+| 1 | 4/4 | 0 / 0 | 435 s | 0 | 5 cm into a corner | 1.75 m | 24 s |
+| 2 | 4/4 | 0 / 0 | 556 s | 0 | 7 cm into a corner | 1.20 m | 113 s |
+| 3 | 4/4 | 0 / 0 | 431 s | 0 | 4 cm into a corner | 1.31 m | 19 s |
 
 "People on the road" counts footprint samples within 3.2 m of the road's centre line, off the
 crossing. Headless, each run takes about 2 s. With a front camera and a chase view each
 simulated second, 200 frames, it takes 6.5 minutes.
 
-The robot stops for 6 to 15 s at a time where people crowd round it, once for 45 s, by a
-sign post on the narrowest stretch with a cyclist and a stroller coming the other way. It
-always gets through, but slowly. A back-up recovery (0.3 m after 5 s held up, with a fixed
-margin) was worse: with people all round, the robot backed into them (0.33 m into its body)
-and one run deadlocked for 522 s at 2/4 goals. The margin that shrinks while it waits stays.
+**When people hold the robot up.** The robot keeps a 0.2 m margin round people, which
+matches the 0.6 m they keep from its centre. Held up for 3 s it narrows the margin to
+0.05 m, and after 6 s to 0, as people squeeze past each other.
+
+- The held-up time used to restart whenever the narrower margin let the robot creep a few
+  centimetres, so the margin widened again every 3 s and held it once more: stops of 6 to
+  15 s, once 45 s, and drives of 470 to 536 s. Now the time counts while the robot gets
+  under half the speed it wants, and drains slowly. The cost is that people now brush the
+  corners of the robot's drawn body (up to 7 cm), where they kept 6 to 10 cm clear before.
+- A floor of 0.05 m on the margin deadlocked 3 of 4 seeds (3/4 goals).
+- Backing up 0.3 m after 5 s held up was worse: with people all round, the robot backed into
+  them (0.33 m into its body), and one run deadlocked for 522 s at 2/4 goals.
+- Planning again with the people in the way as obstacles (`--replan-after S`, off by
+  default) made two of four seeds miss goals: the plans round people left the lane by posts
+  and ended in deadlocks.
+
+**With camera-only localization** (`--crowd --localizer`), the people are in the front
+camera's images too:
+
+| seed | behaviour | goals | contacts | time | fixes accepted | pose error RMSE / median / max |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | before the held-up fix | 4/4 | 0 / 0 | 648 s | 1250 of 1296 | 6.4 / 1.7 / 50 cm |
+| 1 | before the held-up fix | 4/4 | 0 / 0 | 920 s | 1780 of 1841 | 3.4 / 1.6 / 24 cm |
+| 0 | with it | 4/4 | 0 / 0 | 688 s | 1285 of 1376 | 10.0 / 2.1 / 75 cm |
+| 1 | with it | 4/4 | 0 / 0 | 451 s | 847 of 902 | 10.4 / 2.5 / 69 cm |
+
+The people do not stop the localization: 93 to 97 % of fixes are accepted, and the median
+error stays at 2 cm. Squeezing past people closer puts more of them in the camera's view,
+so more fixes are gated out (49 and 33 against 16 and 14) and the error grows. Runs with
+fixes vary from run to run (see above), so two seeds say little more than that.
 
 The chase view draws the delivery robot from the bundle's `robot.ply` (visloc-rs
 `rne_bundle.py` turns its robot model into gaussians). It is left out of the front camera,
@@ -150,5 +175,5 @@ which sits in its mast.
 
 ## Next
 
-- The crowd with camera-only localization.
-- Recoveries for the robot when people hold it up.
+- A recovery that keeps people off the robot's body while it squeezes past.
+- More streets: the same flow on another OverMaps360 walk.
