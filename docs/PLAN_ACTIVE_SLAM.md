@@ -1,6 +1,6 @@
 # Active SLAM plan
 
-Status: P0 done (2026-11-26); P1 next. Target: a robot that is given **no map and no
+Status: P0 and P1 done (2026-11-26); P2 next. Target: a robot that is given **no map and no
 goals** decides where to go so that the map gets complete and stays
 accurate, in a headless deterministic test and a rendered demo.
 
@@ -98,6 +98,85 @@ Each phase ends with a headless test and a short docs entry.
 - Exit: full coverage of the scene with no collisions; the gain-weighted
   policy reaches 95% coverage in less distance than nearest-frontier; two
   runs give the same world hash.
+- Done, with one exit criterion not met: example 164
+  (`active_slam_explore`), below.
+
+#### P1 result
+
+![Two robots explore the same warehouse from the same start, top-down. Left: nearest frontier; right: information gain. The SLAM map grows from dark unknown to light free floor with black walls; orange frontier cells, a pink goal and a blue path show where each robot is heading; the green trail is the true path, and thin grey outlines are the true walls, racks and pallets. Both finish with the floor mapped; the left map sits visibly off the true outlines, the right one on them.](media/active-slam-explore.gif)
+
+```bash
+cargo run --release -p active_slam_explore --example 164_active_slam_explore
+```
+
+A diff-drive robot (0.25 m radius, 0.6 m/s) with a 360-beam 4 m LiDAR at
+0.5 m and odometry with a 2 % scale error and a yaw bias runs `Slam2d` on
+keyframes (0.3 m / 0.3 rad) and steers on the SLAM estimate. Every second
+`Explorer::decide` picks a frontier; `Explorer::path_to` gives the path; a
+heading-first follower drives it. On a bump (none happened) it backs off
+and chooses afresh. Ground truth only scores: coverage is the share of the
+true free floor, sampled every 10 cm, that the map knows; SLAM error is the
+mean keyframe position error in the map frame, without alignment.
+
+Four starts, one per aisle (start 0 is the GIF):
+
+| start | policy | time | driven | mapped | driven to 90 % | SLAM error |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 0 (-5.0, -2.0) | nearest frontier | 72 s | 35.8 m | 93.0 % | 20.8 m | 0.239 m |
+| | information gain | 70 s | 38.2 m | 96.1 % | 18.7 m | 0.113 m |
+| 1 (5.0, -2.0) | nearest frontier | 72 s | 36.3 m | 95.7 % | 22.5 m | 0.142 m |
+| | information gain | 65 s | 34.9 m | 96.3 % | 25.6 m | 0.070 m |
+| 2 (-5.0, 1.9) | nearest frontier | 66 s | 31.2 m | 93.6 % | 21.5 m | 0.125 m |
+| | information gain | 54 s | 28.5 m | 96.3 % | 19.2 m | 0.069 m |
+| 3 (3.0, 1.5) | nearest frontier | 58 s | 28.1 m | 95.4 % | 23.0 m | 0.181 m |
+| | information gain | 62 s | 30.5 m | 96.5 % | 25.7 m | 0.053 m |
+| **mean** | nearest frontier | 67 s | 32.8 m | 94.4 % | 21.9 m | 0.172 m |
+| | **information gain** | 63 s | 33.0 m | **96.3 %** | 22.3 m | **0.076 m** |
+
+No run collided, and every run ended with `Decision::Done`.
+
+- **Information gain maps more and keeps SLAM tighter, at the same cost.**
+  It finishes in the same time and distance and leaves less of the floor
+  unmapped on every start. Its SLAM error is lower on all four starts here,
+  less than half on average; on the four held-out starts below it is lower
+  on two and slightly higher on two (0.077 against 0.072 m, 0.150 against
+  0.138 m), and less than half on average again. It sets fewer goals (158
+  against 174 over the four starts); a likely reason for the tighter SLAM,
+  not measured, is fewer short hops and turns between small frontiers. It
+  was not designed for SLAM accuracy; P2 adds that on purpose.
+- **Not met: reaching 90 % (or 95 %) coverage in less driving.** The mean
+  distance to 90 % is 22.3 m against 21.9 m; start by start it wins two and
+  loses two. In a warehouse this small a 4 m LiDAR sees most of an aisle
+  from anywhere in it, so the order of the frontiers matters little.
+- **The distance weight was chosen on these starts.** A sweep on starts
+  0–3 (with a 24 m grid): weight 0.1 / 0.25 / 0.5 / 1 / 2 / 4 drove
+  46.9 / 46.1 / 41.6 / 38.9 / 34.5 / 34.6 m in all; small weights chase
+  far, large frontiers and drive much more. Weight 4 was then checked on
+  four starts not used to choose it ((0, -2), (-2.3, 2), (6, 0),
+  (-6.2, -3.9)): 54 s, 28.7 m, 96.0 % mapped, 20.6 m to 90 %, SLAM error
+  0.078 m, against 56 s, 26.8 m, 95.2 %, 21.7 m and 0.148 m for nearest
+  frontier.
+- **Results move with small changes.** Changing only the grid from 24 m to
+  32 m moved start 0's nearest-frontier run from 94.0 % to 93.0 % mapped and
+  its SLAM error from 0.201 m to 0.239 m. Read the differences in coverage
+  speed above as no difference.
+
+What was found and fixed on the way:
+
+- A robot whose estimate drifted into the inscribed band near a wall found
+  nothing reachable and stopped exploring: `escape_radius_m`.
+- Frontiers chosen by the explorer had no path in `rne_nav::plan_path`,
+  which treats inscribed cells differently: `Explorer::path_to`.
+- LiDAR bins left empty by the binning of returns were cleared as free
+  space through walls, which mapped the outside of the warehouse (and
+  inflated coverage by about 1 %): such bins are now skipped.
+- `rne_nav::Costmap::cost_at` panicked one cell outside the map.
+
+The gates in `--smoke` and the full run: done, no collision, coverage at
+least 92 % (the lowest measured, over all eight starts, is 93.0 %; the
+strip between the north pallets and the wall is narrower than the robot
+with its clearance, and the LiDAR cannot see over the pallets), SLAM error
+under 0.3 m, and a replay with the same hash.
 
 ### P2: uncertainty-aware exploration (active loop closure)
 

@@ -49,6 +49,9 @@ pub struct ExplorerConfig {
     /// A candidate within this distance of the current goal counts as the
     /// current goal (frontiers move as they are explored).
     pub hysteresis_radius_m: f64,
+    /// Within this path length of the robot, inscribed cells are traversable
+    /// (see [`ReachMap::compute`]), so a robot close to a wall can leave.
+    pub escape_radius_m: f64,
 }
 
 impl Default for ExplorerConfig {
@@ -61,6 +64,7 @@ impl Default for ExplorerConfig {
             min_gain_m2: 0.25,
             switch_margin: 0.5,
             hysteresis_radius_m: 1.0,
+            escape_radius_m: 0.5,
         }
     }
 }
@@ -97,6 +101,8 @@ pub enum Decision {
 pub struct Explorer {
     config: ExplorerConfig,
     current: Option<Candidate>,
+    /// Reachability from the robot at the last decision.
+    reach: Option<ReachMap>,
 }
 
 impl Explorer {
@@ -105,6 +111,7 @@ impl Explorer {
         Self {
             config,
             current: None,
+            reach: None,
         }
     }
 
@@ -124,6 +131,15 @@ impl Explorer {
         self.current = None;
     }
 
+    /// The path the last [`Explorer::decide`] found to `goal_cell`, as world
+    /// cell centres from the robot's cell to the goal. It runs through the
+    /// same cells the explorer counted as reachable, so it exists for every
+    /// candidate that decision returned.
+    pub fn path_to(&self, grid: &OccupancyGrid, goal_cell: GridCoord) -> Option<Vec<Vec3>> {
+        let cells = self.reach.as_ref()?.path_to(goal_cell)?;
+        Some(cells.into_iter().map(|c| grid.grid_to_world(c)).collect())
+    }
+
     /// Every reachable frontier with enough gain, best first. Ties are broken
     /// by shorter path, then by goal cell.
     pub fn candidates(
@@ -131,10 +147,18 @@ impl Explorer {
         grid: &OccupancyGrid,
         robot: Pose2d,
     ) -> Result<Vec<Candidate>, GridError> {
+        Ok(self.score(grid, robot)?.0)
+    }
+
+    fn score(
+        &self,
+        grid: &OccupancyGrid,
+        robot: Pose2d,
+    ) -> Result<(Vec<Candidate>, Option<ReachMap>), GridError> {
         let costmap = Costmap::from_occupancy(grid, &self.config.costmap)?;
         let robot_m = Vec3::new(robot.x_m, robot.y_m, 0.0);
-        let Some(reach) = ReachMap::compute(&costmap, robot_m) else {
-            return Ok(Vec::new());
+        let Some(reach) = ReachMap::compute(&costmap, robot_m, self.config.escape_radius_m) else {
+            return Ok((Vec::new(), None));
         };
         let mut candidates = Vec::new();
         for frontier in extract_frontiers(grid, &self.config.frontier) {
@@ -183,7 +207,7 @@ impl Explorer {
             });
         }
         candidates.sort_by(compare_candidates);
-        Ok(candidates)
+        Ok((candidates, Some(reach)))
     }
 
     /// Chooses the next goal for a robot at `robot` on `grid`.
@@ -193,7 +217,8 @@ impl Explorer {
     /// candidate nearest the current goal (within
     /// [`ExplorerConfig::hysteresis_radius_m`]) is kept.
     pub fn decide(&mut self, grid: &OccupancyGrid, robot: Pose2d) -> Result<Decision, GridError> {
-        let candidates = self.candidates(grid, robot)?;
+        let (candidates, reach) = self.score(grid, robot)?;
+        self.reach = reach;
         let Some(best) = candidates.first().copied() else {
             self.current = None;
             return Ok(Decision::Done);
@@ -246,6 +271,7 @@ mod tests {
             min_gain_m2: 0.5,
             switch_margin: 0.5,
             hysteresis_radius_m: 1.0,
+            escape_radius_m: 0.0,
         }
     }
 

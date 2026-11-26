@@ -1,7 +1,7 @@
 //! Path length from the robot to every reachable cell.
 
 use rne_math::Vec3;
-use rne_nav::{Costmap, GridCoord, COST_INSCRIBED, COST_NO_INFORMATION};
+use rne_nav::{Costmap, GridCoord, COST_INSCRIBED, COST_LETHAL, COST_NO_INFORMATION};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::f64::consts::SQRT_2;
@@ -11,14 +11,19 @@ use std::f64::consts::SQRT_2;
 ///
 /// A cell is traversable when it is known and its cost is below
 /// [`COST_INSCRIBED`]: the robot's footprint fits there. Unknown cells are not
-/// traversable, so a goal is only reachable through space already mapped. The
-/// start cell is always expanded, so a robot standing in an inscribed cell
-/// (close to a wall) can still drive away.
+/// traversable, so a goal is only reachable through space already mapped.
+///
+/// Near the start the rule is relaxed: within `escape_radius_m` of path
+/// length, inscribed (but not lethal) cells are traversable too. A robot whose
+/// estimate has ended up close to a wall can then still drive away from it,
+/// instead of finding nothing reachable.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ReachMap {
     width: usize,
     height: usize,
     distance_m: Vec<f64>,
+    /// Index of the cell each cell was reached from (`usize::MAX`: none).
+    came_from: Vec<usize>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -45,17 +50,19 @@ impl PartialOrd for Node {
     }
 }
 
-pub(crate) fn traversable(costmap: &Costmap, coord: GridCoord) -> bool {
+fn traversable(costmap: &Costmap, coord: GridCoord, escaping: bool) -> bool {
     match costmap.cost_at(coord) {
         Some(COST_NO_INFORMATION) | None => false,
+        Some(cost) if escaping => cost < COST_LETHAL,
         Some(cost) => cost < COST_INSCRIBED,
     }
 }
 
 impl ReachMap {
-    /// Computes path lengths from the cell under `start_m`. Returns `None`
-    /// when `start_m` is outside the costmap.
-    pub fn compute(costmap: &Costmap, start_m: Vec3) -> Option<Self> {
+    /// Computes path lengths from the cell under `start_m`, relaxing the
+    /// inscribed rule within `escape_radius_m` of it. Returns `None` when
+    /// `start_m` is outside the costmap.
+    pub fn compute(costmap: &Costmap, start_m: Vec3, escape_radius_m: f64) -> Option<Self> {
         let start = costmap.world_to_grid(start_m)?;
         let width = costmap.width();
         let height = costmap.height();
@@ -63,6 +70,7 @@ impl ReachMap {
         let index = |c: GridCoord| c.y as usize * width + c.x as usize;
 
         let mut distance_m = vec![f64::INFINITY; width * height];
+        let mut came_from = vec![usize::MAX; width * height];
         let mut heap = BinaryHeap::new();
         distance_m[index(start)] = 0.0;
         heap.push(Node {
@@ -86,7 +94,10 @@ impl ReachMap {
                         x: coord.x + dx,
                         y: coord.y + dy,
                     };
-                    if !traversable(costmap, n) {
+                    let step = if dx != 0 && dy != 0 { SQRT_2 } else { 1.0 } * resolution;
+                    let candidate = d + step;
+                    let escaping = candidate <= escape_radius_m;
+                    if !traversable(costmap, n, escaping) {
                         continue;
                     }
                     if dx != 0 && dy != 0 {
@@ -99,14 +110,15 @@ impl ReachMap {
                             x: coord.x,
                             y: coord.y + dy,
                         };
-                        if !traversable(costmap, side_a) && !traversable(costmap, side_b) {
+                        if !traversable(costmap, side_a, escaping)
+                            && !traversable(costmap, side_b, escaping)
+                        {
                             continue;
                         }
                     }
-                    let step = if dx != 0 && dy != 0 { SQRT_2 } else { 1.0 } * resolution;
-                    let candidate = d + step;
                     if candidate < distance_m[index(n)] {
                         distance_m[index(n)] = candidate;
+                        came_from[index(n)] = index(coord);
                         heap.push(Node {
                             distance_m: candidate,
                             coord: n,
@@ -119,7 +131,25 @@ impl ReachMap {
             width,
             height,
             distance_m,
+            came_from,
         })
+    }
+
+    /// The shortest path from the start to `coord`, start first, or `None`
+    /// when `coord` is unreachable.
+    pub fn path_to(&self, coord: GridCoord) -> Option<Vec<GridCoord>> {
+        self.distance_m(coord)?;
+        let mut cells = vec![coord];
+        let mut index = coord.y as usize * self.width + coord.x as usize;
+        while self.came_from[index] != usize::MAX {
+            index = self.came_from[index];
+            cells.push(GridCoord {
+                x: (index % self.width) as isize,
+                y: (index / self.width) as isize,
+            });
+        }
+        cells.reverse();
+        Some(cells)
     }
 
     /// Path length to `coord` in metres, or `None` when it is unreachable or
@@ -196,11 +226,42 @@ pub(crate) mod tests {
             "#######",
         ]);
         let costmap = plain_costmap(&grid);
-        let reach = ReachMap::compute(&costmap, Vec3::new(1.5, 1.5, 0.0)).unwrap();
+        let reach = ReachMap::compute(&costmap, Vec3::new(1.5, 1.5, 0.0), 0.0).unwrap();
         assert_eq!(reach.distance_m(GridCoord { x: 1, y: 1 }), Some(0.0));
         let around = reach.distance_m(GridCoord { x: 1, y: 3 }).unwrap();
         assert!(around > 5.0, "went through the wall: {around}");
+        let path = reach.path_to(GridCoord { x: 1, y: 3 }).unwrap();
+        assert_eq!(path.first(), Some(&GridCoord { x: 1, y: 1 }));
+        assert_eq!(path.last(), Some(&GridCoord { x: 1, y: 3 }));
+        assert!(path.iter().all(|c| grid.is_free(*c)));
         assert_eq!(reach.distance_m(GridCoord { x: 0, y: 0 }), None);
+    }
+
+    #[test]
+    fn a_robot_next_to_a_wall_can_escape() {
+        let grid = room_grid(&[
+            "########", //
+            "#......#", //
+            "#......#", //
+            "#......#", //
+            "########",
+        ]);
+        // 1 m inscribed radius: every cell next to a wall is inscribed.
+        let costmap = Costmap::from_occupancy(
+            &grid,
+            &CostmapConfig {
+                inscribed_radius_m: 1.0,
+                inflation_radius_m: 1.0,
+                ..CostmapConfig::default()
+            },
+        )
+        .unwrap();
+        let start = Vec3::new(1.5, 1.5, 0.0);
+        let centre = GridCoord { x: 3, y: 2 };
+        let stuck = ReachMap::compute(&costmap, start, 0.0).unwrap();
+        assert_eq!(stuck.distance_m(centre), None);
+        let escaped = ReachMap::compute(&costmap, start, 1.5).unwrap();
+        assert!(escaped.distance_m(centre).is_some());
     }
 
     #[test]
@@ -211,7 +272,7 @@ pub(crate) mod tests {
             "#####",
         ]);
         let costmap = plain_costmap(&grid);
-        let reach = ReachMap::compute(&costmap, Vec3::new(1.5, 1.5, 0.0)).unwrap();
+        let reach = ReachMap::compute(&costmap, Vec3::new(1.5, 1.5, 0.0), 0.0).unwrap();
         assert_eq!(reach.distance_m(GridCoord { x: 3, y: 1 }), None);
     }
 }

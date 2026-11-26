@@ -163,8 +163,9 @@ impl Costmap {
 
     /// Cost at a cell, or `None` when outside the costmap.
     pub fn cost_at(&self, coord: GridCoord) -> Option<u8> {
+        // Lazily: indexing first would panic for a cell outside the map.
         self.contains(coord)
-            .then_some(self.costs[coord.y as usize * self.width + coord.x as usize])
+            .then(|| self.costs[coord.y as usize * self.width + coord.x as usize])
     }
 
     /// Projects a world point onto integer cell coordinates, if inside.
@@ -288,6 +289,16 @@ fn chamfer_distance(lethal: &[bool], width: usize, height: usize) -> Vec<f64> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+
+    #[test]
+    fn cost_outside_the_map_is_none() {
+        let grid = OccupancyGrid::new(4, 3, 0.1, Pose2d::IDENTITY).unwrap();
+        let costmap = Costmap::from_occupancy(&grid, &CostmapConfig::default()).unwrap();
+        // One past the last column on the last row would index past the end.
+        assert_eq!(costmap.cost_at(GridCoord { x: 4, y: 2 }), None);
+        assert_eq!(costmap.cost_at(GridCoord { x: -1, y: 0 }), None);
+        assert_eq!(costmap.cost_at(GridCoord { x: 0, y: 3 }), None);
+    }
 
     fn grid_with_obstacle_at(center: GridCoord) -> OccupancyGrid {
         let mut grid = OccupancyGrid::new(20, 20, 0.1, Pose2d::IDENTITY).unwrap();

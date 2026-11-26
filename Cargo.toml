@@ -134,6 +134,7 @@ members = [
   "examples/78_tsukuba_3dgs_background",
   "examples/160_kitti_splat_drive",
   "examples/163_street_splat_nav",
+  "examples/164_active_slam_explore",
   "examples/79_tsukuba_full_run",
   "examples/80_ssl_adapter_smoke",
   "examples/81_g1_head_splat_background",
