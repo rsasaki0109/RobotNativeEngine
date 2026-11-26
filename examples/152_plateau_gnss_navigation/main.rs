@@ -343,6 +343,7 @@ fn with_flags(options: RunOptions) -> RunOptions {
     RunOptions {
         ghost: std::env::args().any(|a| a == "--ghost"),
         unknown_start: std::env::args().any(|a| a == "--unknown-start"),
+        lidarloc: std::env::args().any(|a| a == "--lidarloc"),
         ..options
     }
 }
@@ -414,6 +415,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 avoid: false,
                 ghost: false,
                 unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -430,6 +432,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 avoid: false,
                 ghost: false,
                 unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -446,6 +449,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 avoid: false,
                 ghost: false,
                 unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -462,6 +466,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 avoid: false,
                 ghost: false,
                 unknown_start: false,
+                lidarloc: false,
             },
         ),
         (
@@ -478,6 +483,7 @@ fn standard_runs(record: bool, weather: bool) -> Vec<(&'static str, RunOptions, 
                 avoid: false,
                 ghost: false,
                 unknown_start: false,
+                lidarloc: false,
             },
         ),
     ]
@@ -510,6 +516,7 @@ fn condition_runs() -> Vec<(&'static str, RunOptions, f64)> {
         avoid: false,
         ghost: false,
         unknown_start: false,
+        lidarloc: false,
     };
     let crowd = Weather {
         pedestrians: PEDESTRIANS,

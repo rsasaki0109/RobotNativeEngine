@@ -525,6 +525,37 @@ river banks, car parks, and a start with no idea where it is.
 
 ![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 
+### lidar_localization_ros2's registration (`--lidarloc`)
+
+`--lidarloc` matches the 3D scans with
+[lidar_localization_ros2](https://github.com/rsasaki0109/lidar_localization_ros2)'s
+registration instead of `rne_slam::PointCloudMap`, through its ROS-free core
+and [`rne_adapter_lidarloc`](../../adapters/lidarloc/rne_adapter_lidarloc):
+the code the ROS 2 node runs, without ROS. NDT_OMP at 1 m on the whole map,
+one thread so that runs repeat exactly. The pose is NDT's; the fit and the
+covariance the hybrid weighs and gates it by are the map's point-to-plane
+residuals at that pose. The relocalizing search after dead reckoning stays
+`rne_slam`'s.
+
+```bash
+sudo apt-get install libpcl-dev libeigen3-dev libomp-dev
+scripts/build_lidarloc.sh
+cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- \
+  --quick --area suburb --lidar3d --beidou --ghost --lidarloc
+```
+
+| 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2 NDT_OMP |
+|------|------|------|
+| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) |
+| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) |
+
+NDT's 1 m cells are coarser than point-to-plane on a map sampled from the
+very surfaces the LiDAR sees, so it is a few centimetres to decimetres less
+exact here, and the conclusions hold: either LiDAR holds the robot among the
+buildings, and only GNSS carries it across the fields.
+
 ## Limits
 
 * LOD2 buildings are prisms with roofs: no balconies, signs, glass detail or

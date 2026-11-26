@@ -10,6 +10,7 @@ use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use crate::lidar3d;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range_planar, Movers, Street};
+use rne_adapter_lidarloc::LidarLoc;
 use rne_core::DeterministicRng;
 use rne_gnss::{BodyPose, Constellation, GnssScene, ReceiverConfig, SignalPath, TraceConfig};
 use rne_math::Vec3;
@@ -72,6 +73,9 @@ pub(crate) struct RunOptions {
     /// Start the localizers 25 m from the truth (sigma 30 m), as if switched
     /// on somewhere unknown.
     pub unknown_start: bool,
+    /// Match the 3D scans with lidar_localization_ros2's registration
+    /// (`rne_adapter_lidarloc`) instead of `rne_slam::PointCloudMap`.
+    pub lidarloc: bool,
 }
 
 /// The robot's localizer: the rule-based arbiter or the factor graph.
@@ -185,10 +189,14 @@ impl Localizer {
             last_search_s,
             last_fit,
             open_ground,
+            lidarloc,
         } = state;
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
-        let raw = || map.match_scan(points, pose, z, &lidar3d::match_config());
+        let mut raw = || match lidarloc {
+            Some(loc) => lidar3d::lidarloc_match(loc, map, points, pose, z),
+            None => map.match_scan(points, pose, z, &lidar3d::match_config()),
+        };
         let mut local = || {
             let m = raw();
             *open_ground = m
@@ -260,7 +268,6 @@ impl Ghost {
 }
 
 /// A localizer's 3D matching state.
-#[derive(Debug)]
 struct MatchState {
     last_search_s: f64,
     /// Share of the latest scan on mapped surfaces, once one matched.
@@ -268,24 +275,28 @@ struct MatchState {
     /// Whether the latest scan fit the map but held nothing that pins the
     /// position (only open ground in reach).
     open_ground: bool,
+    /// lidar_localization_ros2's registration, with `--lidarloc`; the
+    /// relocalizing search stays `rne_slam`'s.
+    lidarloc: Option<LidarLoc>,
 }
 
 impl MatchState {
-    fn new() -> Self {
+    fn new(lidarloc: Option<LidarLoc>) -> Self {
         Self {
             last_search_s: f64::NEG_INFINITY,
             last_fit: None,
             open_ground: false,
+            lidarloc,
         }
     }
 }
 
 impl Lidar3dState {
-    fn new(seed: u64) -> Self {
+    fn new(seed: u64, lidarloc: Option<LidarLoc>) -> Self {
         Self {
             rng: DeterministicRng::new(seed),
             last_scan_s: f64::NEG_INFINITY,
-            matching: MatchState::new(),
+            matching: MatchState::new(lidarloc),
         }
     }
 }
@@ -761,7 +772,7 @@ pub(crate) fn run(
     route: &[(f64, f64)],
     base_enu_m: Vec3,
     options: RunOptions,
-    cloud: Option<&PointCloudMap>,
+    cloud: Option<&lidar3d::Map3d>,
 ) -> RunReport {
     let (constellation, constellation_name) = constellation(&options);
     let (mut scene, model) = gnss_scene(city, options.weather.rain);
@@ -777,11 +788,11 @@ pub(crate) fn run(
     // The terrain-following slice at LiDAR height along the route: what the
     // simulated LiDAR sees and the robot's prior map.
     let slice = build_prior_map(city, route);
-    let (mut hybrid, mut ghost) = localizers(&slice, start, gnss.uses_libgnss(), &options);
+    let (mut hybrid, mut ghost) = localizers(&slice, start, gnss.uses_libgnss(), &options, cloud);
     let mut rng = DeterministicRng::new(0x5_1B_0A ^ reseed);
     // The 3D LiDAR draws from its own stream (the rest of the noise is the
     // same as with the planar slice).
-    let mut lidar3d_state = Lidar3dState::new(0x3D_11DA ^ reseed);
+    let mut lidar3d_state = Lidar3dState::new(0x3D_11DA ^ reseed, lidarloc(cloud, &options));
     let (mut truth, mut odom) = (start, start);
     let mut report = RunReport {
         clearance_m: f64::INFINITY,
@@ -869,7 +880,7 @@ pub(crate) fn run(
             report.clearance_m = report
                 .clearance_m
                 .min(scan.ranges_m.iter().copied().fold(f64::INFINITY, f64::min));
-            match cloud.filter(|_| options.lidar3d) {
+            match cloud.filter(|_| options.lidar3d).map(|m| &m.cloud) {
                 Some(map) => {
                     let sensed = (&movers, options.weather.rain, truth);
                     let points = hybrid.update_lidar3d(map, city, sensed, t, &mut lidar3d_state);
@@ -944,6 +955,14 @@ fn robot_gnss(
     )
 }
 
+/// lidar_localization_ros2's registration on the map, with `--lidarloc`
+/// (one per localizer).
+fn lidarloc(cloud: Option<&lidar3d::Map3d>, options: &RunOptions) -> Option<LidarLoc> {
+    cloud
+        .filter(|_| options.lidar3d && options.lidarloc)
+        .map(|map| lidar3d::lidarloc(map).unwrap_or_else(|e| panic!("--lidarloc: {e}")))
+}
+
 /// The run's localizer, and the one without GNSS when asked for
 /// (`--ghost`, 3D LiDAR only), both from [`initial_estimate`].
 fn localizers(
@@ -951,6 +970,7 @@ fn localizers(
     start: Pose2d,
     uses_libgnss: bool,
     options: &RunOptions,
+    cloud: Option<&lidar3d::Map3d>,
 ) -> (Localizer, Option<Ghost>) {
     let initial = initial_estimate(start, options);
     let localizer = |factor_graph: bool| {
@@ -958,7 +978,7 @@ fn localizers(
     };
     let ghost = (options.ghost && options.lidar3d).then(|| Ghost {
         localizer: localizer(false),
-        matching: MatchState::new(),
+        matching: MatchState::new(lidarloc(cloud, options)),
     });
     (localizer(options.factor_graph), ghost)
 }

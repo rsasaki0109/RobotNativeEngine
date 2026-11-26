@@ -17,6 +17,7 @@ capture = ["dep:image", "dep:rne_render", "dep:rne_render_wgpu", "dep:serde_json
 image = { workspace = true, optional = true }
 png = { workspace = true }
 rne_adapter_gnsspp = { workspace = true }
+rne_adapter_lidarloc = { workspace = true }
 rne_core = { workspace = true }
 rne_gnss = { workspace = true }
 rne_math = { workspace = true }

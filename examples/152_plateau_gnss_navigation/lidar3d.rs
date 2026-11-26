@@ -5,8 +5,10 @@ use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
 use crate::nav::gaussian;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range, Movers};
+use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig};
 use rne_core::DeterministicRng;
 use rne_math::Vec3;
+use rne_math::{DQuat, Mat4};
 use rne_nav::Pose2d;
 use rne_slam::{voxel_downsample, PointCloudMap, PointCloudMatch, PointCloudMatchConfig};
 
@@ -150,12 +152,19 @@ pub(crate) struct MapEdit {
 /// `corridor_m` of the route, up to `MAP_MAX_HEIGHT_M` above the ground,
 /// sampled every `MAP_SPACING_M`, with exact normals, as edited by `edit`.
 /// Prints its size.
+/// The 3D LiDAR's prior map: indexed for matching, and its points (for
+/// lidar_localization_ros2's registration with `--lidarloc`).
+pub(crate) struct Map3d {
+    pub(crate) cloud: PointCloudMap,
+    pub(crate) points: Vec<Vec3>,
+}
+
 pub(crate) fn build_map(
     city: &PlateauCity,
     route: &[(f64, f64)],
     corridor_m: f64,
     edit: MapEdit,
-) -> PointCloudMap {
+) -> Map3d {
     let started = std::time::Instant::now();
     let within = |s: f64, range: (f64, f64)| (range.0..=range.1).contains(&s);
     // Where a sample goes in the map, if anywhere.
@@ -220,7 +229,60 @@ pub(crate) fn build_map(
         map.len(),
         started.elapsed().as_secs_f64()
     );
-    map
+    Map3d { cloud: map, points }
+}
+
+/// lidar_localization_ros2's registration on the map (`--lidarloc`):
+/// NDT_OMP at 1 m on the whole map, one thread so that runs repeat exactly,
+/// the scans already reduced by [`downsample`].
+pub(crate) fn lidarloc(map: &Map3d) -> Result<LidarLoc, String> {
+    let mut loc = LidarLoc::new(&LidarLocConfig {
+        registration_method: "NDT_OMP".into(),
+        ndt_num_threads: 1,
+        filter_scan: false,
+        inlier_ratio_min_points: 50,
+        ..LidarLocConfig::default()
+    })
+    .map_err(|e| e.to_string())?;
+    loc.set_map(&map.points).map_err(|e| e.to_string())?;
+    Ok(loc)
+}
+
+/// A match from lidar_localization_ros2: its pose, with the fit and the
+/// covariance of the map's point-to-plane residuals there (one evaluation of
+/// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
+/// it does its own matches.
+pub(crate) fn lidarloc_match(
+    loc: &mut LidarLoc,
+    map: &PointCloudMap,
+    points: &[Vec3],
+    pose: Pose2d,
+    z_m: f64,
+) -> Option<PointCloudMatch> {
+    let guess = Mat4::from_rotation_translation(
+        DQuat::from_rotation_z(pose.yaw_rad),
+        Vec3::new(pose.x_m, pose.y_m, z_m),
+    );
+    let aligned = loc.align(points, &guess).ok()?;
+    if !aligned.target_ready || !aligned.converged {
+        return None;
+    }
+    let t = aligned.pose.w_axis;
+    let at = Pose2d::new(t.x, t.y, aligned.pose.x_axis.y.atan2(aligned.pose.x_axis.x));
+    let evaluated = map.match_scan(
+        points,
+        at,
+        t.z,
+        &PointCloudMatchConfig {
+            max_iterations: 1,
+            ..match_config()
+        },
+    )?;
+    Some(PointCloudMatch {
+        pose: at,
+        z_m: t.z,
+        ..evaluated
+    })
 }
 
 /// The scan reduced for matching.
