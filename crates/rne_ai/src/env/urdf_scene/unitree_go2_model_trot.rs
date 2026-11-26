@@ -61,7 +61,7 @@ const FOOT_DOWN_TOLERANCE_M: f64 = 0.015;
 /// Walking command for [`UnitreeGo2ModelTrot`].
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct UnitreeGo2TrotCommand {
-    /// Speed along the body's current facing, in m/s. Example 126 walks at 0.25.
+    /// Signed speed along the body's current facing, in m/s. Negative walks backward.
     pub forward_speed_m_s: f64,
     /// Yaw rate about the world up axis, in rad/s; positive turns left.
     pub yaw_rate_rad_s: f64,
@@ -390,6 +390,32 @@ impl UnitreeGo2ModelTrot {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn trots_backward_for_ten_seconds() {
+        let path = crate::asset_path::bundled_asset_path(
+            std::path::Path::new("scenes").join("unitree_go2_jump.rne.scene.toml"),
+        );
+        let mut sim = UrdfSceneSim::from_scene_path(&path).expect("spawn the Go2");
+        let mut trot = UnitreeGo2ModelTrot::stand_up(&mut sim);
+        let start = sim.observe();
+        let initial_heading_rad = trot.heading_rad();
+        let command = UnitreeGo2TrotCommand {
+            forward_speed_m_s: -0.1,
+            yaw_rate_rad_s: 0.0,
+        };
+        for _ in 0..(10.0 * UNITREE_GO2_MODEL_TROT_CONTROL_HZ) as usize {
+            trot.step(&mut sim, command);
+            assert!(
+                sim.observe().base_y_m >= 0.15,
+                "fell at {:.3} s",
+                trot.time_s()
+            );
+            assert!((trot.heading_rad() - initial_heading_rad).abs() < 0.2);
+        }
+        let end = sim.observe();
+        assert!(end.base_x_m < start.base_x_m - 0.5, "{start:?} -> {end:?}");
+    }
 
     #[test]
     fn command_ease_in_shortens_the_first_steps() {

@@ -1,0 +1,22 @@
+[package]
+name = "rne_render_cpu"
+description = "Deterministic multi-threaded CPU ray tracer for Robot Native Engine render scenes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+glam = { workspace = true }
+rne_core = { workspace = true }
+rne_math = { workspace = true }
+rne_render = { workspace = true }
+
+[dev-dependencies]
+approx = "0.5"
+rne_world = { workspace = true }
