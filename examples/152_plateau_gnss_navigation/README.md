@@ -525,6 +525,40 @@ river banks, car parks, and a start with no idea where it is.
 
 ![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 
+### An aged map (`--aged-map`)
+
+The LiDAR map above is the world's own surfaces, which flatters the LiDAR.
+`--aged-map` builds it as a survey some time ago would have it:
+
+* 2 cm of noise on every point, and a slow warp of up to about 8 cm across
+  the area, as a SLAM map drifts;
+* a third of the poles and vending machines, and a quarter of the trees and
+  hedges, gone or moved since, so the map has none of them;
+* cars parked at the kerb of built-up streets during the survey, every
+  45–75 m, that the world no longer has.
+
+```bash
+cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- \
+  --quick --area shibuya --lidar3d --beidou --ghost --aged-map
+```
+
+| RMSE (max), 3D LiDAR, BeiDou | exact map | aged map |
+|------|------|------|
+| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.05 m (0.12 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.05 m (0.10 m) |
+| Nishi-Shinjuku, with GNSS | 0.61 m (3.68 m) | 0.04 m (0.10 m) |
+| Nishi-Shinjuku, without GNSS | 0.00 m (0.06 m) | 0.04 m (0.10 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.04 m (0.16 m) |
+| Suburb, without GNSS | 87 m (235 m) | 86 m (232 m) |
+
+The survey's warp is what the LiDAR now reports, a few centimetres; the
+missing furniture and the phantom cars do not break the match among
+buildings, and the conclusions stand: the map holds the robot wherever
+buildings are in reach, GNSS carries it across the fields. Nishi-Shinjuku
+with GNSS on the exact map is the odd one out: once, among the towers, the
+hybrid dead reckons for 25 s and stops for safety; the run without GNSS and
+the aged map's run do not.
+
 ### lidar_localization_ros2's registration (`--lidarloc`)
 
 `--lidarloc` matches the 3D scans with

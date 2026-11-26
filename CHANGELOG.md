@@ -37,6 +37,12 @@ All notable changes to Robot Native Engine are documented in this file.
   against 61 m RMSE; a stretch missing from the map: 0.10 against 1.06 m; a
   rebuilt stretch: 0.13 against 1.09 m). The HUD adds a top-down map of
   the robot's and the ghost's tracks.
+- Example 152: `--aged-map` surveys the 3D LiDAR map with 2 cm of noise and
+  a warp of up to about 8 cm, without a third of the street furniture and a
+  quarter of the trees and hedges, and with cars parked at the kerb that are
+  gone (Shibuya 0.05 m, the suburb 0.04 m RMSE with GNSS); `--render-cinematic`
+  renders from a low camera behind the robot with only the reflected and
+  diffracted signals.
 - `rne_adapter_lidarloc`: lidar_localization_ros2's scan-to-map registration
   (NDT_OMP, GICP_OMP, small_gicp) without ROS 2, through its
   `lidar_localization_core` C API; `scripts/build_lidarloc.sh` builds the
