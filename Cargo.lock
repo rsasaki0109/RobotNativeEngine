@@ -904,6 +904,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cpu_render"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_math",
+ "rne_render",
+ "rne_render_cpu",
+ "rne_world",
+ "serde_json",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2025,6 +2037,25 @@ dependencies = [
  "rne_locomotion",
  "rne_math",
  "rne_physics",
+]
+
+[[package]]
+name = "go2_people"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_ai",
+ "rne_data",
+ "rne_ecs",
+ "rne_math",
+ "rne_nav",
+ "rne_physics",
+ "rne_render",
+ "rne_render_cpu",
+ "rne_sensor",
+ "rne_slam",
+ "rne_world",
+ "serde_json",
 ]
 
 [[package]]
@@ -3703,6 +3734,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
+name = "perception_tasks"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_core",
+ "rne_ecs",
+ "rne_math",
+ "rne_physics",
+ "rne_physics_rapier",
+ "rne_render",
+ "rne_render_cpu",
+ "rne_sensor",
+ "rne_world",
+ "serde_json",
+]
+
+[[package]]
 name = "petgraph"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4953,6 +5001,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rne_render_cpu"
+version = "0.4.0"
+dependencies = [
+ "approx",
+ "glam",
+ "rne_core",
+ "rne_math",
+ "rne_render",
+ "rne_world",
+]
+
+[[package]]
 name = "rne_render_wgpu"
 version = "0.4.0"
 dependencies = [
@@ -5602,6 +5662,20 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "street_splat_nav"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_math",
+ "rne_nav",
+ "rne_render",
+ "rne_render_3dgs",
+ "rne_render_wgpu",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "strict-num"

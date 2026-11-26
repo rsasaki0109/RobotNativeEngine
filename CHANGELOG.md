@@ -69,6 +69,24 @@ All notable changes to Robot Native Engine are documented in this file.
   trucks and cars that are metal GNSS reflectors and LiDAR obstacles), and
   `--avoid` (tracked people and nearby structure, avoided with
   `rne_nav::avoid_velocities`).
+- Example 163 (`street_splat_nav`) drives a delivery robot along a real street rebuilt from
+  a 360-degree video by visloc-rs (`real2sim.py --export-rne`, a *street bundle*):
+  - `rne_nav` plans on the lane costmap with the solid cells, and pure pursuit follows.
+    The road between kerbs is 10 cm lower, and the robot crawls over a kerb edge.
+  - `--localizer` steers on wheel odometry corrected by visloc-rs fixes on the rendered
+    front camera.
+  - `--crowd` adds walkers, cyclists, cars and a crossing with a light, ported from the
+    visloc-rs simulator. They are drawn as splat actors that change gait phase.
+  - See `docs/STREET_SPLAT_NAV.md`.
+
+- `GaussianSplatBackground::replace_actor_asset` swaps an actor's gaussians for another
+  asset of the same count in place (a walking figure's next gait phase).
+
+- `docs/CRATES_IO.md` and the `crates.io dry run` workflow rehearse
+  `cargo publish --workspace --exclude rne_py` for the 35 publishable crates
+  without uploading anything, and record the caveats: the patched Rapier is
+  not used by crates.io installs, and publishing stays a manual step.
+
 - Example 150 (`scene_replay_render`) also renders mesh items (STL, OBJ,
   glTF, GLB; relative paths resolve against the script). `flat_color`
   replaces a mesh's materials with the item colour. Its indoor fill light is

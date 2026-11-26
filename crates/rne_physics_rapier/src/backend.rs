@@ -40,7 +40,7 @@ use std::collections::HashMap;
 
 /// Per-step lookup maps keyed by entities and Rapier handles.
 type FastMap<K, V> = HashMap<K, V, rne_core::FxBuildHasher>;
-use std::sync::{Mutex, PoisonError};
+use std::sync::{Mutex, OnceLock, PoisonError};
 
 const CAPABILITIES: &[PhysicsCapability] = &[
     PhysicsCapability::RigidBody,
@@ -126,7 +126,7 @@ struct RapierWorldState {
     impulse_joints: ImpulseJointSet,
     multibody_joints: MultibodyJointSet,
     ccd_solver: CCDSolver,
-    query_pipeline: Mutex<LazyQueryPipeline>,
+    query_pipeline: LazyQueryPipeline,
     entity_to_body: FastMap<Entity, RigidBodyHandle>,
     body_to_entity: FastMap<RigidBodyHandle, Entity>,
     entity_to_collider: FastMap<Entity, ColliderHandle>,
@@ -187,15 +187,38 @@ struct PositionMotorDiagnosticTarget {
 /// its vertices. Stepping and synchronization only mark it stale; the next
 /// raycast rebuilds it from the current colliders, exactly as an eager rebuild
 /// after the last change would have.
+///
+/// An up-to-date pipeline sits in a [`OnceLock`], so raycasts from several
+/// threads (a LiDAR scan split across workers) read it with one atomic load and
+/// no shared writes. Marking it stale needs `&mut`, so it simply moves the
+/// pipeline aside; the next rebuild updates that same pipeline.
 #[derive(Default)]
 struct LazyQueryPipeline {
-    pipeline: QueryPipeline,
-    stale: bool,
+    /// The pipeline, when it matches the current colliders.
+    ready: OnceLock<QueryPipeline>,
+    /// The previous pipeline, waiting to be updated by the next raycast.
+    stale: Mutex<Option<QueryPipeline>>,
 }
 
 impl LazyQueryPipeline {
-    fn mark_stale(cell: &mut Mutex<Self>) {
-        cell.get_mut().unwrap_or_else(PoisonError::into_inner).stale = true;
+    fn mark_stale(&mut self) {
+        if let Some(pipeline) = self.ready.take() {
+            *self.stale.get_mut().unwrap_or_else(PoisonError::into_inner) = Some(pipeline);
+        }
+    }
+
+    /// The pipeline for the current colliders, rebuilding it first if stale.
+    fn current(&self, colliders: &ColliderSet) -> &QueryPipeline {
+        self.ready.get_or_init(|| {
+            let mut pipeline = self
+                .stale
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .take()
+                .unwrap_or_default();
+            pipeline.update(colliders);
+            pipeline
+        })
     }
 }
 
@@ -224,7 +247,7 @@ fn new_world_state(id: PhysicsWorldId, desc: PhysicsWorldDesc) -> RapierWorldSta
         impulse_joints: ImpulseJointSet::new(),
         multibody_joints: MultibodyJointSet::new(),
         ccd_solver: CCDSolver::new(),
-        query_pipeline: Mutex::new(LazyQueryPipeline::default()),
+        query_pipeline: LazyQueryPipeline::default(),
         entity_to_body: FastMap::default(),
         body_to_entity: FastMap::default(),
         entity_to_collider: FastMap::default(),
@@ -369,7 +392,7 @@ impl RapierBackend {
         apply_joint_motors(world, state, &entities, &mut transforms)?;
         #[cfg(feature = "position-motor-diagnostics")]
         sync_position_motor_diagnostic_targets(world, state);
-        LazyQueryPipeline::mark_stale(&mut state.query_pipeline);
+        state.query_pipeline.mark_stale();
         Ok(())
     }
 
@@ -1100,7 +1123,7 @@ impl PhysicsBackend for RapierBackend {
         apply_joint_motors(world, state, &entities, &mut transforms)?;
         #[cfg(feature = "position-motor-diagnostics")]
         sync_position_motor_diagnostic_targets(world, state);
-        LazyQueryPipeline::mark_stale(&mut state.query_pipeline);
+        state.query_pipeline.mark_stale();
 
         Ok(())
     }
@@ -1129,7 +1152,7 @@ impl PhysicsBackend for RapierBackend {
             }
         }
 
-        LazyQueryPipeline::mark_stale(&mut state.query_pipeline);
+        state.query_pipeline.mark_stale();
 
         for contact_pair in state.narrow_phase.contact_pairs() {
             if !contact_pair.has_any_active_contact {
@@ -1332,33 +1355,28 @@ impl PhysicsBackend for RapierBackend {
         let ray = Ray::new(origin, direction.normalize());
         let filter = QueryFilter::default();
         let mut intersections = Vec::new();
-        let mut queries = state
+        state
             .query_pipeline
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner);
-        if queries.stale {
-            queries.pipeline.update(&state.colliders);
-            queries.stale = false;
-        }
-        queries.pipeline.intersections_with_ray(
-            &state.bodies,
-            &state.colliders,
-            &ray,
-            query.max_distance_m as f32,
-            true,
-            filter,
-            |collider_handle, intersection| {
-                if let Some(entity) = state.collider_to_entity.get(&collider_handle).copied() {
-                    intersections.push(RaycastHit {
-                        entity,
-                        point_m: vec3_from_point(ray.point_at(intersection.time_of_impact)),
-                        normal: vec3_from_rapier(intersection.normal),
-                        distance_m: intersection.time_of_impact as f64,
-                    });
-                }
-                true
-            },
-        );
+            .current(&state.colliders)
+            .intersections_with_ray(
+                &state.bodies,
+                &state.colliders,
+                &ray,
+                query.max_distance_m as f32,
+                true,
+                filter,
+                |collider_handle, intersection| {
+                    if let Some(entity) = state.collider_to_entity.get(&collider_handle).copied() {
+                        intersections.push(RaycastHit {
+                            entity,
+                            point_m: vec3_from_point(ray.point_at(intersection.time_of_impact)),
+                            normal: vec3_from_rapier(intersection.normal),
+                            distance_m: intersection.time_of_impact as f64,
+                        });
+                    }
+                    true
+                },
+            );
         intersections.sort_by(|left, right| {
             left.distance_m
                 .total_cmp(&right.distance_m)

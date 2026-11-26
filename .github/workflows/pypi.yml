@@ -1,0 +1,111 @@
+name: Publish rne_py to PyPI
+
+# Publishing uses PyPI Trusted Publishing (OIDC); no API token is stored.
+# One-time setup on pypi.org: add a pending publisher for project `rne_py`
+# (owner rsasaki0109, repo RobotNativeEngine, workflow pypi.yml, environment pypi).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "Target index"
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+
+permissions:
+  contents: read
+
+env:
+  MATURIN_VERSION: "1.13.3"
+
+jobs:
+  sdist:
+    runs-on: ubuntu-latest
+    env:
+      # See the wheels job: avoid rustup re-syncing rust-toolchain.toml components.
+      RUSTUP_TOOLCHAIN: "1.95.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build sdist
+        run: |
+          python -m pip install --disable-pip-version-check "maturin==${MATURIN_VERSION}"
+          maturin sdist --manifest-path crates/rne_py/Cargo.toml --out dist
+          # maturin omits the vendored [patch] crates; add them (see the script).
+          python release/sdist_add_vendored.py dist/*.tar.gz .
+      - name: Smoke-test building from the sdist
+        run: |
+          python -m venv sdist-smoke
+          sdist-smoke/bin/python -m pip install --disable-pip-version-check dist/*.tar.gz
+          sdist-smoke/bin/python release/python_wheel_smoke.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-sdist
+          path: dist/*.tar.gz
+
+  wheels:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-15, macos-15-intel, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      # Pin the toolchain explicitly so rustup does not re-sync the
+      # components listed in rust-toolchain.toml (conflicts on arm runners).
+      RUSTUP_TOOLCHAIN: "1.95.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build ABI3 wheel
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check "maturin[zig]==${MATURIN_VERSION}"
+          if [[ "${RUNNER_OS}" == "Linux" ]]; then
+            # manylinux wheels (plain linux_* tags are rejected by PyPI)
+            compat=(--zig --compatibility manylinux_2_28)
+          else
+            compat=(--compatibility pypi)
+          fi
+          maturin build --locked --release "${compat[@]}" \
+            --manifest-path crates/rne_py/Cargo.toml --out dist
+      - name: Smoke-test the wheel
+        shell: bash
+        run: |
+          python -m venv smoke
+          if [ -d smoke/Scripts ]; then py=smoke/Scripts/python; else py=smoke/bin/python; fi
+          "$py" -m pip install --disable-pip-version-check dist/*.whl
+          "$py" release/python_wheel_smoke.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/*.whl
+
+  publish:
+    needs: [sdist, wheels]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Publish to TestPyPI
+        if: github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+      - name: Publish to PyPI
+        if: github.event_name == 'release' || inputs.repository == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
