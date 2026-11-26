@@ -178,6 +178,15 @@ fn main() {
     print!("{json}");
 }
 
+/// A number for JSON with 3 decimals, or `null` when there is none (no car, say).
+fn json_number(v: f64) -> String {
+    if v.is_finite() {
+        format!("{v:.3}")
+    } else {
+        "null".into()
+    }
+}
+
 /// The drive's numbers as one line of JSON.
 fn report_json(report: &DriveReport, stats: &CrowdStats, frame: usize) -> String {
     format!(
@@ -187,7 +196,7 @@ fn report_json(report: &DriveReport, stats: &CrowdStats, frame: usize) -> String
          \"fixes_attempted\": {}, \"fixes_accepted\": {}, \"fixes_rejected\": {}, \
          \"pose_error_rmse_m\": {:.3}, \"pose_error_median_m\": {:.3}, \"pose_error_max_m\": {:.3}, \
          \"people_contacts\": {}, \"replans\": {}, \"crowd_samples\": {}, \"people_on_road\": {}, \
-         \"people_in_robot_body_m\": {:.3}, \"people_in_cars_m\": {:.3}, \"longest_still_s\": {:.1}, \
+         \"people_in_robot_body_m\": {}, \"people_in_cars_m\": {}, \"longest_still_s\": {:.1}, \
          \"trajectory_hash\": \"{:016x}\"}}\n",
         report.reached,
         report.goals,
@@ -209,8 +218,8 @@ fn report_json(report: &DriveReport, stats: &CrowdStats, frame: usize) -> String
         report.replans,
         stats.samples,
         stats.on_road,
-        stats.body_intrusion_m,
-        stats.car_intrusion_m,
+        json_number(stats.body_intrusion_m),
+        json_number(stats.car_intrusion_m),
         stats.longest_still_s,
         report.trajectory_hash
     )
