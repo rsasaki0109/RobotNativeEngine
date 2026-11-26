@@ -146,12 +146,11 @@ pub(crate) struct MapEdit {
     /// The buildings here were rebuilt since the survey: the map has their
     /// facades this far (east, north, meters) from where they stand.
     pub shift: Option<((f64, f64), (f64, f64))>,
+    /// An aged survey ([`Aging`], [`phantom_cars`]) instead of the world's
+    /// exact surfaces.
+    pub aged: bool,
 }
 
-/// The prior map: the mesh's surfaces and the open terrain within
-/// `corridor_m` of the route, up to `MAP_MAX_HEIGHT_M` above the ground,
-/// sampled every `MAP_SPACING_M`, with exact normals, as edited by `edit`.
-/// Prints its size.
 /// The 3D LiDAR's prior map: indexed for matching, and its points (for
 /// lidar_localization_ros2's registration with `--lidarloc`).
 pub(crate) struct Map3d {
@@ -159,6 +158,128 @@ pub(crate) struct Map3d {
     pub(crate) points: Vec<Vec3>,
 }
 
+/// A fixed pseudo-random number in [0, 1) for `key` and `salt`.
+fn unit_hash(key: u64, salt: u64) -> f64 {
+    let mut h = key.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ salt.wrapping_mul(0xC2B2_AE3D_27D4_EB4F);
+    h ^= h >> 31;
+    h = h.wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    h ^= h >> 29;
+    (h >> 11) as f64 / (1_u64 << 53) as f64
+}
+
+/// A fixed standard normal draw for a point (Box-Muller on two hashes).
+fn point_gaussian(p: Vec3, salt: u64) -> f64 {
+    let key = ((p.x * 1000.0) as i64 as u64)
+        ^ ((p.y * 1000.0) as i64 as u64).rotate_left(21)
+        ^ ((p.z * 1000.0) as i64 as u64).rotate_left(42);
+    let u1 = unit_hash(key, salt).max(1.0e-12);
+    let u2 = unit_hash(key, salt ^ 0x5555);
+    (-2.0 * u1.ln()).sqrt() * (std::f64::consts::TAU * u2).cos()
+}
+
+/// An aged survey (`--aged-map`): where a map point ends up, if anywhere.
+/// The survey's own error is 2 cm of noise per point and a slow warp of up
+/// to about 8 cm across the area (a SLAM map's drift); since then a third
+/// of the street furniture and a quarter of the trees and hedges have gone
+/// or moved, so the map has none of them.
+struct Aging;
+
+impl Aging {
+    const NOISE_M: f64 = 0.02;
+    const FURNITURE_GONE: f64 = 0.35;
+    const VEGETATION_GONE: f64 = 0.25;
+
+    /// Whether the map still has an object (by the mesh's object id).
+    fn keeps(object: u32, vegetation: bool) -> bool {
+        let gone = if object >= 1_000_000 {
+            Self::FURNITURE_GONE
+        } else if vegetation {
+            Self::VEGETATION_GONE
+        } else {
+            0.0
+        };
+        unit_hash(u64::from(object), 0xA6ED) >= gone
+    }
+
+    /// Where the survey put a point.
+    fn surveyed(p: Vec3) -> Vec3 {
+        let w =
+            |x: f64, period: f64, phase: f64| (std::f64::consts::TAU * x / period + phase).sin();
+        let warp = Vec3::new(
+            0.05 * w(p.x, 180.0, 0.3) + 0.03 * w(p.y, 130.0, 1.1),
+            0.05 * w(p.y, 170.0, 2.0) + 0.03 * w(p.x, 120.0, 0.7),
+            0.02 * w(p.x + p.y, 150.0, 1.7),
+        );
+        let noise = Vec3::new(
+            point_gaussian(p, 1),
+            point_gaussian(p, 2),
+            point_gaussian(p, 3),
+        ) * Self::NOISE_M;
+        p + warp + noise
+    }
+}
+
+/// Cars parked at the kerb when the map was surveyed and gone since
+/// (`--aged-map`): every 45-75 m along the route, 3.5 m to one side where
+/// the street is open, the box surfaces of a 4.4 x 1.8 x 1.5 m car.
+fn phantom_cars(city: &PlateauCity, route: &[(f64, f64)]) -> (Vec<Vec3>, Vec<Vec3>) {
+    let (mut points, mut normals) = (Vec::new(), Vec::new());
+    let (mut walked, mut next, mut k) = (0.0, 30.0, 0_u64);
+    for leg in route.windows(2) {
+        let (a, b) = (leg[0], leg[1]);
+        let length = (b.0 - a.0).hypot(b.1 - a.1);
+        if length < 1.0e-6 {
+            continue;
+        }
+        let (dx, dy) = ((b.0 - a.0) / length, (b.1 - a.1) / length);
+        while next < walked + length {
+            let s = next - walked;
+            let side = if unit_hash(k, 0xCA5) < 0.5 { 1.0 } else { -1.0 };
+            let (cx, cy) = (
+                a.0 + dx * s - dy * side * 3.5,
+                a.1 + dy * s + dx * side * 3.5,
+            );
+            let ground = city.ground_m(cx, cy);
+            let free = !city.mesh.contains(Vec3::new(cx, cy, ground + 0.8))
+                && crate::nav::distance_to_route(route, cx, cy) > 2.6;
+            if free {
+                let along = Vec3::new(dx, dy, 0.0);
+                let across = Vec3::new(-dy, dx, 0.0);
+                let centre = Vec3::new(cx, cy, ground + 0.75);
+                let half = [2.2, 0.9, 0.75];
+                let axes = [along, across, Vec3::Z];
+                for (f, axis) in axes.iter().enumerate() {
+                    for sign in [-1.0, 1.0] {
+                        let (u, v) = ((f + 1) % 3, (f + 2) % 3);
+                        let (nu, nv) = (
+                            (2.0 * half[u] / MAP_SPACING_M).ceil() as i32,
+                            (2.0 * half[v] / MAP_SPACING_M).ceil() as i32,
+                        );
+                        for i in 0..=nu {
+                            for j in 0..=nv {
+                                let pu = -half[u] + 2.0 * half[u] * f64::from(i) / f64::from(nu);
+                                let pv = -half[v] + 2.0 * half[v] * f64::from(j) / f64::from(nv);
+                                points.push(
+                                    centre + *axis * (sign * half[f]) + axes[u] * pu + axes[v] * pv,
+                                );
+                                normals.push(*axis * sign);
+                            }
+                        }
+                    }
+                }
+            }
+            k += 1;
+            next += 45.0 + 30.0 * unit_hash(k, 0xD15);
+        }
+        walked += length;
+    }
+    (points, normals)
+}
+
+/// The prior map: the mesh's surfaces and the open terrain within
+/// `corridor_m` of the route, up to `MAP_MAX_HEIGHT_M` above the ground,
+/// sampled every `MAP_SPACING_M`, with exact normals, as edited by `edit`.
+/// Prints its size.
 pub(crate) fn build_map(
     city: &PlateauCity,
     route: &[(f64, f64)],
@@ -182,6 +303,11 @@ pub(crate) fn build_map(
     };
     let (mut points, mut normals) = (Vec::new(), Vec::new());
     for triangle in city.mesh.triangles() {
+        let vegetation =
+            city.scenery.is_some() && triangle.material == rne_gnss::SurfaceMaterial::ABSORBER;
+        if edit.aged && !Aging::keeps(triangle.object, vegetation) {
+            continue;
+        }
         let [a, b, c] = triangle.vertices;
         let normal = triangle.normal;
         let longest = (b - a).length().max((c - b).length()).max((a - c).length());
@@ -193,7 +319,7 @@ pub(crate) fn build_map(
                 let height = p.z - city.ground_m(p.x, p.y);
                 if height <= MAP_MAX_HEIGHT_M {
                     if let Some(q) = place(p, height > 0.5) {
-                        points.push(q);
+                        points.push(if edit.aged { Aging::surveyed(q) } else { q });
                         normals.push(normal);
                     }
                 }
@@ -214,13 +340,23 @@ pub(crate) fn build_map(
                         let e = 0.5;
                         let gx = (city.ground_m(x + e, y) - city.ground_m(x - e, y)) / (2.0 * e);
                         let gy = (city.ground_m(x, y + e) - city.ground_m(x, y - e)) / (2.0 * e);
-                        points.push(Vec3::new(x, y, z));
+                        let p = Vec3::new(x, y, z);
+                        points.push(if edit.aged { Aging::surveyed(p) } else { p });
                         normals.push(Vec3::new(-gx, -gy, 1.0));
                     }
                 }
                 x += MAP_SPACING_M;
             }
             y += MAP_SPACING_M;
+        }
+    }
+    if edit.aged {
+        let (cars, car_normals) = phantom_cars(city, route);
+        for (p, n) in cars.into_iter().zip(car_normals) {
+            if place(p, true).is_some() {
+                points.push(Aging::surveyed(p));
+                normals.push(n);
+            }
         }
     }
     let map = PointCloudMap::new(&points, &normals, 1.0).expect("point-cloud map");
