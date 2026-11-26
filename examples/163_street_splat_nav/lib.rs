@@ -20,7 +20,7 @@ use rne_math::Vec3;
 use rne_nav::{
     avoid_velocities, from_map_json, plan_path, pure_pursuit_follow, AvoidanceConfig,
     CircularObstacle, Costmap, CostmapConfig, GlobalPlannerConfig, GridCoord, OccupancyGrid,
-    Path2d, Pose2d, PurePursuitConfig, VelocityCommand2d,
+    Path2d, Pose2d, PurePursuitConfig, VelocityCommand2d, COST_LETHAL,
 };
 use serde::Deserialize;
 use std::fmt;
@@ -376,6 +376,10 @@ pub struct NavConfig {
     /// How far an accepted fix moves the estimate towards it (1: all the way). Below 1,
     /// one wrong fix that passes the gate moves the estimate only part of the way.
     pub fix_blend: f64,
+    /// Held up by people this long (s), the robot plans again with them as obstacles (at
+    /// most once per this long); 0, the default, never does. On the OverMaps360 street it
+    /// made things worse: plans round people left the lane by posts and ended in deadlocks.
+    pub replan_after_s: f64,
 }
 
 impl Default for NavConfig {
@@ -398,6 +402,7 @@ impl Default for NavConfig {
             fix_gate_m: 0.25,
             fix_gate_growth_m_s: 0.1,
             fix_blend: 0.5,
+            replan_after_s: 0.0,
         }
     }
 }
@@ -464,6 +469,8 @@ pub struct DriveReport {
     pub pose_error_max_m: f64,
     /// Steps a person, bike or car stopped the robot (its 0.2 m circle).
     pub people_contacts: usize,
+    /// Plans made again round people who held the robot up.
+    pub replans: usize,
 }
 
 /// One localization: the true state (to render the camera from) and the robot's estimate
@@ -542,17 +549,7 @@ pub fn drive_localized(
     mut on_step: impl FnMut(&RobotState, Option<&Crowd>),
 ) -> Result<DriveReport, StreetError> {
     let costmap = lane_costmap(street, config);
-    let planner = GlobalPlannerConfig {
-        cost_weight: config.cost_weight,
-        ..GlobalPlannerConfig::default()
-    };
-    let follow = PurePursuitConfig {
-        lookahead_m: 0.8,
-        max_linear_m_s: config.max_speed_m_s,
-        max_angular_rad_s: 1.0,
-        goal_tolerance_m: config.goal_tolerance_m,
-        slow_radius_m: 0.75,
-    };
+    let (planner, follow) = controllers(config);
     let (mut x, mut y, mut yaw) = (street.start[0], street.start[1], street.start[2]);
     let mut estimate = Pose2d::new(x, y, yaw);
     let mut report = DriveReport {
@@ -567,9 +564,10 @@ pub fn drive_localized(
     let mut speed = 0.0;
     let mut next_fix = 0.0;
     let mut held_s = 0.0;
+    let mut last_replan = f64::NEG_INFINITY;
     let mut last_fix = 0.0;
     for (index, goal) in street.goals.iter().enumerate() {
-        let path: Path2d = plan_path(
+        let mut path: Path2d = plan_path(
             &costmap,
             Vec3::new(estimate.x_m, estimate.y_m, 0.0),
             Vec3::new(goal[0], goal[1], 0.0),
@@ -633,6 +631,20 @@ pub fn drive_localized(
             if let Some(crowd) = crowd.as_deref() {
                 (v, w, held_s) =
                     steer_round_people(crowd, config, [x, y, yaw], estimate, [v, w], held_s);
+                if held_s > config.replan_after_s && t - last_replan > config.replan_after_s {
+                    last_replan = t;
+                    report.replans += 1;
+                    let round = plan_round_people(
+                        &costmap,
+                        crowd,
+                        [x, y, yaw],
+                        estimate,
+                        goal,
+                        &planner,
+                        config,
+                    );
+                    path = round.unwrap_or(path);
+                }
             }
             let nyaw = yaw + w * config.step_s;
             let nx = x + v * config.step_s * nyaw.cos();
@@ -666,13 +678,14 @@ pub fn drive_localized(
                 report.kerb_max_speed_m_s = report.kerb_max_speed_m_s.max(speed);
             }
             if ((t / config.step_s).round() as u64).is_multiple_of(10) {
-                report.min_solid_clearance_m = report
-                    .min_solid_clearance_m
-                    .min(street.solid_clearance(x, y, 2.0));
-                if street.walk.len() > 1 {
-                    walk_distances.push(distance_to_polyline(&street.walk, x, y));
-                }
-                errors.push((estimate.x_m - x).hypot(estimate.y_m - y));
+                sample_drive(
+                    street,
+                    &mut report,
+                    &mut walk_distances,
+                    &mut errors,
+                    [x, y],
+                    estimate,
+                );
             }
             t += config.step_s;
         }
@@ -829,12 +842,71 @@ fn steer_round_people(
         0.2
     };
     let (nv, nw) = avoid_people(crowd, config, truth, estimate, v, w, margin);
-    let held = if v > 0.05 && nv < 0.02 {
+    // held while it gets under half the speed it wants; a creep under the narrower margin
+    // does not end it, or the margin would widen again and hold it once more
+    let held = if v > 0.05 && nv < 0.5 * v {
         held_s + config.step_s
     } else {
-        0.0
+        (held_s - 2.0 * config.step_s).max(0.0)
     };
     (nv, nw, held)
+}
+
+/// A plan from the estimate to the goal with the people near the robot as obstacles: their
+/// footprints, seen from where it is and put round its estimate, grown by the robot's own
+/// footprint. `None` when there is no way round.
+fn plan_round_people(
+    costmap: &Costmap,
+    crowd: &Crowd,
+    truth: [f64; 3],
+    estimate: Pose2d,
+    goal: &[f64; 3],
+    planner: &GlobalPlannerConfig,
+    config: &NavConfig,
+) -> Option<Path2d> {
+    if config.replan_after_s <= 0.0 {
+        return None;
+    }
+    let mut blocked = costmap.clone();
+    let (sd, cd) = (truth[2].sin(), truth[2].cos());
+    let (se, ce) = (estimate.yaw_rad.sin(), estimate.yaw_rad.cos());
+    let res = blocked.resolution_m();
+    for (x, y, r, _, _) in crowd.moving_circles() {
+        let (dx, dy) = (x - truth[0], y - truth[1]);
+        if dx.hypot(dy) > 6.0 {
+            continue;
+        }
+        let (fx, fy) = (cd * dx + sd * dy, -sd * dx + cd * dy);
+        let (px, py) = (
+            estimate.x_m + ce * fx - se * fy,
+            estimate.y_m + se * fx + ce * fy,
+        );
+        let reach = r + config.footprint_radius_m + 0.05;
+        let n = (reach / res).ceil() as isize;
+        let Some(c) = blocked.world_to_grid(Vec3::new(px, py, 0.0)) else {
+            continue;
+        };
+        for j in -n..=n {
+            for i in -n..=n {
+                if ((i * i + j * j) as f64).sqrt() * res <= reach {
+                    blocked.apply_cost(
+                        GridCoord {
+                            x: c.x + i,
+                            y: c.y + j,
+                        },
+                        COST_LETHAL,
+                    );
+                }
+            }
+        }
+    }
+    plan_path(
+        &blocked,
+        Vec3::new(estimate.x_m, estimate.y_m, 0.0),
+        Vec3::new(goal[0], goal[1], 0.0),
+        planner,
+    )
+    .ok()
 }
 
 /// Whether a circle of `radius_m` at (x, y) overlaps anyone's footprint.
@@ -880,6 +952,43 @@ fn odometry_step(config: &NavConfig, estimate: Pose2d, moved_m: f64, w_rad_s: f6
         estimate.y_m + ov * config.step_s * yaw.sin(),
         yaw,
     )
+}
+
+/// The global planner and the path follower for `config`.
+fn controllers(config: &NavConfig) -> (GlobalPlannerConfig, PurePursuitConfig) {
+    (
+        GlobalPlannerConfig {
+            cost_weight: config.cost_weight,
+            ..GlobalPlannerConfig::default()
+        },
+        PurePursuitConfig {
+            lookahead_m: 0.8,
+            max_linear_m_s: config.max_speed_m_s,
+            max_angular_rad_s: 1.0,
+            goal_tolerance_m: config.goal_tolerance_m,
+            slow_radius_m: 0.75,
+        },
+    )
+}
+
+/// Every 0.2 s of a drive: clearance from solid cells, distance from the walk, and the
+/// estimate's error.
+fn sample_drive(
+    street: &Street,
+    report: &mut DriveReport,
+    walk_distances: &mut Vec<f64>,
+    errors: &mut Vec<f64>,
+    truth: [f64; 2],
+    estimate: Pose2d,
+) {
+    let [x, y] = truth;
+    report.min_solid_clearance_m = report
+        .min_solid_clearance_m
+        .min(street.solid_clearance(x, y, 2.0));
+    if street.walk.len() > 1 {
+        walk_distances.push(distance_to_polyline(&street.walk, x, y));
+    }
+    errors.push((estimate.x_m - x).hypot(estimate.y_m - y));
 }
 
 fn finish_report(report: &mut DriveReport, mut walk: Vec<f64>, mut errors: Vec<f64>) {
