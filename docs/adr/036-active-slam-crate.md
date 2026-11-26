@@ -1,6 +1,6 @@
 # ADR 036: `rne_explore`, a crate for active SLAM decisions
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-26
 
 ## Context

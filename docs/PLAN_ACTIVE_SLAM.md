@@ -1,6 +1,6 @@
 # Active SLAM plan
 
-Status: draft (2026-11-26). Target: a robot that is given **no map and no
+Status: P0 done (2026-11-26); P1 next. Target: a robot that is given **no map and no
 goals** decides where to go so that the map gets complete and stays
 accurate, in a headless deterministic test and a rendered demo.
 
@@ -78,6 +78,11 @@ Each phase ends with a headless test and a short docs entry.
   given `OccupancyGrid`.
 - Exit: unit tests on hand-made grids (one room, two rooms joined by a
   door, a dead end); the result is identical across runs and platforms.
+- Done: `crates/rne_explore` with 12 unit tests. On a room with a dead end
+  next to the robot and a doorway onto a hall far from it, nearest-frontier
+  picks the dead end and the information-gain policy the hall; hysteresis
+  keeps a goal until it is cleared; a closed room is `Done`. Not yet: ECS
+  resources and systems (with P1's example), the pose-graph term (P2).
 
 ### P1: exploration with lidar SLAM (diff drive)
 

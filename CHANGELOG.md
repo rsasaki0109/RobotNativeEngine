@@ -6,6 +6,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_explore`, a new crate (`publish = false`) for active SLAM decisions: where a robot
+  with no map and no goals goes next (P0 of `docs/PLAN_ACTIVE_SLAM.md`, ADR 036).
+  - `extract_frontiers`: free cells next to unknown space, in deterministic 8-connected
+    clusters.
+  - `ReachMap`: path length to every cell reachable through known, non-inscribed space,
+    in one Dijkstra pass.
+  - `information_gain`: unknown area a lidar or camera would see from a goal, ray cast on
+    the grid and stopped by walls.
+  - `Explorer`: scores frontiers by `ScorePolicy::NearestFrontier` (the baseline) or
+    `InformationGain`, keeps its goal unless another beats it by a margin, and reports
+    `Decision::Done` when nothing reachable is left.
+
 - Example 163 (`street_splat_nav`) drives a delivery robot along a real street rebuilt from
   a 360-degree video by visloc-rs (`real2sim.py --export-rne`, a *street bundle*):
   - `rne_nav` plans on the lane costmap with the solid cells, and pure pursuit follows.

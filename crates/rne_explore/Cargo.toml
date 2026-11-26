@@ -1,0 +1,16 @@
+[package]
+name = "rne_explore"
+description = "Deterministic active-SLAM decisions for Robot Native Engine: frontiers, information gain and goal selection"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+rne_math = { workspace = true }
+rne_nav = { workspace = true }

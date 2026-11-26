@@ -24,6 +24,7 @@ members = [
   "crates/rne_robot",
   "crates/rne_nav",
   "crates/rne_slam",
+  "crates/rne_explore",
   "crates/rne_gnss",
   "crates/rne_data",
   "crates/rne_log",
@@ -293,6 +294,7 @@ rne_render_wgpu = { version = "=0.4.0", path = "crates/rne_render_wgpu" }
 rne_robot = { version = "=0.4.0", path = "crates/rne_robot" }
 rne_nav = { version = "=0.4.0", path = "crates/rne_nav" }
 rne_slam = { version = "=0.4.0", path = "crates/rne_slam" }
+rne_explore = { version = "=0.4.0", path = "crates/rne_explore" }
 rne_gnss = { version = "=0.4.0", path = "crates/rne_gnss" }
 rne_adapter_gnsspp = { version = "=0.4.0", path = "adapters/gnsspp/rne_adapter_gnsspp" }
 rne_sdf = { version = "=0.4.0", path = "crates/rne_sdf" }
