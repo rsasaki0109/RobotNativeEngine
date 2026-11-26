@@ -6,6 +6,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 113 (`drjohnson_euroc_export`) can put people in the Dr Johnson interior:
+  `RNE_WALKERS=DIR` adds walkers as splat actors pacing lines across the route, their gait
+  phase following the distance walked (`people.csv` logs them). `RNE_START_WAYPOINT` starts
+  the route elsewhere for a query episode, and `RNE_NO_PREVIEW` skips the preview images.
+  The walkers' PLYs come from visloc-rs `walker_splat_plys.py`. See `docs/DEMOS.md`.
+
 - Example 163 (`street_splat_nav`) drives a delivery robot along a real street rebuilt from
   a 360-degree video by visloc-rs (`real2sim.py --export-rne`, a *street bundle*):
   - `rne_nav` plans on the lane costmap with the solid cells, and pure pursuit follows.
