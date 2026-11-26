@@ -864,8 +864,10 @@ impl Chase {
                 cinematic: self.cinematic,
             };
         }
+        // Pitch from the vertical: 1.22 rad puts the camera about 6 m up and
+        // 17 m behind, the horizon in view.
         let (pitch, distance) = if self.cinematic {
-            (0.38, 19.0)
+            (1.22, 18.0)
         } else {
             (0.95, 42.0)
         };
