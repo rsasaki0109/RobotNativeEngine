@@ -6,6 +6,9 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_py.DiffDriveSim.contact_pairs` exposes the last physics step's named
+  contact pairs and normal impulses for floor and obstacle diagnostics.
+
 - `docs/CRATES_IO.md` and the `crates.io dry run` workflow rehearse
   `cargo publish --workspace --exclude rne_py` for the 35 publishable crates
   without uploading anything, and record the caveats: the patched Rapier is

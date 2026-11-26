@@ -17,7 +17,7 @@ use rne_data::{
     Frame, FramePayload, ImuSample, InMemoryDataBus, JointState, PointCloud, PoseSample, StreamId,
     WheelEncoderSample,
 };
-use rne_ecs::{spawn_named, Entity, World};
+use rne_ecs::{spawn_named, Entity, Name, World};
 use rne_log::SimulationLog;
 use rne_math::{yaw_rad, Hertz, Quat, Vec3};
 use rne_physics::{
@@ -339,6 +339,11 @@ impl DiffDriveSim {
     /// Returns contact events produced by the last physics step.
     pub fn last_contacts(&self) -> &[ContactEvent] {
         self.backend.contacts(self.physics_world).unwrap_or(&[])
+    }
+
+    /// Returns the scene name for a body or collider entity, when available.
+    pub fn entity_name(&self, entity: Entity) -> Option<&str> {
+        self.world.get::<Name>(entity).map(|name| name.0.as_str())
     }
 
     /// Returns the world seed from a loaded scene, or zero for built-in scenes.
@@ -1329,6 +1334,24 @@ mod tests {
         }
 
         assert!(final_x > 0.5, "expected forward motion, got x={final_x}");
+    }
+
+    #[test]
+    fn resolves_named_entities_in_ground_contacts() {
+        let mut sim = DiffDriveSim::new();
+        let found = (0..120).any(|_| {
+            sim.step(0.0, 0.0);
+            sim.last_contacts().iter().any(|contact| {
+                let names = [
+                    sim.entity_name(contact.entity_a),
+                    sim.entity_name(contact.entity_b),
+                ];
+                contact.impulse > 0.0
+                    && names.contains(&Some("ground"))
+                    && names.contains(&Some("left_wheel"))
+            })
+        });
+        assert!(found, "expected a named left wheel–floor contact");
     }
 
     #[test]

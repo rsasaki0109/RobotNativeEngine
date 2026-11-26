@@ -45,6 +45,7 @@
       ],
       "properties": [
         "contact_count",
+        "contact_pairs",
         "fixed_delta_s",
         "step_count"
       ]

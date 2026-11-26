@@ -1098,6 +1098,27 @@ impl PyDiffDriveSim {
     fn contact_count(&self) -> usize {
         self.inner.last_contacts().len()
     }
+
+    /// Returns (first entity name, second entity name, normal impulse in N·s) for each
+    /// contact from the last completed physics step.
+    #[getter]
+    fn contact_pairs(&self) -> Vec<(String, String, f32)> {
+        self.inner
+            .last_contacts()
+            .iter()
+            .map(|contact| {
+                let first = self.inner.entity_name(contact.entity_a).map_or_else(
+                    || format!("entity:{}", contact.entity_a.to_bits()),
+                    str::to_owned,
+                );
+                let second = self.inner.entity_name(contact.entity_b).map_or_else(
+                    || format!("entity:{}", contact.entity_b.to_bits()),
+                    str::to_owned,
+                );
+                (first, second, contact.impulse)
+            })
+            .collect()
+    }
 }
 
 /// Goal-reaching differential drive episode with reward and termination.
