@@ -29,6 +29,14 @@ All notable changes to Robot Native Engine are documented in this file.
   0.172 m), at the
   same time and distance; neither reaches 90 % coverage in clearly less driving. Writes
   `docs/media/active-slam-explore.gif`; `--smoke` runs in `ci` with a replay-hash check.
+  - `--world office|loop|maze --seed N` explores a building generated from a seed
+    (`WorldRandom`): an office corridor with doored rooms, a long loop corridor round a
+    notched block, or a maze with loops; walls carry small bumps so a corridor is not the
+    same everywhere along it. Tests check every room or cell is reachable on 20 seeds of
+    each kind. `--bench N` runs both policies on seeds `0..N`: over 10 seeds no run
+    collides and all finish; information gain is even with nearest frontier in offices,
+    ahead on coverage and SLAM error in 7 of 10 mazes, and behind on loops, where SLAM
+    drifts 0.7–0.9 m whichever policy runs (the target of P2).
 
 - Example 163 (`street_splat_nav`) drives a delivery robot along a real street rebuilt from
   a 360-degree video by visloc-rs (`real2sim.py --export-rne`, a *street bundle*):

@@ -178,15 +178,70 @@ strip between the north pallets and the wall is narrower than the robot
 with its clearance, and the LiDAR cannot see over the pallets), SLAM error
 under 0.3 m, and a replay with the same hash.
 
+#### Generated worlds and the benchmark
+
+One warehouse and four starts is too little to compare policies, and the
+warehouse is too small for a 4 m LiDAR to make the order of frontiers
+matter. Example 164 also builds three kinds of building from a seed
+(`worlds.rs`, `WorldRandom`; a seed always gives the same world):
+
+- **office**: a 2.2 m corridor with 3–5 rooms on each side, each with a
+  1.4 m door, some joined to a neighbour, furniture against the outer wall;
+- **loop**: a 20–26 m by 13–17 m ring corridor, 2.2–2.8 m wide, round a
+  block with dead-end notches cut into it;
+- **maze**: 6–8 by 4–5 cells of 2.6 m carved by a randomized depth-first
+  search, with about 12 % of the remaining walls removed so it has loops.
+
+Walls get small bumps (0.24–0.7 m wide, 0.12–0.3 m deep, 1.2–2.5 m apart)
+from a separate random stream. Without them `Slam2d` lost the distance
+along bare corridors: on seed 0 the maze's SLAM error was 1.0 m (nearest
+frontier) and 0.86 m (information gain); with them 0.27 m and 0.16 m.
+Tests check, on 20 seeds of each kind, that every start and every room or
+cell centre is reachable with the robot's clearance, and that a seed gives
+the same world.
+
+```bash
+cargo run --release -p active_slam_explore --example 164_active_slam_explore -- --world maze --seed 3
+cargo run --release -p active_slam_explore --example 164_active_slam_explore -- --bench 10
+```
+
+`--bench 10`, both policies from each world's first start, seeds 0–9
+(information gain at distance weight 4, chosen on the warehouse):
+
+| world | policy | time | driven | mapped | driven to 90 % (runs reaching it) | SLAM error | IG better (distance / mapped / SLAM) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| office | nearest frontier | 77 s | 37.2 m | 95.7 % | 30.5 m (10) | 0.131 m | |
+| | information gain | 85 s | 42.3 m | 95.5 % | 29.8 m (10) | 0.127 m | 3 / 4 / 5 of 10 |
+| loop | nearest frontier | 107 s | 61.2 m | 85.3 % | 50.4 m (2) | 0.696 m | |
+| | information gain | 115 s | 65.4 m | 82.9 % | 43.4 m (1) | 0.944 m | 4 / 4 / 2 of 10 |
+| maze | nearest frontier | 113 s | 62.2 m | 96.6 % | 54.3 m (10) | 0.228 m | |
+| | information gain | 116 s | 64.6 m | 97.1 % | 49.5 m (10) | 0.195 m | 4 / 7 / 7 of 10 |
+
+All 60 runs ended with `Decision::Done`, none collided.
+
+- **The warehouse's halved SLAM error does not generalize.** In the office
+  the two policies are even on SLAM error (5 of 10) and coverage, and
+  information gain drives 14 % more. In the maze information gain is ahead
+  on coverage and SLAM error on 7 of 10 seeds and reaches 90 % about 5 m
+  sooner, but drives more in total. On the loop it is worse.
+- **The loop breaks SLAM, whichever policy.** SLAM error is 0.3–1.8 m,
+  coverage (of the true floor, in the map frame) 72–96 %, and only 3 of 20
+  runs reach 90 %: the heading error built up turning the corners is not
+  corrected, and `Slam2d`'s loop closure rarely fires when the robot comes
+  round (no closure at all in 15 of the 20 runs). That is the failure P2 is for:
+  exploration that knows its uncertainty and goes back to close the loop.
+- The distance weight 4 was chosen on the warehouse; it was not tuned on
+  these worlds.
+
 ### P2: uncertainty-aware exploration (active loop closure)
 
 - Pose-graph D-optimality and revisit candidates (design item 4).
-- The same warehouse as P1: the aisles around the racks, the column and the
-  pallet rows form loops, so pure frontier exploration accumulates drift
-  before it comes back. Using one scene for P1 and P2 makes the two policies
-  directly comparable.
-- Exit: lower ATE and map error than P1 at a comparable coverage; the
-  distance spent on revisits is reported.
+- The generated **loop** worlds (P1's benchmark above), where both P1
+  policies lose the map: SLAM error 0.7–0.9 m on average. The warehouse
+  stays as a check that nothing regresses where SLAM already holds.
+- Exit: on `--bench` loop seeds, lower SLAM error and higher coverage than
+  both P1 policies, with no loss on the office and maze seeds; the distance
+  spent on revisits is reported.
 
 ### P3: legged robot, no goals given
 
@@ -212,7 +267,9 @@ under 0.3 m, and a replay with the same hash.
 
 ## Decisions
 
-- P1 and P2 scene: the warehouse of example 127 (2026-11-26).
+- P1 scene: the warehouse of example 127 (2026-11-26).
+- P2 scenes: the generated loop worlds, with the office, maze and
+  warehouse as regression checks (2026-11-26).
 
 ## Open questions
 
