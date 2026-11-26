@@ -1,0 +1,94 @@
+name: Go2 determinism probe
+
+# Do two runners give the same Go2 rollout and the same SB3 training? The
+# learning-speed runs (go2-sb3-engines.yml) trained RNE twice from seed 2026
+# and got different curves, while MuJoCo's two runs matched to the digit.
+# Each job here prints its CPU, then hashes RNE's batch after 500 periods
+# of fixed actions (the flat task, rotor inertia, velocity limits, implicit
+# PD), torch's matmul of fixed matrices, and the policy SB3's PPO trains in
+# 65k timesteps from seed 2026, with torch on one thread and on all.
+# Identical jobs on several runners: whatever differs between them is not
+# deterministic across machines.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/go2-determinism-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Determinism probe (${{ matrix.copy }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        copy: [a, b, c, d]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: go2-sb3
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install SB3, build rne_py_locomotion
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check maturin==1.13.3 \
+            -r examples/27_mobile_manipulator_rl/requirements-ci.txt
+          .venv/bin/maturin develop -m crates/rne_py_locomotion/Cargo.toml --release
+
+      - name: Probe
+        run: |
+          set -euo pipefail
+          lscpu | grep -E "Model name|Flags" | cut -c1-200
+          nproc
+          cd examples/148_go2_learning_python
+          for threads in 1 all; do
+            ../../.venv/bin/python - "$threads" <<'PY'
+          import hashlib, math, sys
+          import numpy as np
+          import torch
+          if sys.argv[1] == "1":
+              torch.set_num_threads(1)
+          from go2_vec_env import NativeGo2VecEnv
+          from stable_baselines3 import PPO
+          from stable_baselines3.common.vec_env import VecNormalize
+          digest = lambda array: hashlib.sha256(np.ascontiguousarray(array, dtype=np.float64).tobytes()).hexdigest()[:16]
+          task = {"velocity_limits": True, "implicit_pd": True, "armature": 0.01}
+          env = NativeGo2VecEnv(n_envs=8, seed=2026, **task)
+          observations = env.reset()
+          for period in range(500):
+              actions = np.array([[0.3 * math.sin(0.1 * period + j + k) for j in range(12)]
+                                  for k in range(8)])
+              observations, rewards, dones, _ = env.step(actions)
+          print("threads", sys.argv[1], "torch threads", torch.get_num_threads())
+          print("rollout", digest(observations))
+          generator = np.random.default_rng(7)
+          a, b = generator.standard_normal((256, 256)), generator.standard_normal((256, 256))
+          print("matmul", digest((torch.tensor(a) @ torch.tensor(b)).numpy()),
+                "float32", digest((torch.tensor(a, dtype=torch.float32) @ torch.tensor(b, dtype=torch.float32)).double().numpy()))
+          env = VecNormalize(NativeGo2VecEnv(n_envs=16, seed=2026, **task), gamma=0.99)
+          model = PPO("MlpPolicy", env, n_steps=256, batch_size=4096, n_epochs=5, seed=2026,
+                      policy_kwargs={"net_arch": {"pi": [256, 256], "vf": [256, 256]},
+                                     "activation_fn": torch.nn.ELU, "log_std_init": -0.5},
+                      verbose=0)
+          model.learn(total_timesteps=65536)
+          parameters = np.concatenate([p.detach().double().numpy().ravel()
+                                       for p in model.policy.parameters()])
+          print("policy", digest(parameters))
+          PY
+          done

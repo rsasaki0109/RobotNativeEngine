@@ -832,7 +832,12 @@ All notable changes to Robot Native Engine are documented in this file.
   starts, and `train_ppo.py --engine mujoco` trains the same PPO on it. The
   `Go2 SB3 PPO in RNE and MuJoCo` workflow trains both: on a runner's 4
   cores RNE runs 8,611 timesteps a second against MuJoCo's 1,337 (6.4
-  times), learning alike per timestep.
+  times), learning alike per timestep. Over seeds 2026-2028 RNE trains 2-5
+  times as fast (about 3 on average, the runners' CPUs varying), and all
+  three RNE seeds pass a return of 11 where one of MuJoCo's does not. The
+  `Go2 determinism probe` workflow shows RNE's rollout bit-identical on
+  four runner CPUs (two Intel, two AMD) while torch's matmul, and so SB3's
+  training, follows the CPU vendor and torch's thread count.
 
 - Physics substeps for the Go2 learning task:
   `Go2LearningRobot::set_physics_substeps` (`Go2LearningConfig::physics_substeps`,
