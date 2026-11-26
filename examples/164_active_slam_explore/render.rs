@@ -7,17 +7,16 @@
 //! in the world by the start pose, so map error shows as an offset from the
 //! true footprints (thin outlines).
 
-use crate::warehouse::FOOTPRINTS;
+use crate::worlds::{Footprint, Scene};
 use crate::Run;
 use rne_math::Vec3;
 use rne_nav::Pose2d;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// Pixels per meter.
-const SCALE: f64 = 30.0;
-/// World window drawn, `(min_x, max_x, min_z, max_z)`.
-pub(crate) const VIEW: (f64, f64, f64, f64) = (-7.5, 7.5, -5.0, 5.0);
+/// The largest map area of a panel, in pixels.
+const MAP_W: f64 = 450.0;
+const MAP_H: f64 = 300.0;
 const HEADER: u32 = 46;
 const MARGIN: u32 = 6;
 const GAP: u32 = 8;
@@ -202,26 +201,53 @@ impl Canvas {
     }
 }
 
-fn panel_size() -> (u32, u32) {
-    let (min_x, max_x, min_z, max_z) = VIEW;
-    (
-        ((max_x - min_x) * SCALE).round() as u32 + 2 * MARGIN,
-        ((max_z - min_z) * SCALE).round() as u32 + HEADER + MARGIN,
-    )
+/// The part of the world a panel shows, and its scale.
+pub(crate) struct View {
+    /// World window, `(min_x, max_x, min_z, max_z)`.
+    pub(crate) bounds: (f64, f64, f64, f64),
+    /// Pixels per meter.
+    scale: f64,
 }
 
-/// Pixel of a world point inside a panel whose top-left corner is `left`.
-fn to_pixel(left: u32, x: f64, z: f64) -> (f64, f64) {
-    let (min_x, _, _, max_z) = VIEW;
-    (
-        f64::from(left + MARGIN) + (x - min_x) * SCALE,
-        f64::from(HEADER) + (max_z - z) * SCALE,
-    )
+impl View {
+    /// The scene's interior with half a metre around it, as large as fits
+    /// the panel's map area (30 px/m for the warehouse).
+    pub(crate) fn for_scene(scene: &Scene) -> Self {
+        let (min_x, max_x, min_z, max_z) = scene.interior;
+        let bounds = (min_x - 0.5, max_x + 0.5, min_z - 0.5, max_z + 0.5);
+        let scale = (MAP_W / (bounds.1 - bounds.0)).min(MAP_H / (bounds.3 - bounds.2));
+        Self { bounds, scale }
+    }
+
+    fn panel_size(&self) -> (u32, u32) {
+        let (min_x, max_x, min_z, max_z) = self.bounds;
+        (
+            ((max_x - min_x) * self.scale).round() as u32 + 2 * MARGIN,
+            ((max_z - min_z) * self.scale).round() as u32 + HEADER + MARGIN,
+        )
+    }
+
+    /// Pixel of a world point inside a panel whose top-left corner is `left`.
+    fn to_pixel(&self, left: u32, x: f64, z: f64) -> (f64, f64) {
+        let (min_x, _, _, max_z) = self.bounds;
+        (
+            f64::from(left + MARGIN) + (x - min_x) * self.scale,
+            f64::from(HEADER) + (max_z - z) * self.scale,
+        )
+    }
 }
 
-fn draw_panel(canvas: &mut Canvas, left: u32, name: &str, snap: &Snapshot, world_from_map: Pose2d) {
-    let (width, height) = panel_size();
-    let (min_x, _, _, max_z) = VIEW;
+fn draw_panel(
+    canvas: &mut Canvas,
+    view: &View,
+    footprints: &[Footprint],
+    left: u32,
+    name: &str,
+    snap: &Snapshot,
+    world_from_map: Pose2d,
+) {
+    let (width, height) = view.panel_size();
+    let (min_x, _, _, max_z) = view.bounds;
     canvas.clip = (
         i64::from(left + MARGIN),
         i64::from(HEADER),
@@ -236,8 +262,8 @@ fn draw_panel(canvas: &mut Canvas, left: u32, name: &str, snap: &Snapshot, world
     // The map.
     for py in HEADER..height - MARGIN {
         for px in left + MARGIN..left + width - MARGIN {
-            let x = min_x + (f64::from(px - left - MARGIN) + 0.5) / SCALE;
-            let z = max_z - (f64::from(py - HEADER) + 0.5) / SCALE;
+            let x = min_x + (f64::from(px - left - MARGIN) + 0.5) / view.scale;
+            let z = max_z - (f64::from(py - HEADER) + 0.5) / view.scale;
             let map_point = world_from_map.inverse_transform_point(Vec3::new(x, z, 0.0));
             let color = match snap.cells.value_at(map_point) {
                 0 => FREE,
@@ -248,7 +274,7 @@ fn draw_panel(canvas: &mut Canvas, left: u32, name: &str, snap: &Snapshot, world
         }
     }
     // The true footprints, as thin outlines.
-    for f in &FOOTPRINTS {
+    for f in footprints {
         let corners = [
             (f.x - f.half_x, f.z - f.half_z),
             (f.x + f.half_x, f.z - f.half_z),
@@ -258,7 +284,7 @@ fn draw_panel(canvas: &mut Canvas, left: u32, name: &str, snap: &Snapshot, world
         for i in 0..4 {
             let a = corners[i];
             let b = corners[(i + 1) % 4];
-            let (pa, pb) = (to_pixel(left, a.0, a.1), to_pixel(left, b.0, b.1));
+            let (pa, pb) = (view.to_pixel(left, a.0, a.1), view.to_pixel(left, b.0, b.1));
             let length = (pb.0 - pa.0).hypot(pb.1 - pa.1);
             let steps = (length * 2.0).ceil().max(1.0) as usize;
             for s in 0..=steps {
@@ -275,43 +301,49 @@ fn draw_panel(canvas: &mut Canvas, left: u32, name: &str, snap: &Snapshot, world
     // Frontiers.
     for &cell in &snap.frontier_m {
         let (x, z) = to_world(cell);
-        let (px, py) = to_pixel(left, x, z);
+        let (px, py) = view.to_pixel(left, x, z);
         canvas.disc(px, py, 1.6, FRONTIER);
     }
     // The true trail.
     for pair in snap.trail.windows(2) {
-        let a = to_pixel(left, pair[0].x_m, pair[0].y_m);
-        let b = to_pixel(left, pair[1].x_m, pair[1].y_m);
+        let a = view.to_pixel(left, pair[0].x_m, pair[0].y_m);
+        let b = view.to_pixel(left, pair[1].x_m, pair[1].y_m);
         canvas.line(a, b, 2.0, TRAIL);
     }
     // The planned path and the goal.
     for pair in snap.path_m.windows(2) {
         let (a, b) = (to_world(pair[0]), to_world(pair[1]));
         canvas.line(
-            to_pixel(left, a.0, a.1),
-            to_pixel(left, b.0, b.1),
+            view.to_pixel(left, a.0, a.1),
+            view.to_pixel(left, b.0, b.1),
             2.0,
             PATH,
         );
     }
     if let Some(goal) = snap.goal {
         let (x, z) = to_world((goal.x_m, goal.y_m));
-        let (px, py) = to_pixel(left, x, z);
+        let (px, py) = view.to_pixel(left, x, z);
         canvas.ring(px, py, 7.0, 3.0, GOAL);
         canvas.disc(px, py, 2.0, GOAL);
     }
     // LiDAR returns.
     for &(x, z) in &snap.scan_m {
-        let (px, py) = to_pixel(left, x, z);
+        let (px, py) = view.to_pixel(left, x, z);
         canvas.disc(px, py, 1.2, SCAN);
     }
     // The SLAM estimate (ring) and the true robot (disc with heading).
     let estimate = world_from_map.compose(snap.estimate);
-    let (ex, ey) = to_pixel(left, estimate.x_m, estimate.y_m);
-    canvas.ring(ex, ey, crate::ROBOT_RADIUS_M * SCALE + 2.0, 2.0, ESTIMATE);
-    let (rx, ry) = to_pixel(left, snap.truth.x_m, snap.truth.y_m);
-    canvas.disc(rx, ry, crate::ROBOT_RADIUS_M * SCALE, ROBOT);
-    let nose = to_pixel(
+    let (ex, ey) = view.to_pixel(left, estimate.x_m, estimate.y_m);
+    canvas.ring(
+        ex,
+        ey,
+        crate::ROBOT_RADIUS_M * view.scale + 2.0,
+        2.0,
+        ESTIMATE,
+    );
+    let (rx, ry) = view.to_pixel(left, snap.truth.x_m, snap.truth.y_m);
+    canvas.disc(rx, ry, crate::ROBOT_RADIUS_M * view.scale, ROBOT);
+    let nose = view.to_pixel(
         left,
         snap.truth.x_m + 0.3 * snap.truth.yaw_rad.cos(),
         snap.truth.y_m + 0.3 * snap.truth.yaw_rad.sin(),
@@ -331,7 +363,7 @@ fn draw_panel(canvas: &mut Canvas, left: u32, name: &str, snap: &Snapshot, world
 }
 
 /// One line of coloured keys under the panels.
-fn draw_legend(canvas: &mut Canvas, y: u32) {
+fn draw_legend(canvas: &mut Canvas, y: u32, scene: &str) {
     let keys: [(&str, [u8; 3]); 7] = [
         ("FRONTIER", FRONTIER),
         ("GOAL", GOAL),
@@ -341,7 +373,8 @@ fn draw_legend(canvas: &mut Canvas, y: u32) {
         ("UNKNOWN", UNKNOWN),
         ("WALL OUTLINE: TRUTH", OUTLINE),
     ];
-    let mut x = MARGIN;
+    canvas.text(MARGIN, y + 1, 1, TEXT, scene);
+    let mut x = MARGIN + 6 * scene.len() as u32 + 24;
     for (label, color) in keys {
         for dy in 0..9 {
             for dx in 0..9 {
@@ -356,6 +389,7 @@ fn draw_legend(canvas: &mut Canvas, y: u32) {
 /// Renders both runs into `frames_dir` and encodes `gif_path`.
 pub(crate) fn render_gif(
     runs: &[&Run],
+    scene: &Scene,
     world_from_map: Pose2d,
     frames_dir: &Path,
     gif_path: &Path,
@@ -365,7 +399,8 @@ pub(crate) fn render_gif(
     if let Some(parent) = gif_path.parent() {
         fs::create_dir_all(parent)?;
     }
-    let (panel_w, panel_h) = panel_size();
+    let view = View::for_scene(scene);
+    let (panel_w, panel_h) = view.panel_size();
     let width = panel_w * runs.len() as u32 + GAP * (runs.len() as u32 - 1);
     let count = runs.iter().map(|r| r.frames.len()).max().unwrap_or(0) + HOLD_FRAMES;
     for index in 0..count {
@@ -379,9 +414,17 @@ pub(crate) fn render_gif(
             } else {
                 run.name.to_string()
             };
-            draw_panel(&mut canvas, left, &name, snap, world_from_map);
+            draw_panel(
+                &mut canvas,
+                &view,
+                &scene.footprints,
+                left,
+                &name,
+                snap,
+                world_from_map,
+            );
         }
-        draw_legend(&mut canvas, panel_h + 4);
+        draw_legend(&mut canvas, panel_h + 4, &scene.name.to_uppercase());
         write_png(
             &frames_dir.join(format!("frame-{index:04}.png")),
             width,

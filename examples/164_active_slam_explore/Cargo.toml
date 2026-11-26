@@ -26,3 +26,4 @@ rne_world = { workspace = true }
 [[example]]
 name = "164_active_slam_explore"
 path = "main.rs"
+test = true

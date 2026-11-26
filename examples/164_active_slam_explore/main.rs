@@ -1,33 +1,40 @@
-//! Active SLAM: a robot with no map and no goals explores the warehouse of
-//! example 127 by itself, choosing where to go with `rne_explore`.
+//! Active SLAM: a robot with no map and no goals explores a building by
+//! itself, choosing where to go with `rne_explore`.
 //!
 //! The robot has a 4 m 2D LiDAR (sampled from the Rapier scene) and wheel
 //! odometry that drifts (2 % scale, a yaw bias). It runs `Slam2d` on
 //! keyframes and steers on the SLAM estimate. About once a second
-//! `rne_explore::Explorer` picks a frontier of the SLAM map, `rne_nav` plans a
-//! path to it through mapped space, and the robot follows it. Exploration ends
+//! `rne_explore::Explorer` picks a frontier of the SLAM map and gives the path
+//! to it through mapped space, and the robot follows it. Exploration ends
 //! when no reachable frontier is left.
 //!
-//! The same drive runs twice, with the two policies of `rne_explore`:
+//! Every drive runs twice, with the two policies of `rne_explore`:
 //!
 //! - nearest frontier (Yamauchi 1997), the baseline;
 //! - information gain: unknown area visible from the goal against the path
 //!   length to it.
 //!
-//! Ground truth is used only to score: the area mapped against the true free
-//! area of the warehouse, the SLAM trajectory against the true one, and
-//! collisions against the true footprints. `docs/PLAN_ACTIVE_SLAM.md` P1.
+//! The worlds (`worlds.rs`): example 127's warehouse (the default), and
+//! office, loop and maze buildings generated from a seed. Ground truth is
+//! used only to score: the area mapped against the true free floor, the SLAM
+//! trajectory against the true one, and collisions against the true
+//! footprints. `docs/PLAN_ACTIVE_SLAM.md` P1.
 //!
 //! ```text
-//! cargo run --release -p active_slam_explore --example 164_active_slam_explore -- --smoke
+//! # the warehouse from four starts, gated; writes docs/media/active-slam-explore.gif
 //! cargo run --release -p active_slam_explore --example 164_active_slam_explore
+//! # one start, gated, and a replay-hash check (CI)
+//! cargo run --release -p active_slam_explore --example 164_active_slam_explore -- --smoke
+//! # a generated world; writes docs/media/active-slam-explore-<world>-<seed>.gif
+//! cargo run --release -p active_slam_explore --example 164_active_slam_explore -- --world maze --seed 3
+//! # both policies on seeds 0..N of every generated kind
+//! cargo run --release -p active_slam_explore --example 164_active_slam_explore -- --bench 10
 //! ```
 //!
-//! Without `--smoke` it also writes `docs/media/active-slam-explore.gif`:
-//! both policies side by side, top-down.
+//! `--distance-weight W` sets the information-gain policy's weight (default 4).
 
 mod render;
-mod warehouse;
+mod worlds;
 
 use rne_core::SimDuration;
 use rne_data::PointCloud;
@@ -42,6 +49,7 @@ use rne_sensor::{sample_lidar, LidarSpec};
 use rne_slam::{Slam2d, SlamConfig};
 use rne_world::Transform3;
 use std::path::PathBuf;
+use worlds::{Kind, Scene};
 
 const SCAN_HZ: f64 = 10.0;
 const LIDAR_RANGE_M: f64 = 4.0;
@@ -62,38 +70,12 @@ const KEYFRAME_RAD: f64 = 0.3;
 /// The explorer is asked again this often while a goal is being driven to.
 const REPLAN_S: f64 = 1.0;
 /// Exploration gives up after this long.
-const MAX_TIME_S: f64 = 600.0;
+const MAX_TIME_S: f64 = 1500.0;
 /// After this many goals in a row that cannot be planned to, give up.
 const MAX_PLAN_FAILURES: usize = 20;
 const RESOLUTION_M: f64 = 0.05;
-const GRID_M: f64 = 32.0;
 /// A picture is taken this often (simulation steps).
 const FRAME_EVERY_STEPS: usize = 15;
-
-/// Where the robot starts. The first, the south-west aisle facing east, is
-/// the one in the GIF and the smoke test; the others are the other aisles.
-const STARTS: [Pose2d; 4] = [
-    Pose2d {
-        x_m: -5.0,
-        y_m: -2.0,
-        yaw_rad: 0.0,
-    },
-    Pose2d {
-        x_m: 5.0,
-        y_m: -2.0,
-        yaw_rad: std::f64::consts::PI,
-    },
-    Pose2d {
-        x_m: -5.0,
-        y_m: 1.9,
-        yaw_rad: 0.0,
-    },
-    Pose2d {
-        x_m: 3.0,
-        y_m: 1.5,
-        yaw_rad: std::f64::consts::FRAC_PI_2,
-    },
-];
 
 /// One exploration run, scored against ground truth.
 pub(crate) struct Run {
@@ -119,22 +101,40 @@ pub(crate) struct Run {
 }
 
 fn main() {
-    let smoke = std::env::args().any(|argument| argument == "--smoke");
-    let policies = [
-        ("NEAREST FRONTIER", ScorePolicy::NearestFrontier),
-        ("INFORMATION GAIN", gain_policy()),
-    ];
-    let starts = if smoke { &STARTS[..1] } else { &STARTS[..] };
+    let args: Vec<String> = std::env::args().collect();
+    let value = |flag: &str| {
+        args.iter()
+            .position(|a| a == flag)
+            .and_then(|i| args.get(i + 1))
+            .cloned()
+    };
+    let smoke = args.iter().any(|a| a == "--smoke");
+    if let Some(seeds) = value("--bench") {
+        bench(seeds.parse().expect("--bench takes a seed count"));
+        return;
+    }
+    let kind = value("--world").map_or(Kind::Warehouse, |w| {
+        Kind::parse(&w).expect("--world is warehouse, office, loop or maze")
+    });
+    let seed: u64 = value("--seed").map_or(0, |s| s.parse().expect("--seed takes a number"));
+    let scene = worlds::generate(kind, seed);
+    let policies = policies();
+    let starts = if smoke {
+        &scene.starts[..1]
+    } else {
+        &scene.starts[..]
+    };
     let mut runs: Vec<Vec<Run>> = Vec::new();
     for (index, start) in starts.iter().enumerate() {
         // Only the first start is drawn.
         let render = !smoke && index == 0;
         let pair: Vec<Run> = policies
             .iter()
-            .map(|(name, policy)| explore(name, *policy, *start, render))
+            .map(|(name, policy)| explore(name, *policy, &scene, *start, render))
             .collect();
         println!(
-            "start {index}: ({:.1}, {:.1}) facing {:.0} deg",
+            "{} start {index}: ({:.1}, {:.1}) facing {:.0} deg",
+            scene.name,
             start.x_m,
             start.y_m,
             start.yaw_rad.to_degrees()
@@ -145,22 +145,31 @@ fn main() {
     if runs.len() > 1 {
         summary(&runs);
     }
-    for run in runs.iter().flatten() {
-        check(run);
+    // The gates hold for the warehouse; on generated worlds the runs are
+    // reported, not gated (see `--bench`).
+    if kind == Kind::Warehouse {
+        for run in runs.iter().flatten() {
+            check(run);
+        }
     }
     if smoke {
         // Replay: the same run gives the same hash.
-        let again = explore(policies[1].0, policies[1].1, STARTS[0], false);
+        let again = explore(policies[1].0, policies[1].1, &scene, scene.starts[0], false);
         assert_eq!(again.hash, runs[0][1].hash, "replay diverged");
         println!("replay hash {:016x}", again.hash);
         println!("smoke ok");
         return;
     }
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let gif = root.join("docs/media/active-slam-explore.gif");
+    let gif = if kind == Kind::Warehouse {
+        root.join("docs/media/active-slam-explore.gif")
+    } else {
+        root.join(format!("docs/media/active-slam-explore-{}.gif", scene.name))
+    };
     render::render_gif(
         &runs[0].iter().collect::<Vec<_>>(),
-        STARTS[0],
+        &scene,
+        scene.starts[0],
         &root.join("target/rne-active-slam-frames"),
         &gif,
     )
@@ -168,21 +177,67 @@ fn main() {
     println!("wrote {}", gif.display());
 }
 
-/// Means over the starts, per policy.
+fn policies() -> [(&'static str, ScorePolicy); 2] {
+    [
+        ("NEAREST FRONTIER", ScorePolicy::NearestFrontier),
+        ("INFORMATION GAIN", gain_policy()),
+    ]
+}
+
+/// Both policies on seeds `0..seeds` of every generated kind, from each
+/// world's first start; one line per run, then means per kind and policy.
+fn bench(seeds: u64) {
+    let policies = policies();
+    for kind in Kind::GENERATED {
+        let mut runs: Vec<Vec<Run>> = Vec::new();
+        for seed in 0..seeds {
+            let scene = worlds::generate(kind, seed);
+            let pair: Vec<Run> = policies
+                .iter()
+                .map(|(name, policy)| explore(name, *policy, &scene, scene.starts[0], false))
+                .collect();
+            println!("{}", scene.name);
+            report(&pair.iter().collect::<Vec<_>>());
+            runs.push(pair);
+        }
+        println!("== {} ({} seeds)", kind.label(), seeds);
+        summary(&runs);
+        // Seeds where information gain drove less / mapped more / had a
+        // lower SLAM error than nearest frontier.
+        let wins = |f: &dyn Fn(&Run, &Run) -> bool| runs.iter().filter(|p| f(&p[1], &p[0])).count();
+        println!(
+            "information gain better on: total distance {}/{}  coverage {}/{}  SLAM error {}/{}",
+            wins(&|g, n| g.distance_m < n.distance_m),
+            runs.len(),
+            wins(&|g, n| g.coverage > n.coverage),
+            runs.len(),
+            wins(&|g, n| g.trajectory_error_m < n.trajectory_error_m),
+            runs.len(),
+        );
+    }
+}
+
+/// Means over a set of runs, per policy.
 fn summary(runs: &[Vec<Run>]) {
-    println!("mean over {} starts:", runs.len());
+    println!("mean over {} runs:", runs.len());
     for policy in 0..runs[0].len() {
         let column: Vec<&Run> = runs.iter().map(|pair| &pair[policy]).collect();
         let n = column.len() as f64;
         let mean = |f: &dyn Fn(&Run) -> f64| column.iter().map(|r| f(r)).sum::<f64>() / n;
+        let reached: Vec<f64> = column.iter().filter_map(|r| r.distance_to_90_m).collect();
         println!(
-            "{:<18} time {:>5.0}s  distance {:>5.1}m  mapped {:>5.1}%  90% at {:>5.1}m  SLAM err {:.3}m",
+            "{:<18} time {:>5.0}s  distance {:>5.1}m  mapped {:>5.1}%  90% at {:>5.1}m ({}/{})  SLAM err {:.3}m  done {}/{}  collisions {}",
             column[0].name,
             mean(&|r| r.time_s),
             mean(&|r| r.distance_m),
             100.0 * mean(&|r| r.coverage),
-            mean(&|r| r.distance_to_90_m.unwrap_or(f64::NAN)),
+            reached.iter().sum::<f64>() / reached.len().max(1) as f64,
+            reached.len(),
+            column.len(),
             mean(&|r| r.trajectory_error_m),
+            column.iter().filter(|r| r.done).count(),
+            column.len(),
+            column.iter().map(|r| r.collisions).sum::<usize>(),
         );
     }
 }
@@ -231,11 +286,18 @@ fn costmap_config() -> CostmapConfig {
 }
 
 /// Explores the warehouse with `policy` until nothing reachable is left.
-fn explore(name: &'static str, policy: ScorePolicy, start: Pose2d, render: bool) -> Run {
-    let (_world, backend, physics_world, spec) = warehouse_lidar();
-    let mut slam = new_slam();
+fn explore(
+    name: &'static str,
+    policy: ScorePolicy,
+    scene: &Scene,
+    start: Pose2d,
+    render: bool,
+) -> Run {
+    let (_world, backend, physics_world, spec) = scene_lidar(scene);
+    let mut slam = new_slam(grid_size_m(scene, start));
+    let view = render::View::for_scene(scene);
     let mut explorer = Explorer::new(explorer_config(policy));
-    let free_samples = free_samples(start);
+    let free_samples = free_samples(scene, start);
     let dt = 1.0 / SCAN_HZ;
 
     let mut truth = start;
@@ -315,7 +377,7 @@ fn explore(name: &'static str, policy: ScorePolicy, start: Pose2d, render: bool)
             path = None;
         }
         let next = integrate(truth, linear, angular, dt);
-        if warehouse::collides(next.x_m, next.y_m, ROBOT_RADIUS_M) {
+        if scene.collides(next.x_m, next.y_m, ROBOT_RADIUS_M) {
             collisions += 1;
             // A bump: turning in place is still allowed; back off, and choose
             // a goal afresh from wherever that leaves the robot.
@@ -339,6 +401,7 @@ fn explore(name: &'static str, policy: ScorePolicy, start: Pose2d, render: bool)
         }
         if render && step.is_multiple_of(FRAME_EVERY_STEPS) {
             frames.push(snapshot(
+                &view,
                 start,
                 &slam,
                 &scan,
@@ -361,7 +424,8 @@ fn explore(name: &'static str, policy: ScorePolicy, start: Pose2d, render: bool)
     if render {
         let scan = scan_at(&backend, physics_world, truth, &spec);
         frames.push(snapshot(
-            start, &slam, &scan, truth, estimate, &trail, None, None, time_s, distance_m, coverage,
+            &view, start, &slam, &scan, truth, estimate, &trail, None, None, time_s, distance_m,
+            coverage,
         ));
     }
     let nodes = slam.graph().nodes();
@@ -392,15 +456,15 @@ fn explore(name: &'static str, policy: ScorePolicy, start: Pose2d, render: bool)
     }
 }
 
-/// The warehouse in a Rapier world, and the robot's 4 m LiDAR. The ECS world
+/// The scene in a Rapier world, and the robot's 4 m LiDAR. The ECS world
 /// is returned so it outlives the physics bodies synced from it.
-fn warehouse_lidar() -> (rne_ecs::World, RapierBackend, PhysicsWorldId, LidarSpec) {
+fn scene_lidar(scene: &Scene) -> (rne_ecs::World, RapierBackend, PhysicsWorldId, LidarSpec) {
     let mut world = rne_ecs::World::new();
     let mut backend = RapierBackend::new();
     let physics_world = backend
         .create_world(PhysicsWorldDesc::default())
         .expect("physics world");
-    warehouse::spawn(&mut world);
+    scene.spawn(&mut world);
     backend
         .sync_from_ecs(&mut world, physics_world)
         .expect("sync");
@@ -424,12 +488,28 @@ fn warehouse_lidar() -> (rne_ecs::World, RapierBackend, PhysicsWorldId, LidarSpe
 
 /// `Slam2d` on an empty grid. The map frame is the robot's odometry frame:
 /// it starts at the origin and does not know where in the warehouse it is.
-fn new_slam() -> Slam2d {
+/// Side of the square SLAM grid, centred on the start: twice the farthest
+/// corner of the scene from it, plus a margin, in steps of 4 m.
+fn grid_size_m(scene: &Scene, start: Pose2d) -> f64 {
+    let (min_x, max_x, min_z, max_z) = scene.interior;
+    let reach = [
+        (min_x, min_z),
+        (min_x, max_z),
+        (max_x, min_z),
+        (max_x, max_z),
+    ]
+    .iter()
+    .map(|(x, z)| (x - start.x_m).hypot(z - start.y_m))
+    .fold(0.0, f64::max);
+    (2.0 * (reach + 2.0) / 4.0).ceil() * 4.0
+}
+
+fn new_slam(grid_m: f64) -> Slam2d {
     let template = OccupancyGrid::new(
-        (GRID_M / RESOLUTION_M) as usize,
-        (GRID_M / RESOLUTION_M) as usize,
+        (grid_m / RESOLUTION_M) as usize,
+        (grid_m / RESOLUTION_M) as usize,
         RESOLUTION_M,
-        Pose2d::new(-0.5 * GRID_M, -0.5 * GRID_M, 0.0),
+        Pose2d::new(-0.5 * grid_m, -0.5 * grid_m, 0.0),
     )
     .expect("grid");
     Slam2d::new(
@@ -485,6 +565,7 @@ fn choose_goal(
 
 #[allow(clippy::too_many_arguments)]
 fn snapshot(
+    view: &render::View,
     start: Pose2d,
     slam: &Slam2d,
     scan: &LaserScan2d,
@@ -510,7 +591,7 @@ fn snapshot(
     .map(|p| (p.x, p.y))
     .collect();
     render::Snapshot {
-        cells: grid_values(grid, start),
+        cells: grid_values(grid, start, view),
         frontier_m: frontier_cells,
         scan_m: scan_points(scan, truth),
         truth,
@@ -527,8 +608,8 @@ fn snapshot(
 }
 
 /// The part of the map the picture shows, as `-1` / `0` / `100`, row-major.
-fn grid_values(grid: &OccupancyGrid, start: Pose2d) -> render::MapCells {
-    let (min_x, max_x, min_z, max_z) = render::VIEW;
+fn grid_values(grid: &OccupancyGrid, start: Pose2d, view: &render::View) -> render::MapCells {
+    let (min_x, max_x, min_z, max_z) = view.bounds;
     let corners = [
         (min_x, min_z),
         (max_x, min_z),
@@ -643,16 +724,16 @@ fn drifting_increment(from: Pose2d, to: Pose2d) -> Pose2d {
     )
 }
 
-/// Points of the warehouse's free floor every 10 cm, in the map frame.
-fn free_samples(start: Pose2d) -> Vec<Vec3> {
-    let (min_x, max_x, min_z, max_z) = warehouse::INTERIOR;
+/// Points of the scene's free floor every 10 cm, in the map frame.
+fn free_samples(scene: &Scene, start: Pose2d) -> Vec<Vec3> {
+    let (min_x, max_x, min_z, max_z) = scene.interior;
     let step = 0.1;
     let mut samples = Vec::new();
     let mut z = min_z + 0.5 * step;
     while z < max_z {
         let mut x = min_x + 0.5 * step;
         while x < max_x {
-            if !warehouse::collides(x, z, 0.0) {
+            if !scene.collides(x, z, 0.0) {
                 samples.push(start.inverse().transform_point(Vec3::new(x, z, 0.0)));
             }
             x += step;
