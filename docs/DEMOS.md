@@ -104,6 +104,29 @@ from a separate episode.
 cargo run -p drjohnson_euroc_export --example 113_drjohnson_euroc_export -- target/drjohnson_euroc
 ```
 
+With people walking through the room: `RNE_WALKERS=DIR` adds walkers as
+splat actors (sorted with the scene, so they occlude it and are occluded by
+it), pacing lines across the route with their gait phase following the
+distance walked. `DIR` holds `walker_<i>_phase_<k>.ply`, written by
+visloc-rs `ros2/visloc-ros2/gs/walker_splat_plys.py`.
+`RNE_WALKER_MODE=ahead` keeps them crossing from side to side just in front
+of the robot instead, so they hide much of its view.
+`RNE_START_WAYPOINT=N` starts the route elsewhere for a query episode, and
+`RNE_NO_PREVIEW=1` skips the preview images:
+
+```bash
+python3 ros2/visloc-ros2/gs/walker_splat_plys.py --out walkers --count 4   # in visloc-rs
+RNE_WALKERS=walkers RNE_START_WAYPOINT=2 RNE_NO_PREVIEW=1 \
+  cargo run --release -p drjohnson_euroc_export --example 113_drjohnson_euroc_export -- target/drjohnson_people
+```
+
+Every export also writes `wheel_odom.tum`: the base's wheel odometry with a 2 % distance
+and 3 % turn error, in its own z-up frame (x forward, y left; the body is the IMU turned
+-90 degrees about x), which people walking past cannot disturb.
+
+visloc-rs measures its map localization among these walkers in
+`docs/dynamic_obstacle_localization.md`.
+
 Details: [navigation integration plan](VISLOC_NAVIGATION_PLAN.md),
 [source](../examples/113_drjohnson_euroc_export/main.rs).
 

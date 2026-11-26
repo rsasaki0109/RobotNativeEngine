@@ -6,6 +6,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 113 (`drjohnson_euroc_export`) can put people in the Dr Johnson interior:
+  `RNE_WALKERS=DIR` adds walkers as splat actors pacing lines across the route, their gait
+  phase following the distance walked (`people.csv` logs them); `RNE_WALKER_MODE=ahead` keeps
+  them crossing just in front of the robot. `RNE_START_WAYPOINT` starts
+  the route elsewhere for a query episode, and `RNE_NO_PREVIEW` skips the preview images.
+  The walkers' PLYs come from visloc-rs `walker_splat_plys.py`. Every export also writes
+  `wheel_odom.tum`, the base's wheel odometry (2 % distance, 3 % turn error). See
+  `docs/DEMOS.md`.
+
 - `rne_gnss` simulates BeiDou-3 (`Constellation::beidou_nominal`, B1I and
   B3I): its broadcast ephemerides use the CGCS2000 constants, BeiDou time
   and the BeiDou ICD's tilted frame for geostationary satellites, and

@@ -8,6 +8,24 @@
 //! `preview_rgb/{cam0,cam1}/<ns>.png` for visualization.
 //!
 //! Usage: `113_drjohnson_euroc_export OUTPUT_DIR`
+//!
+//! Optional, from the environment:
+//!
+//! - `RNE_WALKERS=DIR`: people walking across the route, as splat actors
+//!   sorted with the scene (see `walkers.rs`); `RNE_WALKER_COUNT` (4, at
+//!   most 6) and `RNE_WALKER_SCALE` (1). `RNE_WALKER_MODE=ahead` keeps them
+//!   crossing just in front of the robot instead of pacing lines across its
+//!   route. Their positions go to `people.csv`.
+//! - `RNE_START_WAYPOINT=N`: start the route at waypoint N (0), for a query
+//!   episode that differs from the map's.
+//! - Always: `wheel_odom.tum`, the base's wheel odometry (2 % distance and
+//!   3 % turn error, see `wheel_odom.rs`) in its own z-up frame (x forward,
+//!   y left), seconds. The body is the IMU rotated by -90 deg about x.
+//! - `RNE_NO_PREVIEW=1`: skip the colour previews (every 20th `cam0` one is
+//!   kept) and the fixed overview camera, which halves the rendering.
+
+mod walkers;
+mod wheel_odom;
 
 use std::error::Error;
 use std::fs::{self, File};
@@ -22,7 +40,9 @@ use rne_math::{Quat, Transform3, Vec3};
 use rne_render::{
     validate_gaussian_splat_manifest_with_override, Camera, HybridRenderScene, RenderScene,
 };
-use rne_render_3dgs::{load_gaussian_splat_background, render_hybrid_scene_camera};
+use rne_render_3dgs::{
+    load_gaussian_splat_background, render_hybrid_scene_camera, GaussianSplatBackground,
+};
 use rne_render_wgpu::WgpuRenderBackend;
 use rne_sensor::{sample_imu, ImuSpec};
 
@@ -320,8 +340,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map_err(|error| io::Error::other(format!("wgpu unavailable: {error}")))?;
     let splat_env = validate_gaussian_splat_manifest_with_override(&manifest, None)
         .map_err(|error| io::Error::other(format!("splat manifest: {error}")))?;
-    let mut background = load_gaussian_splat_background(backend.device(), &splat_env)
-        .map_err(|error| io::Error::other(format!("splat background: {error}")))?;
+    // Optional: walkers (RNE_WALKERS), a shifted start waypoint
+    // (RNE_START_WAYPOINT), no preview images (RNE_NO_PREVIEW).
+    let mut walkers = walkers::Walkers::from_env();
+    let mut background = match &walkers {
+        Some(w) => GaussianSplatBackground::from_environment_with_actors(
+            backend.device(),
+            &splat_env,
+            w.actors(),
+        ),
+        None => load_gaussian_splat_background(backend.device(), &splat_env),
+    }
+    .map_err(|error| io::Error::other(format!("splat background: {error}")))?;
+    let no_preview = std::env::var_os("RNE_NO_PREVIEW").is_some();
+    let mut people_csv = String::from("timestamp_ns,walker,x,z,yaw_phase\n");
     let hybrid = HybridRenderScene::new(splat_env.clone(), RenderScene::new());
     let camera = Camera::new(CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_FOV_Y_RAD);
     let imu_spec = ImuSpec::default();
@@ -332,10 +364,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         "#timestamp [ns],w_RS_S_x [rad s^-1],w_RS_S_y [rad s^-1],w_RS_S_z [rad s^-1],a_RS_S_x [m s^-2],a_RS_S_y [m s^-2],a_RS_S_z [m s^-2]\n",
     );
     let mut gt_tum = String::new();
+    let mut wheel = wheel_odom::WheelOdometry::new(11);
+    let mut wheel_tum = String::from("# timestamp tx ty tz qx qy qz qw\n");
     let mut frames = 0_u64;
     let mut imu_count = 0_u64;
 
-    let mut waypoint_index = 0_usize;
+    let mut waypoint_index: usize = std::env::var("RNE_START_WAYPOINT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
     for step in 0..MAX_STEPS {
         let action = follow_route(
             &mut waypoint_index,
@@ -370,6 +407,34 @@ fn main() -> Result<(), Box<dyn Error>> {
             Quat::from_rotation_y(observation.base_yaw_rad),
         );
         if step % CAMERA_PERIOD_STEPS == 0 {
+            if let Some(w) = walkers.as_mut() {
+                let t_s = timestamp_ns as f64 * 1e-9;
+                for i in 0..w.phases.len() {
+                    let (pose, phase) = if w.ahead {
+                        w.state_ahead(
+                            i,
+                            t_s,
+                            observation.base_x_m,
+                            observation.base_z_m,
+                            observation.base_yaw_rad,
+                        )
+                    } else {
+                        w.state(i, t_s)
+                    };
+                    if w.swap(i, phase) {
+                        background
+                            .replace_actor_asset(backend.queue(), i, w.phases[i][phase].clone())
+                            .map_err(|error| io::Error::other(format!("walker: {error}")))?;
+                    }
+                    background
+                        .set_actor_pose(backend.queue(), i, Some(&pose))
+                        .map_err(|error| io::Error::other(format!("walker: {error}")))?;
+                    people_csv.push_str(&format!(
+                        "{timestamp_ns},{i},{:.4},{:.4},{phase}\n",
+                        pose.translation.x, pose.translation.z
+                    ));
+                }
+            }
             for (side, lateral, csv) in [
                 (0_u16, -0.5 * STEREO_BASELINE_M, &mut cam0_csv),
                 (1_u16, 0.5 * STEREO_BASELINE_M, &mut cam1_csv),
@@ -393,19 +458,21 @@ fn main() -> Result<(), Box<dyn Error>> {
                     pass.color.height,
                     &luma,
                 )?;
-                write_rgb_png(
-                    &output.join(format!("preview_rgb/{dir}/{name}")),
-                    pass.color.width,
-                    pass.color.height,
-                    &pass.color.rgba8,
-                )?;
+                if !no_preview || (side == 0 && frames.is_multiple_of(20)) {
+                    write_rgb_png(
+                        &output.join(format!("preview_rgb/{dir}/{name}")),
+                        pass.color.width,
+                        pass.color.height,
+                        &pass.color.rgba8,
+                    )?;
+                }
                 csv.push_str(&format!("{timestamp_ns},{name}\n"));
             }
             frames += 1;
         }
 
         // Fixed overview camera: URDF LinkVisuals (base mesh, mast, bar).
-        if step % FIXED_PERIOD_STEPS == 0 {
+        if !no_preview && step % FIXED_PERIOD_STEPS == 0 {
             let fixed_view = fixed_view();
             let fixed_camera = Camera::new(CAMERA_WIDTH, CAMERA_HEIGHT, FIXED_FOV_Y_RAD);
             let mut foreground = build_visual_render_scene(world);
@@ -431,6 +498,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             )?;
         }
 
+        let odometry = wheel.step(
+            observation.base_x_m,
+            observation.base_z_m,
+            observation.base_yaw_rad,
+        );
+        wheel_tum.push_str(&wheel_odom::tum_line(timestamp_ns, odometry));
         let q = Quat::from_rotation_y(observation.base_yaw_rad);
         gt_tum.push_str(&format!(
             "{timestamp_ns} {} {} {} {} {} {} {}\n",
@@ -446,6 +519,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     fs::write(output.join("mav0/cam1/data.csv"), cam1_csv)?;
     fs::write(output.join("mav0/imu0/data.csv"), imu_csv)?;
     fs::write(output.join("gt.tum"), gt_tum)?;
+    fs::write(output.join("wheel_odom.tum"), wheel_tum)?;
+    if walkers.is_some() {
+        fs::write(output.join("people.csv"), people_csv)?;
+    }
 
     let f = focal_length_px();
     let (cx, cy) = (CAMERA_WIDTH as f64 / 2.0, CAMERA_HEIGHT as f64 / 2.0);
