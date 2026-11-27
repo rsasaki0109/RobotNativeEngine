@@ -6,6 +6,18 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_adapter_lidarloc`: lidar_localization_ros2's solution remapping (`Tracking::
+  enable_degeneracy_remapping`, `degeneracy_remapping_weak_ratio`,
+  `degeneracy_remapping_min_horizontal_constraint`) and what it dropped
+  (`Alignment::degeneracy_dropped_m`, `horizontal_constraint`); example 152 uses it in place of
+  its own.
+
+### Fixed
+
+- `rne_render_wgpu`: the mesh and texture caches no longer keep uploads whose source only the
+  cache holds. A capture that builds meshes for each frame ran out of memory after about 500
+  frames (example 152).
+
 - `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
   lidar_localization_ros2's global localization over the whole map.
 - Example 152:
