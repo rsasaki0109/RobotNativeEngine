@@ -441,9 +441,10 @@ pub(crate) const LIDAR3D_PERIOD_S: f64 = 0.2;
 /// One scan through lidar_localization_ros2's tracking, seeded with the
 /// localizer's estimate (the odometry bridge). An accepted scan is a match
 /// at the node's pose, with the fit and the covariance of the map's
-/// point-to-plane residuals there (one evaluation of
-/// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
-/// it does its own matches; a scan the node's gate rejects is none.
+/// point-to-plane fit started there ([`PointCloudMap::match_scan`]), so that
+/// the hybrid weighs and gates it as it does its own matches. A scan the
+/// node's gate rejects, or whose point-to-plane fit settles more than
+/// [`LIDARLOC_AGREEMENT_M`] away, is none.
 ///
 /// Not the NDT score Hessian's covariance: on bare ground NDT's cells pin
 /// the scan to their lattice, and the Hessian claims 2 cm where nothing
@@ -470,21 +471,24 @@ pub(crate) fn lidarloc_match(
     }
     let p = update.pose;
     let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
-    let evaluated = map.match_scan(
-        points,
-        at,
-        p.w_axis.z,
-        &PointCloudMatchConfig {
-            max_iterations: 1,
-            ..match_config()
-        },
-    )?;
+    // The map's point-to-plane fit, started at the node's pose, must settle
+    // there: where it moves away, NDT has stopped in a minimum of its own
+    // (open ground with a wall at the edge of range pins the scan to NDT's
+    // cells), and its pose is not used.
+    let refined = map.match_scan(points, at, p.w_axis.z, &match_config())?;
+    if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
+        return None;
+    }
     Some(PointCloudMatch {
         pose: at,
         z_m: p.w_axis.z,
-        ..evaluated
+        ..refined
     })
 }
+
+/// How far, meters, the point-to-plane fit may settle from lidar_localization_ros2's
+/// pose for that pose to be used.
+const LIDARLOC_AGREEMENT_M: f64 = 0.3;
 
 /// The scan reduced for matching.
 pub(crate) fn downsample(points: &[Vec3]) -> Vec<Vec3> {
