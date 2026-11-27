@@ -27,7 +27,7 @@ mod frontier;
 mod gain;
 mod reach;
 
-pub use explorer::{Candidate, Decision, Explorer, ExplorerConfig, ScorePolicy};
+pub use explorer::{Candidate, Decision, Explorer, ExplorerConfig, RevisitConfig, ScorePolicy};
 pub use frontier::{extract_frontiers, Frontier, FrontierConfig};
 pub use gain::{information_gain, SensorModel};
 pub use reach::ReachMap;

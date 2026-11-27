@@ -440,13 +440,26 @@ fn add_damping(h: &mut [f64], n: usize, damping: f64) {
 }
 
 /// Solves `H x = b` for a symmetric positive-definite `H` via Cholesky.
+///
+/// Only each row's envelope is factored: Cholesky creates no fill left of a
+/// row's first nonzero, so the entries skipped there are exact zeros and the
+/// result equals the dense factorization. A pose graph is a chain plus a few
+/// loop edges, so this turns the cubic cost into one proportional to the
+/// loop lengths.
 fn solve_cholesky(h: &[f64], b: &[f64], n: usize) -> Option<Vec<f64>> {
     let size = n * 3;
+    let first: Vec<usize> = (0..size)
+        .map(|row| {
+            (0..row)
+                .find(|&col| h[row * size + col] != 0.0)
+                .unwrap_or(row)
+        })
+        .collect();
     let mut lower = vec![0.0; size * size];
     for row in 0..size {
-        for col in 0..=row {
+        for col in first[row]..=row {
             let mut sum = h[row * size + col];
-            for k in 0..col {
+            for k in first[row].max(first[col])..col {
                 sum -= lower[row * size + k] * lower[col * size + k];
             }
             if row == col {
@@ -463,7 +476,7 @@ fn solve_cholesky(h: &[f64], b: &[f64], n: usize) -> Option<Vec<f64>> {
     let mut y = vec![0.0; size];
     for row in 0..size {
         let mut sum = b[row];
-        for k in 0..row {
+        for k in first[row]..row {
             sum -= lower[row * size + k] * y[k];
         }
         y[row] = sum / lower[row * size + row];

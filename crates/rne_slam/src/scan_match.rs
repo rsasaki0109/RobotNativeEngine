@@ -188,7 +188,7 @@ fn score_pose(
 
 /// Curvature ratio below which a scan match counts as degenerate in its
 /// weaker direction.
-const DEGENERACY_RATIO: f64 = 0.2;
+pub(crate) const DEGENERACY_RATIO: f64 = 0.2;
 
 /// Position covariance of a scan match from the curvature of the match
 /// score around `pose`. The score's Hessian measures how sharply each
