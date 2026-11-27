@@ -32,6 +32,11 @@
 //! ```
 //!
 //! `--distance-weight W` sets the information-gain policy's weight (default 4).
+//! P2 options: `--rebuild-map` rebuilds the SLAM map after each loop closure
+//! and raises the closure acceptance score to 0.75; `--loop-min-score S` sets
+//! that score directly; `--revisit` lets the explorer drive back to close
+//! loops. Reports count loop closures that disagree with ground truth by more
+//! than 0.25 m as bad.
 
 mod render;
 mod worlds;
@@ -39,14 +44,15 @@ mod worlds;
 use rne_core::SimDuration;
 use rne_data::PointCloud;
 use rne_explore::{
-    extract_frontiers, Decision, Explorer, ExplorerConfig, FrontierConfig, ScorePolicy, SensorModel,
+    extract_frontiers, Decision, Explorer, ExplorerConfig, FrontierConfig, RevisitConfig,
+    ScorePolicy, SensorModel,
 };
 use rne_math::{Hertz, Quat, Vec3};
 use rne_nav::{CostmapConfig, GridCoord, LaserScan2d, OccupancyGrid, Path2d, Pose2d};
 use rne_physics::{PhysicsBackend, PhysicsWorldDesc, PhysicsWorldId};
 use rne_physics_rapier::{step_physics, RapierBackend};
 use rne_sensor::{sample_lidar, LidarSpec};
-use rne_slam::{Slam2d, SlamConfig};
+use rne_slam::{Slam2d, SlamConfig, SubmapLoopConfig};
 use rne_world::Transform3;
 use std::path::PathBuf;
 use worlds::{Kind, Scene};
@@ -90,6 +96,12 @@ pub(crate) struct Run {
     pub(crate) plan_failures: usize,
     pub(crate) collisions: usize,
     pub(crate) loop_closures: usize,
+    /// Loop closures whose measured relative pose is off the true one by more
+    /// than [`BAD_CLOSURE_M`].
+    pub(crate) bad_closures: usize,
+    /// Revisit goals chosen, and the distance driven towards them.
+    pub(crate) revisits: usize,
+    pub(crate) revisit_m: f64,
     /// Mean keyframe position error of SLAM against truth, meters.
     pub(crate) trajectory_error_m: f64,
     /// Final odometry position error against truth, meters.
@@ -177,6 +189,11 @@ fn main() {
     println!("wrote {}", gif.display());
 }
 
+/// Whether a command-line flag is present.
+fn flag(name: &str) -> bool {
+    std::env::args().any(|a| a == name)
+}
+
 fn policies() -> [(&'static str, ScorePolicy); 2] {
     [
         ("NEAREST FRONTIER", ScorePolicy::NearestFrontier),
@@ -188,7 +205,14 @@ fn policies() -> [(&'static str, ScorePolicy); 2] {
 /// world's first start; one line per run, then means per kind and policy.
 fn bench(seeds: u64) {
     let policies = policies();
-    for kind in Kind::GENERATED {
+    let only = std::env::args()
+        .skip_while(|a| a != "--kind")
+        .nth(1)
+        .map(|k| Kind::parse(&k).expect("--kind is office, loop or maze"));
+    for kind in Kind::GENERATED
+        .into_iter()
+        .filter(|k| only.is_none_or(|o| o == *k))
+    {
         let mut runs: Vec<Vec<Run>> = Vec::new();
         for seed in 0..seeds {
             let scene = worlds::generate(kind, seed);
@@ -226,7 +250,7 @@ fn summary(runs: &[Vec<Run>]) {
         let mean = |f: &dyn Fn(&Run) -> f64| column.iter().map(|r| f(r)).sum::<f64>() / n;
         let reached: Vec<f64> = column.iter().filter_map(|r| r.distance_to_90_m).collect();
         println!(
-            "{:<18} time {:>5.0}s  distance {:>5.1}m  mapped {:>5.1}%  90% at {:>5.1}m ({}/{})  SLAM err {:.3}m  done {}/{}  collisions {}",
+            "{:<18} time {:>5.0}s  distance {:>5.1}m  mapped {:>5.1}%  90% at {:>5.1}m ({}/{})  SLAM err {:.3}m  done {}/{}  collisions {}  revisit {:.1}m",
             column[0].name,
             mean(&|r| r.time_s),
             mean(&|r| r.distance_m),
@@ -238,6 +262,7 @@ fn summary(runs: &[Vec<Run>]) {
             column.iter().filter(|r| r.done).count(),
             column.len(),
             column.iter().map(|r| r.collisions).sum::<usize>(),
+            mean(&|r| r.revisit_m),
         );
     }
 }
@@ -245,15 +270,87 @@ fn summary(runs: &[Vec<Run>]) {
 /// The information-gain policy, with `--distance-weight W` (square metres of
 /// new area one metre of driving must buy; default 4).
 fn gain_policy() -> ScorePolicy {
+    ScorePolicy::InformationGain {
+        distance_weight: number_arg("--distance-weight").unwrap_or(4.0),
+    }
+}
+
+/// The number after `name` on the command line, if given.
+fn number_arg(name: &str) -> Option<f64> {
     let args: Vec<String> = std::env::args().collect();
-    let distance_weight = args
+    let i = args.iter().position(|a| a == name)?;
+    let value = args.get(i + 1)?;
+    Some(
+        value
+            .parse()
+            .unwrap_or_else(|_| panic!("{name} takes a number")),
+    )
+}
+
+/// The explorer, with revisits when `--revisit` is given.
+fn new_explorer(policy: ScorePolicy) -> Explorer {
+    let explorer = Explorer::new(explorer_config(policy));
+    if flag("--revisit") {
+        explorer.with_revisits(RevisitConfig::default())
+    } else {
+        explorer
+    }
+}
+
+/// Feeds `scan` to SLAM when odometry has moved a keyframe's distance or
+/// turn since the last one; returns whether it did, and the current estimate
+/// (the last keyframe's SLAM pose moved by odometry since).
+fn map_keyframe(
+    slam: &mut Slam2d,
+    scan: &LaserScan2d,
+    odom: Pose2d,
+    keyframe_odom: &mut Option<Pose2d>,
+) -> (bool, Pose2d) {
+    let due = keyframe_odom.is_none_or(|last| {
+        let delta = last.inverse().compose(odom);
+        delta.x_m.hypot(delta.y_m) >= KEYFRAME_M || delta.yaw_rad.abs() >= KEYFRAME_RAD
+    });
+    if due {
+        slam.process(scan, odom, Pose2d::IDENTITY)
+            .expect("slam update");
+        *keyframe_odom = Some(odom);
+    }
+    let last = keyframe_odom.expect("first keyframe");
+    (due, slam.pose().compose(last.inverse().compose(odom)))
+}
+
+/// Loop-closure acceptance score used with `--rebuild-map`.
+const REBUILD_LOOP_MIN_SCORE: f64 = 0.75;
+/// A loop closure whose relative pose is off the truth by more than this is
+/// counted as wrong.
+const BAD_CLOSURE_M: f64 = 0.25;
+
+/// Loop-closure edges whose measurement disagrees with the true relative pose
+/// of their two keyframes by more than [`BAD_CLOSURE_M`].
+fn bad_loop_closures(graph: &rne_slam::PoseGraph, truth: &[Pose2d]) -> usize {
+    graph
+        .edges()
         .iter()
-        .position(|a| a == "--distance-weight")
-        .and_then(|i| args.get(i + 1))
-        .map_or(4.0, |w| {
-            w.parse().expect("--distance-weight takes a number")
-        });
-    ScorePolicy::InformationGain { distance_weight }
+        .filter(|edge| edge.loop_closure)
+        .filter(|edge| {
+            let (Some(a), Some(b)) = (truth.get(edge.from), truth.get(edge.to)) else {
+                return false;
+            };
+            let expected = a.inverse().compose(*b);
+            (expected.x_m - edge.measurement.x_m).hypot(expected.y_m - edge.measurement.y_m)
+                > BAD_CLOSURE_M
+        })
+        .count()
+}
+
+/// Mean position distance between paired poses.
+fn mean_position_error(estimates: &[Pose2d], truth: &[Pose2d]) -> f64 {
+    estimates
+        .iter()
+        .zip(truth)
+        .map(|(a, b)| (a.x_m - b.x_m).hypot(a.y_m - b.y_m))
+        .sum::<f64>()
+        / estimates.len().max(1) as f64
 }
 
 fn explorer_config(policy: ScorePolicy) -> ExplorerConfig {
@@ -296,7 +393,8 @@ fn explore(
     let (_world, backend, physics_world, spec) = scene_lidar(scene);
     let mut slam = new_slam(grid_size_m(scene, start));
     let view = render::View::for_scene(scene);
-    let mut explorer = Explorer::new(explorer_config(policy));
+    let mut explorer = new_explorer(policy);
+    let mut loops = LoopBook::default();
     let free_samples = free_samples(scene, start);
     let dt = 1.0 / SCAN_HZ;
 
@@ -320,34 +418,32 @@ fn explore(
         let time_s = step as f64 * dt;
         // Sense, and map on keyframes.
         let scan = scan_at(&backend, physics_world, truth, &spec);
-        let due = keyframe_odom.is_none_or(|last| {
-            let delta = last.inverse().compose(odom);
-            delta.x_m.hypot(delta.y_m) >= KEYFRAME_M || delta.yaw_rad.abs() >= KEYFRAME_RAD
-        });
-        if due {
-            slam.process(&scan, odom, Pose2d::IDENTITY)
-                .expect("slam update");
-            keyframe_odom = Some(odom);
+        let (keyframe, estimate) = map_keyframe(&mut slam, &scan, odom, &mut keyframe_odom);
+        if keyframe {
             keyframe_truth.push(start.inverse().compose(truth));
         }
-        let estimate = slam.pose().compose(
-            keyframe_odom
-                .expect("first keyframe")
-                .inverse()
-                .compose(odom),
-        );
+        loops.note_closures(slam.loop_edge_indices().len());
 
         // Decide.
         since_plan_s += dt;
         if path.is_none() || since_plan_s >= REPLAN_S {
             since_plan_s = 0.0;
-            match choose_goal(&mut explorer, slam.grid(), estimate, path.as_ref()) {
+            match choose_goal(
+                &mut explorer,
+                &slam,
+                estimate,
+                path.as_ref(),
+                loops.open_loop_m,
+            ) {
                 Choice::Done => done = true,
                 Choice::Path {
                     path: planned,
                     new_goal,
+                    revisit,
                 } => {
                     goals += usize::from(new_goal);
+                    loops.revisits += usize::from(new_goal && revisit);
+                    loops.on_revisit = revisit;
                     path = Some(planned);
                     failures_in_row = 0;
                 }
@@ -388,7 +484,9 @@ fn explore(
                 path = None;
             }
         } else {
-            distance_m += (next.x_m - truth.x_m).hypot(next.y_m - truth.y_m);
+            let step_m = (next.x_m - truth.x_m).hypot(next.y_m - truth.y_m);
+            distance_m += step_m;
+            loops.drive(step_m);
             truth = next;
         }
         odom = odom.compose(drifting_increment(trail[trail.len() - 1], truth));
@@ -428,15 +526,11 @@ fn explore(
             coverage,
         ));
     }
-    let nodes = slam.graph().nodes();
-    let trajectory_error_m = nodes
-        .iter()
-        .zip(&keyframe_truth)
-        .map(|(a, b)| (a.x_m - b.x_m).hypot(a.y_m - b.y_m))
-        .sum::<f64>()
-        / nodes.len().max(1) as f64;
+    let trajectory_error_m = mean_position_error(slam.graph().nodes(), &keyframe_truth);
+    let bad_closures = bad_loop_closures(slam.graph(), &keyframe_truth);
+    log_submap_rejections(&slam);
     let truth_map = start.inverse().compose(truth);
-    let hash = state_hash(slam.grid(), nodes, truth);
+    let hash = state_hash(slam.grid(), slam.graph().nodes(), truth);
     Run {
         name,
         time_s,
@@ -448,6 +542,9 @@ fn explore(
         plan_failures,
         collisions,
         loop_closures: slam.loop_edge_indices().len(),
+        bad_closures,
+        revisits: loops.revisits,
+        revisit_m: loops.revisit_m,
         trajectory_error_m,
         odometry_error_m: (odom.x_m - truth_map.x_m).hypot(odom.y_m - truth_map.y_m),
         done,
@@ -486,7 +583,8 @@ fn scene_lidar(scene: &Scene) -> (rne_ecs::World, RapierBackend, PhysicsWorldId,
     (world, backend, physics_world, spec)
 }
 
-/// `Slam2d` on an empty grid. The map frame is the robot's odometry frame:
+/// `Slam2d` on an empty grid, rebuilding its map after loop closures with
+/// `--rebuild-map`. The map frame is the robot's odometry frame:
 /// it starts at the origin and does not know where in the warehouse it is.
 /// Side of the square SLAM grid, centred on the start: twice the farthest
 /// corner of the scene from it, plus a margin, in steps of 4 m.
@@ -512,23 +610,80 @@ fn new_slam(grid_m: f64) -> Slam2d {
         Pose2d::new(-0.5 * grid_m, -0.5 * grid_m, 0.0),
     )
     .expect("grid");
-    Slam2d::new(
+    let rebuild = flag("--rebuild-map");
+    // Rebuilding spreads a wrong loop closure over the whole map, so it pairs
+    // with a stricter acceptance score (P2: 0.55 accepted wrong closures even
+    // in the warehouse; 0.75 accepted none there).
+    let default_score = if rebuild {
+        REBUILD_LOOP_MIN_SCORE
+    } else {
+        SlamConfig::default().loop_min_score
+    };
+    let mut slam = Slam2d::new(
         template,
         SlamConfig {
             max_beams: 360,
+            loop_min_score: number_arg("--loop-min-score").unwrap_or(default_score),
             ..SlamConfig::default()
         },
-    )
+    );
+    if rebuild {
+        slam.rebuild_map_on_loop_closure();
+    }
+    if flag("--submap-loops") {
+        slam.close_loops_against_submaps(SubmapLoopConfig::default());
+    }
+    slam
+}
+
+/// Prints why submap loop closures were rejected, with `--submap-loops`.
+fn log_submap_rejections(slam: &Slam2d) {
+    if flag("--submap-loops") {
+        let [score, degenerate, large, unconfirmed] = slam.submap_loop_rejections();
+        eprintln!(
+            "  submap closures rejected: {score} low score, {degenerate} degenerate, \
+             {large} too large, {unconfirmed} unconfirmed"
+        );
+    }
+}
+
+/// Loop-closure bookkeeping for revisits: the distance driven since the last
+/// closure, and what revisiting cost.
+#[derive(Default)]
+struct LoopBook {
+    closures: usize,
+    open_loop_m: f64,
+    on_revisit: bool,
+    revisits: usize,
+    revisit_m: f64,
+}
+
+impl LoopBook {
+    /// Resets the open-loop distance when SLAM has accepted a new closure.
+    fn note_closures(&mut self, closures: usize) {
+        if closures > self.closures {
+            self.closures = closures;
+            self.open_loop_m = 0.0;
+        }
+    }
+
+    fn drive(&mut self, step_m: f64) {
+        self.open_loop_m += step_m;
+        if self.on_revisit {
+            self.revisit_m += step_m;
+        }
+    }
 }
 
 /// The outcome of asking the explorer where to go.
 enum Choice {
     Done,
     /// Drive this path; `new_goal` when the goal differs from the current
-    /// path's.
+    /// path's, `revisit` when it goes back to close a loop.
     Path {
         path: Path2d,
         new_goal: bool,
+        revisit: bool,
     },
     /// The chosen goal has no path (the explorer's goal is cleared).
     NoPath,
@@ -536,12 +691,19 @@ enum Choice {
 
 fn choose_goal(
     explorer: &mut Explorer,
-    grid: &OccupancyGrid,
+    slam: &Slam2d,
     estimate: Pose2d,
     current: Option<&Path2d>,
+    open_loop_m: f64,
 ) -> Choice {
-    let Decision::Goal(candidate) = explorer.decide(grid, estimate).expect("decide") else {
-        return Choice::Done;
+    let grid = slam.grid();
+    let decision = explorer
+        .decide_with_history(grid, estimate, slam.graph().nodes(), open_loop_m)
+        .expect("decide");
+    let (candidate, revisit) = match decision {
+        Decision::Goal(candidate) => (candidate, false),
+        Decision::Revisit(candidate) => (candidate, true),
+        Decision::Done => return Choice::Done,
     };
     let new_goal = !current.and_then(Path2d::goal).is_some_and(|goal| {
         (goal.x_m - candidate.goal.x_m).hypot(goal.y_m - candidate.goal.y_m) < 1e-9
@@ -554,6 +716,7 @@ fn choose_goal(
             Choice::Path {
                 path: Path2d::from_points(&points),
                 new_goal,
+                revisit,
             }
         }
         None => {
@@ -854,7 +1017,7 @@ fn scan_points(scan: &LaserScan2d, pose: Pose2d) -> Vec<(f64, f64)> {
 
 fn report(runs: &[&Run]) {
     println!(
-        "{:<18} {:>6} {:>8} {:>7} {:>9} {:>9} {:>5} {:>6} {:>5} {:>5} {:>8} {:>8}",
+        "{:<18} {:>6} {:>8} {:>7} {:>9} {:>9} {:>5} {:>6} {:>5} {:>9} {:>8} {:>8} {:>9}",
         "policy",
         "time",
         "distance",
@@ -864,13 +1027,14 @@ fn report(runs: &[&Run]) {
         "goals",
         "nopath",
         "coll",
-        "loops",
+        "loops/bad",
         "SLAM err",
-        "odom err"
+        "odom err",
+        "revisits"
     );
     for run in runs {
         println!(
-            "{:<18} {:>5.0}s {:>7.1}m {:>6.1}% {:>9} {:>9} {:>5} {:>6} {:>5} {:>5} {:>7.3}m {:>7.2}m{}",
+            "{:<18} {:>5.0}s {:>7.1}m {:>6.1}% {:>9} {:>9} {:>5} {:>6} {:>5} {:>9} {:>7.3}m {:>7.2}m {:>3}/{:>4.1}m{}",
             run.name,
             run.time_s,
             run.distance_m,
@@ -882,9 +1046,11 @@ fn report(runs: &[&Run]) {
             run.goals,
             run.plan_failures,
             run.collisions,
-            run.loop_closures,
+            format!("{}/{}", run.loop_closures, run.bad_closures),
             run.trajectory_error_m,
             run.odometry_error_m,
+            run.revisits,
+            run.revisit_m,
             if run.done { "" } else { "  (not done)" },
         );
     }
