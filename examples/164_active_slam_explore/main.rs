@@ -91,6 +91,9 @@ pub(crate) struct Run {
     pub(crate) plan_failures: usize,
     pub(crate) collisions: usize,
     pub(crate) loop_closures: usize,
+    /// Loop closures whose measured relative pose is off the true one by more
+    /// than [`BAD_CLOSURE_M`].
+    pub(crate) bad_closures: usize,
     /// Revisit goals chosen, and the distance driven towards them.
     pub(crate) revisits: usize,
     pub(crate) revisit_m: f64,
@@ -305,6 +308,28 @@ fn map_keyframe(
     (due, slam.pose().compose(last.inverse().compose(odom)))
 }
 
+/// A loop closure whose relative pose is off the truth by more than this is
+/// counted as wrong.
+const BAD_CLOSURE_M: f64 = 0.25;
+
+/// Loop-closure edges whose measurement disagrees with the true relative pose
+/// of their two keyframes by more than [`BAD_CLOSURE_M`].
+fn bad_loop_closures(graph: &rne_slam::PoseGraph, truth: &[Pose2d]) -> usize {
+    graph
+        .edges()
+        .iter()
+        .filter(|edge| edge.loop_closure)
+        .filter(|edge| {
+            let (Some(a), Some(b)) = (truth.get(edge.from), truth.get(edge.to)) else {
+                return false;
+            };
+            let expected = a.inverse().compose(*b);
+            (expected.x_m - edge.measurement.x_m).hypot(expected.y_m - edge.measurement.y_m)
+                > BAD_CLOSURE_M
+        })
+        .count()
+}
+
 /// Mean position distance between paired poses.
 fn mean_position_error(estimates: &[Pose2d], truth: &[Pose2d]) -> f64 {
     estimates
@@ -490,6 +515,7 @@ fn explore(
     }
     let nodes = slam.graph().nodes();
     let trajectory_error_m = mean_position_error(nodes, &keyframe_truth);
+    let bad_closures = bad_loop_closures(slam.graph(), &keyframe_truth);
     let truth_map = start.inverse().compose(truth);
     let hash = state_hash(slam.grid(), nodes, truth);
     Run {
@@ -503,6 +529,7 @@ fn explore(
         plan_failures,
         collisions,
         loop_closures: slam.loop_edge_indices().len(),
+        bad_closures,
         revisits: loops.revisits,
         revisit_m: loops.revisit_m,
         trajectory_error_m,
@@ -953,7 +980,7 @@ fn scan_points(scan: &LaserScan2d, pose: Pose2d) -> Vec<(f64, f64)> {
 
 fn report(runs: &[&Run]) {
     println!(
-        "{:<18} {:>6} {:>8} {:>7} {:>9} {:>9} {:>5} {:>6} {:>5} {:>5} {:>8} {:>8} {:>9}",
+        "{:<18} {:>6} {:>8} {:>7} {:>9} {:>9} {:>5} {:>6} {:>5} {:>9} {:>8} {:>8} {:>9}",
         "policy",
         "time",
         "distance",
@@ -963,14 +990,14 @@ fn report(runs: &[&Run]) {
         "goals",
         "nopath",
         "coll",
-        "loops",
+        "loops/bad",
         "SLAM err",
         "odom err",
         "revisits"
     );
     for run in runs {
         println!(
-            "{:<18} {:>5.0}s {:>7.1}m {:>6.1}% {:>9} {:>9} {:>5} {:>6} {:>5} {:>5} {:>7.3}m {:>7.2}m {:>3}/{:>4.1}m{}",
+            "{:<18} {:>5.0}s {:>7.1}m {:>6.1}% {:>9} {:>9} {:>5} {:>6} {:>5} {:>9} {:>7.3}m {:>7.2}m {:>3}/{:>4.1}m{}",
             run.name,
             run.time_s,
             run.distance_m,
@@ -982,7 +1009,7 @@ fn report(runs: &[&Run]) {
             run.goals,
             run.plan_failures,
             run.collisions,
-            run.loop_closures,
+            format!("{}/{}", run.loop_closures, run.bad_closures),
             run.trajectory_error_m,
             run.odometry_error_m,
             run.revisits,
