@@ -10,6 +10,10 @@
 //! stays `AHEAD_M[i]` in front of it and crosses its view from side to side,
 //! as people walking just ahead of a robot do, so they hide much of what the
 //! camera sees.
+//!
+//! With `RNE_WALKER_MODE=still` they stand at the start of their lines,
+//! facing along them, for the whole episode: people waiting or at a desk
+//! while a map is built, who are gone when the robot localizes in it.
 
 use std::path::{Path, PathBuf};
 
@@ -38,6 +42,8 @@ pub(crate) struct Walkers {
     pub(crate) scale: f64,
     /// `RNE_WALKER_MODE=ahead`: keep in front of the robot.
     pub(crate) ahead: bool,
+    /// `RNE_WALKER_MODE=still`: stand at the start of their lines.
+    pub(crate) still: bool,
     shown: Vec<usize>,
 }
 
@@ -59,12 +65,13 @@ impl Walkers {
             "walkers: {count} x {} phases, scale {scale}",
             phases.first().map_or(0, Vec::len)
         );
-        let ahead = std::env::var("RNE_WALKER_MODE").is_ok_and(|mode| mode == "ahead");
+        let mode = std::env::var("RNE_WALKER_MODE").unwrap_or_default();
         Some(Self {
             shown: vec![0; count],
             phases,
             scale,
-            ahead,
+            ahead: mode == "ahead",
+            still: mode == "still",
         })
     }
 
@@ -74,7 +81,9 @@ impl Walkers {
     }
 
     /// Walker `i` at time `t_s`: its pose (RNE world, y up) and gait phase.
+    /// A `still` walker stays where it is at `t_s = 0`.
     pub(crate) fn state(&self, i: usize, t_s: f64) -> (Transform3, usize) {
+        let t_s = if self.still { 0.0 } else { t_s };
         let (a, b) = LINES[i];
         let (dx, dz) = (b[0] - a[0], b[1] - a[1]);
         let length = dx.hypot(dz);
@@ -164,7 +173,26 @@ mod tests {
             phases: vec![vec![SplatActorAsset::new(Vec::new()); phases]; count],
             scale,
             ahead: false,
+            still: false,
             shown: vec![0; count],
+        }
+    }
+
+    #[test]
+    fn a_still_walker_stands_at_the_start_of_its_line() {
+        let mut w = walkers(2, 12, 1.0);
+        w.still = true;
+        for i in 0..2 {
+            let (first, phase) = w.state(i, 0.0);
+            assert_eq!(phase, 0);
+            let (a, _) = LINES[i];
+            assert!((first.translation.x - a[0]).abs() < 1e-12);
+            assert!((first.translation.z - a[1]).abs() < 1e-12);
+            for t in [1.0, 7.5, 40.0] {
+                let (later, phase) = w.state(i, t);
+                assert_eq!(phase, 0);
+                assert_eq!(later.translation, first.translation);
+            }
         }
     }
 

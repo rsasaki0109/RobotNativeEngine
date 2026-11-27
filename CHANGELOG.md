@@ -6,6 +6,10 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 113 (`drjohnson_euroc_export`): `RNE_WALKER_MODE=still` has the walkers stand at
+  the start of their lines for the whole episode, as people waiting or at a desk while a
+  map is built.
+
 - `rne_explore`, a new crate (`publish = false`) for active SLAM decisions: where a robot
   with no map and no goals goes next (P0 of `docs/PLAN_ACTIVE_SLAM.md`, ADR 036).
   - `extract_frontiers`: free cells next to unknown space, in deterministic 8-connected
