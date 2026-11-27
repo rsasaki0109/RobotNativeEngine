@@ -397,8 +397,15 @@ pub(crate) fn lidarloc(map: &Map3d) -> Result<Tracker, String> {
         ..LidarLocConfig::default()
     })
     .map_err(|e| e.to_string())?;
+    // The guards the node's quickstart turns on with an odometry seed: a
+    // scan may not move the pose more than 0.5 m from the seed, nor 0.3 m
+    // in all over 2 s. Without them NDT slides along a tunnel, whose walls
+    // pin nothing along it, and the estimate it seeds slides with it.
     loc.set_tracking(&Tracking {
         scan_period_sec: LIDAR3D_PERIOD_S,
+        enable_seed_correction_guard: true,
+        enable_seed_correction_window_guard: true,
+        seed_correction_window_guard_sec: 2.0,
         ..Tracking::default()
     })
     .map_err(|e| e.to_string())?;
