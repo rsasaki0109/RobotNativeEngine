@@ -837,7 +837,10 @@ impl Builder {
                     Vec3::new(0.0, -s, -1.0),
                 ));
             }
-            shell.extend(panel(strip((-2.5, 6.5), (2.5, 6.5)), Vec3::new(0.0, 0.0, -1.0)));
+            shell.extend(panel(
+                strip((-2.5, 6.5), (2.5, 6.5)),
+                Vec3::new(0.0, 0.0, -1.0),
+            ));
         }
         self.solid(
             shell,

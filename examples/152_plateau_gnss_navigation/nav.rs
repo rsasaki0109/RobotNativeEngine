@@ -40,8 +40,10 @@ const MAX_DEAD_RECKONING_S: f64 = 3.0;
 const STOP_DISTANCE_M: f64 = 0.6;
 /// Constellation time at the start of the run (sets the sky geometry).
 pub(crate) const SKY_EPOCH_S: f64 = 20_000.0;
-/// Give up after this much simulated time.
+/// Give up after this much simulated time, or two seconds a metre of route
+/// if that is longer.
 const TIMEOUT_S: f64 = 1_800.0;
+const TIMEOUT_S_PER_M: f64 = 2.0;
 
 /// Options for one run.
 #[derive(Clone, Copy, Debug)]
@@ -823,6 +825,11 @@ pub(crate) fn run(
         z_m: city.ground_m(p.x_m, p.y_m) + BODY_HEIGHT_M,
         yaw_rad: p.yaw_rad,
     };
+    let route_m: f64 = route
+        .windows(2)
+        .map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1))
+        .sum();
+    let timeout_s = TIMEOUT_S.max(TIMEOUT_S_PER_M * route_m);
     let mut tick = 0_usize;
     let wall = std::time::Instant::now();
     let verbose = std::env::args().any(|a| a == "--verbose");
@@ -830,7 +837,7 @@ pub(crate) fn run(
     let mut last_label = None;
     loop {
         let t = tick as f64 * DT_S;
-        if t > TIMEOUT_S {
+        if t > timeout_s {
             break;
         }
         let command = drive.command(
