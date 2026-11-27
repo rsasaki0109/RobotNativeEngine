@@ -366,6 +366,7 @@ fn map_edit() -> lidar3d::MapEdit {
     lidar3d::MapEdit {
         gap: numbers("--map-gap").map(|v| (v[0], v[1])),
         shift: numbers("--map-shift").map(|v| ((v[0], v[1]), (v[2], v[3]))),
+        aged: std::env::args().any(|a| a == "--aged-map"),
     }
 }
 

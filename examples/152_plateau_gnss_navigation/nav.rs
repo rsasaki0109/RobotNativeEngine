@@ -1039,6 +1039,10 @@ fn build_localizer(
     // The 3D LiDAR holds the robot wherever the map reaches: it keeps
     // charge, and RTK fixes correct it instead of taking over.
     config.lidar_keeps_charge = lidar3d;
+    // RTK shows the map wrong only where the matches pulled the estimate off
+    // the wheels; among Nishi-Shinjuku's towers RTK fixes its ambiguities
+    // wrongly and jumps 3.5 m while the estimate follows the wheels.
+    config.gnss_reanchor_min_departure_ratio = 0.5;
     if start_sigma_m > 1.0 {
         config.ekf.initial_position_variance_m2 = start_sigma_m * start_sigma_m;
         config.ekf.initial_yaw_variance_rad2 = 0.04;
