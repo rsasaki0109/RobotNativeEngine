@@ -24,6 +24,7 @@ members = [
   "crates/rne_robot",
   "crates/rne_nav",
   "crates/rne_slam",
+  "crates/rne_explore",
   "crates/rne_gnss",
   "crates/rne_data",
   "crates/rne_log",
@@ -134,6 +135,7 @@ members = [
   "examples/78_tsukuba_3dgs_background",
   "examples/160_kitti_splat_drive",
   "examples/163_street_splat_nav",
+  "examples/164_active_slam_explore",
   "examples/79_tsukuba_full_run",
   "examples/80_ssl_adapter_smoke",
   "examples/81_g1_head_splat_background",
@@ -294,6 +296,7 @@ rne_render_wgpu = { version = "=0.4.0", path = "crates/rne_render_wgpu" }
 rne_robot = { version = "=0.4.0", path = "crates/rne_robot" }
 rne_nav = { version = "=0.4.0", path = "crates/rne_nav" }
 rne_slam = { version = "=0.4.0", path = "crates/rne_slam" }
+rne_explore = { version = "=0.4.0", path = "crates/rne_explore" }
 rne_gnss = { version = "=0.4.0", path = "crates/rne_gnss" }
 rne_adapter_gnsspp = { version = "=0.4.0", path = "adapters/gnsspp/rne_adapter_gnsspp" }
 rne_adapter_lidarloc = { version = "=0.4.0", path = "adapters/lidarloc/rne_adapter_lidarloc" }

@@ -6,6 +6,38 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_explore`, a new crate (`publish = false`) for active SLAM decisions: where a robot
+  with no map and no goals goes next (P0 of `docs/PLAN_ACTIVE_SLAM.md`, ADR 036).
+  - `extract_frontiers`: free cells next to unknown space, in deterministic 8-connected
+    clusters.
+  - `ReachMap`: path length to every cell reachable through known, non-inscribed space,
+    in one Dijkstra pass.
+  - `information_gain`: unknown area a lidar or camera would see from a goal, ray cast on
+    the grid and stopped by walls.
+  - `Explorer`: scores frontiers by `ScorePolicy::NearestFrontier` (the baseline) or
+    `InformationGain`, keeps its goal unless another beats it by a margin, and reports
+    `Decision::Done` when nothing reachable is left. `Explorer::path_to` returns the path
+    through the same cells it counted as reachable, so a chosen goal always has one.
+  - `escape_radius_m`: near the robot, inscribed cells are traversable, so a robot whose
+    estimate ended up close to a wall can still leave instead of finding nothing reachable.
+
+- Example 164 (`active_slam_explore`): a diff-drive robot with a 4 m LiDAR, drifting
+  odometry and `Slam2d` explores example 127's warehouse with no map and no goals, once
+  per `rne_explore` policy (P1 of `docs/PLAN_ACTIVE_SLAM.md`). Over four starts both
+  finish with no collision; information gain (distance weight 4) maps 96.3 % of the floor
+  against 94.4 % and, on average, halves the SLAM trajectory error (0.076 m against
+  0.172 m), at the
+  same time and distance; neither reaches 90 % coverage in clearly less driving. Writes
+  `docs/media/active-slam-explore.gif`; `--smoke` runs in `ci` with a replay-hash check.
+  - `--world office|loop|maze --seed N` explores a building generated from a seed
+    (`WorldRandom`): an office corridor with doored rooms, a long loop corridor round a
+    notched block, or a maze with loops; walls carry small bumps so a corridor is not the
+    same everywhere along it. Tests check every room or cell is reachable on 20 seeds of
+    each kind. `--bench N` runs both policies on seeds `0..N`: over 10 seeds no run
+    collides and all finish; information gain is even with nearest frontier in offices,
+    ahead on coverage and SLAM error in 7 of 10 mazes, and behind on loops, where SLAM
+    drifts 0.7–0.9 m whichever policy runs (the target of P2).
+
 - Example 113 (`drjohnson_euroc_export`) can put people in the Dr Johnson interior:
   `RNE_WALKERS=DIR` adds walkers as splat actors pacing lines across the route, their gait
   phase following the distance walked (`people.csv` logs them); `RNE_WALKER_MODE=ahead` keeps
@@ -249,6 +281,9 @@ All notable changes to Robot Native Engine are documented in this file.
   that are not Y-up) come with it.
 
 ### Fixed
+
+- `rne_nav::Costmap::cost_at` panicked for a cell just outside the map instead of
+  returning `None`: it indexed the costs before checking the bounds.
 
 - `rne_wbc`'s in-solve torque limits (`enforce_torque_limits`) now solve
   exactly. The bounded least squares ran 400 projected Gauss-Seidel sweeps

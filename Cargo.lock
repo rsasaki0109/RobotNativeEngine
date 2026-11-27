@@ -3,6 +3,24 @@
 version = 4
 
 [[package]]
+name = "active_slam_explore"
+version = "0.4.0"
+dependencies = [
+ "png",
+ "rne_core",
+ "rne_data",
+ "rne_ecs",
+ "rne_explore",
+ "rne_math",
+ "rne_nav",
+ "rne_physics",
+ "rne_physics_rapier",
+ "rne_sensor",
+ "rne_slam",
+ "rne_world",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4594,6 +4612,14 @@ dependencies = [
  "serde",
  "smallvec",
  "uuid",
+]
+
+[[package]]
+name = "rne_explore"
+version = "0.4.0"
+dependencies = [
+ "rne_math",
+ "rne_nav",
 ]
 
 [[package]]
