@@ -1535,11 +1535,39 @@ impl PrimitiveRenderer {
         self.render_to_views_inner(pass, None)
     }
 
+    /// Drops the uploads whose source only the cache still holds: a mesh or
+    /// texture the caller built for one frame (markers, rays, scans) would
+    /// otherwise keep its GPU buffers, and the cache its `Arc`, for the rest of
+    /// the renderer's life, and a long capture runs out of memory. A source the
+    /// scene being drawn holds is kept, and an evicted address can be reused
+    /// safely because its entry goes with it.
+    fn evict_unused_uploads(&mut self) {
+        let mut evicted = Vec::new();
+        self.cache_sources.retain(|source| {
+            let keep = Arc::strong_count(source) > 1;
+            if !keep {
+                evicted.push(Arc::as_ptr(source).cast::<()>() as usize);
+            }
+            keep
+        });
+        for key in evicted {
+            self.mesh_cache.remove(&key);
+            self.texture_cache.remove(&key);
+            self.normal_texture_cache.remove(&key);
+            self.roughness_texture_cache.remove(&key);
+            self.metallic_roughness_texture_cache.remove(&key);
+            self.emissive_texture_cache.remove(&key);
+            self.occlusion_texture_cache.remove(&key);
+            self.environment_texture_cache.remove(&key);
+        }
+    }
+
     fn render_to_views_inner(
         &mut self,
         pass: PrimitiveSurfacePass<'_>,
         packed_depth_view: Option<&wgpu::TextureView>,
     ) -> Result<(), RenderError> {
+        self.evict_unused_uploads();
         let device = pass.device;
         let queue = pass.queue;
         let camera = pass.camera;
@@ -2052,6 +2080,7 @@ impl PrimitiveRenderer {
         &mut self,
         pass: PrimitiveRenderPass<'_>,
     ) -> Result<CameraPassOutput, RenderError> {
+        self.evict_unused_uploads();
         let target = pass.target;
         let camera = pass.camera;
         let view = pass.view;
@@ -2210,6 +2239,7 @@ impl PrimitiveRenderer {
         pass: PrimitiveRenderPass<'_>,
         background: &mut B,
     ) -> Result<CameraPassOutput, RenderError> {
+        self.evict_unused_uploads();
         let target = pass.target;
         let camera = pass.camera;
         let view = pass.view;
