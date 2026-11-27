@@ -603,17 +603,19 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
   --quick --area suburb --lidar3d --beidou --ghost --lidarloc
 ```
 
-| 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2 NDT_OMP |
-|------|------|------|
-| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) |
-| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) |
-| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) |
-| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) |
+| 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2, registration only (before) | lidar_localization_ros2, tracking |
+|------|------|------|------|
+| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.03 m (0.12 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.12 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.09 m (1.87 m) |
+| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 70 m (199 m) |
 
-NDT's 1 m cells are coarser than point-to-plane on a map sampled from the
-very surfaces the LiDAR sees, so it is a few centimetres to decimetres less
-exact here, and the conclusions hold: either LiDAR holds the robot among the
-buildings, and only GNSS carries it across the fields.
+The node's gate keeps the scans NDT fits badly out of the hybrid: in
+Shibuya with GNSS the worst error falls from 1.06 m to 0.12 m. NDT's 1 m
+cells are coarser than point-to-plane on a map sampled from the very
+surfaces the LiDAR sees, so it stays a few centimetres less exact here, and
+the conclusions hold: either LiDAR holds the robot among the buildings, and
+only GNSS carries it across the fields.
 
 ## Limits
 
