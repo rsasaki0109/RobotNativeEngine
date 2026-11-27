@@ -52,7 +52,7 @@ use rne_nav::{CostmapConfig, GridCoord, LaserScan2d, OccupancyGrid, Path2d, Pose
 use rne_physics::{PhysicsBackend, PhysicsWorldDesc, PhysicsWorldId};
 use rne_physics_rapier::{step_physics, RapierBackend};
 use rne_sensor::{sample_lidar, LidarSpec};
-use rne_slam::{Slam2d, SlamConfig};
+use rne_slam::{Slam2d, SlamConfig, SubmapLoopConfig};
 use rne_world::Transform3;
 use std::path::PathBuf;
 use worlds::{Kind, Scene};
@@ -526,11 +526,11 @@ fn explore(
             coverage,
         ));
     }
-    let nodes = slam.graph().nodes();
-    let trajectory_error_m = mean_position_error(nodes, &keyframe_truth);
+    let trajectory_error_m = mean_position_error(slam.graph().nodes(), &keyframe_truth);
     let bad_closures = bad_loop_closures(slam.graph(), &keyframe_truth);
+    log_submap_rejections(&slam);
     let truth_map = start.inverse().compose(truth);
-    let hash = state_hash(slam.grid(), nodes, truth);
+    let hash = state_hash(slam.grid(), slam.graph().nodes(), truth);
     Run {
         name,
         time_s,
@@ -630,7 +630,21 @@ fn new_slam(grid_m: f64) -> Slam2d {
     if rebuild {
         slam.rebuild_map_on_loop_closure();
     }
+    if flag("--submap-loops") {
+        slam.close_loops_against_submaps(SubmapLoopConfig::default());
+    }
     slam
+}
+
+/// Prints why submap loop closures were rejected, with `--submap-loops`.
+fn log_submap_rejections(slam: &Slam2d) {
+    if flag("--submap-loops") {
+        let [score, degenerate, large, unconfirmed] = slam.submap_loop_rejections();
+        eprintln!(
+            "  submap closures rejected: {score} low score, {degenerate} degenerate, \
+             {large} too large, {unconfirmed} unconfirmed"
+        );
+    }
 }
 
 /// Loop-closure bookkeeping for revisits: the distance driven since the last

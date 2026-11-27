@@ -9,6 +9,11 @@ use rne_nav::{
 };
 use serde::{Deserialize, Serialize};
 
+mod submap_loop;
+
+pub use submap_loop::SubmapLoopConfig;
+use submap_loop::SubmapLoops;
+
 /// Online SLAM configuration.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SlamConfig {
@@ -82,15 +87,25 @@ pub struct Slam2d {
     loop_edges: Vec<usize>,
     /// Present when the map is rebuilt after loop closures.
     rebuild: Option<MapRebuild>,
+    /// Present when loops are closed against submaps.
+    submap_loops: Option<SubmapLoops>,
+    /// Every keyframe's scan, kept when a mode above needs it.
+    keyframes: Option<KeyframeLog>,
 }
 
-/// What [`Slam2d::rebuild_map_on_loop_closure`] keeps to rebuild the map: the
-/// starting grid and every keyframe's scan with its sensor mounting.
+/// What [`Slam2d::rebuild_map_on_loop_closure`] keeps to rebuild the map.
 #[derive(Clone, Debug)]
 struct MapRebuild {
     initial: OccupancyGrid,
-    scans: Vec<(LaserScan2d, Pose2d)>,
     rebuilds: usize,
+}
+
+/// Each keyframe's scan with its sensor mounting, and the trajectory length
+/// up to it.
+#[derive(Clone, Debug, Default)]
+struct KeyframeLog {
+    scans: Vec<(LaserScan2d, Pose2d)>,
+    path_m: Vec<f64>,
 }
 
 impl Slam2d {
@@ -106,6 +121,8 @@ impl Slam2d {
             graph: PoseGraph::new(),
             loop_edges: Vec::new(),
             rebuild: None,
+            submap_loops: None,
+            keyframes: None,
         }
     }
 
@@ -123,10 +140,39 @@ impl Slam2d {
         if self.rebuild.is_none() {
             self.rebuild = Some(MapRebuild {
                 initial: self.grid.clone(),
-                scans: Vec::new(),
                 rebuilds: 0,
             });
         }
+        self.keyframes.get_or_insert_with(KeyframeLog::default);
+    }
+
+    /// Closes loops against submaps instead of the whole map (off by default).
+    ///
+    /// By default a loop closure matches the current scan against the whole
+    /// map within the tracking window (`matcher.linear_window_m`). That map
+    /// already holds the robot's own recent scans, so the match mostly
+    /// confirms the current estimate, and drift larger than the window cannot
+    /// be found. With this on, a closure candidate is an earlier keyframe
+    /// near the current estimate and at least `min_path_m` back along the
+    /// trajectory; the current scan is matched against a submap of only the
+    /// scans around that keyframe, with a wider window; matches that are
+    /// degenerate (a corridor), larger than the drift the path can explain,
+    /// or not confirmed by the next keyframes are rejected. The `loop_*`
+    /// fields of [`SlamConfig`] other than the residual gates are not used.
+    /// Pair it with [`Self::rebuild_map_on_loop_closure`], or the map and
+    /// live pose do not follow the closures. Call it before the first scan.
+    pub fn close_loops_against_submaps(&mut self, config: SubmapLoopConfig) {
+        self.submap_loops = Some(SubmapLoops::new(config));
+        self.keyframes.get_or_insert_with(KeyframeLog::default);
+    }
+
+    /// Loop-closure candidates rejected so far by the submap checks, as
+    /// `[low score, degenerate, too large, unconfirmed]`; all zero unless
+    /// [`Self::close_loops_against_submaps`] is on.
+    pub fn submap_loop_rejections(&self) -> [usize; 4] {
+        self.submap_loops
+            .as_ref()
+            .map_or([0; 4], SubmapLoops::rejections)
     }
 
     /// How many times the map has been rebuilt after a loop closure.
@@ -197,8 +243,12 @@ impl Slam2d {
         let report = integrate_scan(&mut self.grid, scan, sensor_pose_world, &self.config.scan)?;
 
         let node = self.graph.add_node(corrected);
-        if let Some(rebuild) = self.rebuild.as_mut() {
-            rebuild.scans.push((scan.clone(), sensor_from_base));
+        if let Some(log) = self.keyframes.as_mut() {
+            let step = log.path_m.last().map_or(0.0, |last| {
+                last + (corrected.x_m - self.pose.x_m).hypot(corrected.y_m - self.pose.y_m)
+            });
+            log.scans.push((scan.clone(), sensor_from_base));
+            log.path_m.push(step);
         }
         if let Some(previous_odom) = self.previous_odom {
             // A matched step records the relative pose the scan matcher found;
@@ -215,11 +265,15 @@ impl Slam2d {
                 .add_edge(PoseGraphEdge::odometry(node - 1, node, measurement));
         }
 
-        let mut loop_closures = 0;
-        if matched {
-            loop_closures = self.try_loop_closure(&points, sensor_from_base, predicted)?;
-        }
-        if loop_closures > 0 && self.rebuild.is_some() {
+        let (loop_closures, graph_moved) = if !matched {
+            (0, false)
+        } else if self.submap_loops.is_some() {
+            self.try_submap_loop_closure(&points, sensor_from_base, corrected)?
+        } else {
+            let closures = self.try_loop_closure(&points, sensor_from_base, predicted)?;
+            (closures, closures > 0)
+        };
+        if graph_moved && self.rebuild.is_some() {
             self.rebuild_grid()?;
             if let Some(optimized) = self.graph.node(node) {
                 corrected = optimized;
@@ -242,11 +296,11 @@ impl Slam2d {
     /// Re-integrates every kept keyframe scan at its optimized node pose into
     /// the starting grid.
     fn rebuild_grid(&mut self) -> Result<(), GridError> {
-        let Some(rebuild) = self.rebuild.as_mut() else {
+        let (Some(rebuild), Some(log)) = (self.rebuild.as_mut(), self.keyframes.as_ref()) else {
             return Ok(());
         };
         let mut grid = rebuild.initial.clone();
-        for (node, (scan, sensor_from_base)) in rebuild.scans.iter().enumerate() {
+        for (node, (scan, sensor_from_base)) in log.scans.iter().enumerate() {
             if let Some(pose) = self.graph.node(node) {
                 integrate_scan(
                     &mut grid,
@@ -601,10 +655,16 @@ mod tests {
     /// The out-and-back drive of the test above, with drifting odometry on
     /// the way back; returns the estimator and the true final x.
     fn out_and_back(rebuild: bool) -> (Slam2d, f64) {
+        out_and_back_with(|slam| {
+            if rebuild {
+                slam.rebuild_map_on_loop_closure();
+            }
+        })
+    }
+
+    fn out_and_back_with(setup: impl Fn(&mut Slam2d)) -> (Slam2d, f64) {
         let mut slam = Slam2d::new(empty_room_grid(), SlamConfig::default());
-        if rebuild {
-            slam.rebuild_map_on_loop_closure();
-        }
+        setup(&mut slam);
         let mut x = -3.0_f64;
         let mut odom = Pose2d::new(-3.0, 0.0, 0.0);
         for _ in 0..16 {
@@ -659,6 +719,111 @@ mod tests {
             known_both as f64 >= 0.95 * known_plain as f64,
             "{known_both} of {known_plain}"
         );
+    }
+
+    /// Submap settings for the 8 m test drives: candidates 2 m back, and
+    /// every confirmed closure re-optimizes (the drift here is small).
+    fn short_submap_loops() -> SubmapLoopConfig {
+        SubmapLoopConfig {
+            min_path_m: 2.0,
+            optimize_min_correction_m: 0.0,
+            ..SubmapLoopConfig::default()
+        }
+    }
+
+    #[test]
+    fn submap_loops_close_the_revisit_and_follow_it() {
+        let (slam, truth_x) = out_and_back_with(|slam| {
+            slam.rebuild_map_on_loop_closure();
+            slam.close_loops_against_submaps(short_submap_loops());
+        });
+        let closures = slam.loop_edge_indices().len();
+        assert!(closures >= 2, "expected confirmed closures, got {closures}");
+        assert!(slam.map_rebuilds() > 0 && slam.map_rebuilds() <= closures);
+        assert!(
+            (slam.pose().x_m - truth_x).abs() < 0.3,
+            "pose={:?} truth_x={truth_x}",
+            slam.pose()
+        );
+        // Every closure links a node at least `min_path_m` back.
+        for &edge in slam.loop_edge_indices() {
+            let edge = &slam.graph().edges()[edge];
+            assert!(edge.to - edge.from >= 8, "{edge:?}");
+        }
+    }
+
+    #[test]
+    fn small_submap_corrections_skip_reoptimization() {
+        let config = SubmapLoopConfig {
+            optimize_min_correction_m: 0.05,
+            ..short_submap_loops()
+        };
+        let (slam, _) = out_and_back_with(|slam| {
+            slam.rebuild_map_on_loop_closure();
+            slam.close_loops_against_submaps(config);
+        });
+        // Tracking already holds this drive within a few centimetres, so the
+        // closures are added without moving the graph or rebuilding the map.
+        assert!(slam.loop_edge_indices().len() >= 2);
+        assert_eq!(slam.map_rebuilds(), 0);
+    }
+
+    #[test]
+    fn submap_loops_need_confirmation() {
+        let config = SubmapLoopConfig {
+            confirmations: 1000,
+            ..short_submap_loops()
+        };
+        let (slam, _) = out_and_back_with(|slam| {
+            slam.rebuild_map_on_loop_closure();
+            slam.close_loops_against_submaps(config);
+        });
+        assert!(slam.loop_edge_indices().is_empty());
+        assert_eq!(slam.map_rebuilds(), 0);
+    }
+
+    /// A corridor with walls at y = ±1 and no end in range.
+    /// It looks the same from every x.
+    fn corridor_scan() -> LaserScan2d {
+        let beams = 360;
+        let ranges = (0..beams)
+            .map(|beam| {
+                let range = 1.0 / (TAU * beam as f64 / beams as f64).sin().abs();
+                if range <= 4.0 {
+                    range
+                } else {
+                    f64::INFINITY
+                }
+            })
+            .collect();
+        LaserScan2d {
+            time_s: 0.0,
+            frame: FrameId::new("laser"),
+            angle_min_rad: 0.0,
+            angle_increment_rad: TAU / beams as f64,
+            range_min_m: 0.05,
+            range_max_m: 4.0,
+            ranges_m: ranges,
+        }
+    }
+
+    #[test]
+    fn submap_loops_reject_a_featureless_corridor() {
+        let mut slam = Slam2d::new(empty_room_grid(), SlamConfig::default());
+        slam.rebuild_map_on_loop_closure();
+        slam.close_loops_against_submaps(short_submap_loops());
+        let mut odom = Pose2d::new(-3.0, 0.0, 0.0);
+        for step in 0..32 {
+            let back = step >= 16;
+            slam.process(&corridor_scan(), odom, Pose2d::IDENTITY)
+                .expect("update");
+            let dx = if back { -0.25 } else { 0.25 };
+            // Odometry over-reads on the way back: drift along the corridor.
+            odom.x_m += if back { dx * 1.2 } else { dx };
+        }
+        assert!(slam.loop_edge_indices().is_empty());
+        let rejections = slam.submap_loop_rejections();
+        assert!(rejections[1] > 0, "{rejections:?}");
     }
 
     #[test]

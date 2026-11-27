@@ -136,6 +136,10 @@ pub struct RevisitConfig {
     /// A place within this distance of a revisit tried without a closure is
     /// skipped.
     pub tried_radius_m: f64,
+    /// After this many revisits in a row without a loop closure, the robot
+    /// stops revisiting until one closes: where the estimator cannot close a
+    /// loop (a featureless corridor), going back only costs driving.
+    pub max_tries: usize,
 }
 
 impl Default for RevisitConfig {
@@ -143,8 +147,9 @@ impl Default for RevisitConfig {
         Self {
             open_loop_m: 15.0,
             min_loop_m: 6.0,
-            max_detour_m: 8.0,
+            max_detour_m: 15.0,
             tried_radius_m: 1.5,
+            max_tries: 3,
         }
     }
 }
@@ -214,7 +219,7 @@ impl Explorer {
                 self.current_revisit = None;
             }
             self.last_open_loop_m = open_loop_m;
-            if open_loop_m >= config.open_loop_m {
+            if open_loop_m >= config.open_loop_m && self.tried.len() < config.max_tries {
                 if let Some(target) = self.revisit_target(grid, history, &config) {
                     self.current_revisit = Some(target);
                     return Ok(Decision::Revisit(target));
@@ -227,7 +232,11 @@ impl Explorer {
     }
 
     /// The visited place to go back to: old enough along the trajectory,
-    /// reachable within the detour, not tried; the nearest by path.
+    /// reachable within the detour, not tried. Among those, the one that
+    /// closes the longest loop for its detour: trajectory length between it
+    /// and the robot, minus the path there. Correcting drift needs a loop
+    /// around it, and going back down the corridor just driven closes a short
+    /// loop that corrects little.
     fn revisit_target(
         &self,
         grid: &OccupancyGrid,
@@ -257,13 +266,18 @@ impl Explorer {
                     .iter()
                     .any(|(x, y)| (pose.x_m - x).hypot(pose.y_m - y) < config.tried_radius_m)
             })
-            .filter_map(|(pose, _)| {
+            .filter_map(|(pose, along)| {
                 let cell = grid.world_to_grid(Vec3::new(pose.x_m, pose.y_m, 0.0))?;
                 let path_m = reach.distance_m(cell)?;
-                (path_m <= config.max_detour_m && path_m > 0.0).then_some((cell, path_m, pose))
+                (path_m <= config.max_detour_m && path_m > 0.0).then_some((
+                    cell,
+                    path_m,
+                    pose,
+                    along - path_m,
+                ))
             })
-            .min_by(|a, b| a.1.total_cmp(&b.1).then_with(|| a.0.cmp(&b.0)))
-            .map(|(cell, path_m, pose)| {
+            .max_by(|a, b| a.3.total_cmp(&b.3).then_with(|| b.0.cmp(&a.0)))
+            .map(|(cell, path_m, pose, utility)| {
                 let centre = grid.grid_to_world(cell);
                 Candidate {
                     goal: Pose2d::new(centre.x, centre.y, pose.yaw_rad),
@@ -271,7 +285,7 @@ impl Explorer {
                     path_m,
                     gain_m2: 0.0,
                     frontier_cells: 0,
-                    utility: -path_m,
+                    utility,
                 }
             })
     }
@@ -527,6 +541,7 @@ mod tests {
             min_loop_m: 6.0,
             max_detour_m: 8.0,
             tried_radius_m: 1.5,
+            max_tries: 3,
         })
     }
 
@@ -542,7 +557,8 @@ mod tests {
                 .unwrap(),
             Decision::Goal(_)
         ));
-        // Above it: back to a place seen long ago, the nearest by path.
+        // Above it: back to a place seen long ago, closing the longest loop
+        // for the detour.
         let Decision::Revisit(target) = explorer
             .decide_with_history(&grid, robot, &history(), 12.0)
             .unwrap()
@@ -553,6 +569,21 @@ mod tests {
         assert!(target.path_m <= 8.0);
         // The recent half of the trajectory (y = 4.5) cannot close a loop.
         assert_eq!(target.goal_cell.y, 8);
+    }
+
+    #[test]
+    fn a_revisit_prefers_the_longest_loop_over_the_nearest_place() {
+        let grid = two_doors();
+        // Right below the middle of the old row: (5.5, 8.5) is 2 m away, but
+        // the row's start (1.5, 8.5) closes a loop 4 m longer for 2.5 m more.
+        let robot = Pose2d::new(5.5, 6.5, 0.0);
+        let Decision::Revisit(target) = revisiting()
+            .decide_with_history(&grid, robot, &history(), 12.0)
+            .unwrap()
+        else {
+            panic!("expected a revisit");
+        };
+        assert_eq!((target.goal_cell.x, target.goal_cell.y), (1, 8));
     }
 
     #[test]
@@ -591,6 +622,42 @@ mod tests {
             panic!("expected a revisit");
         };
         assert_eq!(again.goal_cell, first.goal_cell);
+    }
+
+    #[test]
+    fn revisiting_stops_after_max_tries_without_a_closure() {
+        let grid = two_doors();
+        let robot = Pose2d::new(1.5, 4.5, std::f64::consts::PI);
+        let mut explorer =
+            Explorer::new(config(ScorePolicy::NearestFrontier)).with_revisits(RevisitConfig {
+                open_loop_m: 10.0,
+                tried_radius_m: 0.5,
+                max_tries: 2,
+                ..RevisitConfig::default()
+            });
+        let mut open_loop_m = 12.0;
+        for _ in 0..2 {
+            let decision = explorer
+                .decide_with_history(&grid, robot, &history(), open_loop_m)
+                .unwrap();
+            assert!(matches!(decision, Decision::Revisit(_)), "{decision:?}");
+            explorer.clear_goal();
+            open_loop_m += 1.0;
+        }
+        // Two fruitless revisits: back to exploring, until a loop closes.
+        let decision = explorer
+            .decide_with_history(&grid, robot, &history(), open_loop_m)
+            .unwrap();
+        assert!(matches!(decision, Decision::Goal(_)), "{decision:?}");
+        explorer.clear_goal();
+        explorer
+            .decide_with_history(&grid, robot, &history(), 0.0)
+            .unwrap();
+        explorer.clear_goal();
+        let decision = explorer
+            .decide_with_history(&grid, robot, &history(), 12.0)
+            .unwrap();
+        assert!(matches!(decision, Decision::Revisit(_)), "{decision:?}");
     }
 
     #[test]
