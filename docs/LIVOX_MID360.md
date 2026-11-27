@@ -216,24 +216,24 @@ odometry and `Slam2d` are the goal run's.
 
 | Measure | Result |
 | --- | --- |
-| Finished | nothing left to explore at 47.1 s |
-| Floor mapped, room A / room B | 96.6 % / 98.9 % |
-| Localization error | 0.041 m RMS, 0.064 m worst |
-| Leg odometry alone | 3.9 m worst |
-| Clearance, base / legs and head | at least 0.49 m / 0.33 m |
-| Occupied map cells within 10 cm of a real obstacle | 100 % of 1,000 |
+| Finished | nothing left to explore at 50.1 s |
+| Floor mapped, room A / room B | 96.4 % / 98.9 % |
+| Localization error | 0.031 m RMS, 0.054 m worst |
+| Leg odometry alone | 4.1 m worst |
+| Clearance, base / legs and head | at least 0.50 m / 0.29 m |
+| Occupied map cells within 10 cm of a real obstacle | 100 % of 978 |
 
 The Mid-360 rides above the 0.4–0.5 m crates, so a beam to a distant wall
 passes over a nearby crate, and a 2D scan's free-space carving erases it.
 Exploration therefore plans on the SLAM map plus an obstacle layer built from
 the 3D returns: returns 0.10–0.55 m above the floor mark it, and only rays
-that reach the floor, which a crate in the way blocks, clear it. Paths keep
-to the middle of free space (cost weight 4, inscribed band lethal), the base
-keeps 0.42 m from obstacles (the reach of the legs, not 0.30 m), and the robot
-steps away from an obstacle before turning in place next to it. On 20
-generated layouts plus this scene, no run fell and 19 of 21 kept every leg
-more than 0.10 m from the furniture; see
-[PLAN_ACTIVE_SLAM.md](PLAN_ACTIVE_SLAM.md) P3.
+that reach the floor, which a crate in the way blocks, clear it. A footprint
+guard rolls the Go2's rectangle (its rear legs reach 0.38 m behind the base)
+forward under each command and replaces one that would bring the body within
+8 cm of an obstacle; commands change at most 0.5 m/s² and 1.0 rad/s², and a
+frontier the body cannot reach is given up after 10 s. On 60 generated
+layouts plus this scene no run fell and no leg came within 0.17 m of the
+furniture; see [PLAN_ACTIVE_SLAM.md](PLAN_ACTIVE_SLAM.md) P3.
 
 ## What is not established
 
