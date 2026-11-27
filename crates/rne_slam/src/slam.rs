@@ -80,6 +80,17 @@ pub struct Slam2d {
     scans_processed: usize,
     graph: PoseGraph,
     loop_edges: Vec<usize>,
+    /// Present when the map is rebuilt after loop closures.
+    rebuild: Option<MapRebuild>,
+}
+
+/// What [`Slam2d::rebuild_map_on_loop_closure`] keeps to rebuild the map: the
+/// starting grid and every keyframe's scan with its sensor mounting.
+#[derive(Clone, Debug)]
+struct MapRebuild {
+    initial: OccupancyGrid,
+    scans: Vec<(LaserScan2d, Pose2d)>,
+    rebuilds: usize,
 }
 
 impl Slam2d {
@@ -94,7 +105,33 @@ impl Slam2d {
             scans_processed: 0,
             graph: PoseGraph::new(),
             loop_edges: Vec::new(),
+            rebuild: None,
         }
+    }
+
+    /// Rebuilds the map after every accepted loop closure (off by default).
+    ///
+    /// By default a loop closure only re-optimizes the pose graph: the
+    /// occupancy grid keeps every scan where it was first integrated, and the
+    /// live pose stays where scan matching put it, so the map stays bent by the
+    /// drift the closure found. With this on, `Slam2d` keeps each keyframe's
+    /// scan, and after a closure it re-integrates them all at the optimized
+    /// node poses into the starting grid and moves the live pose to the
+    /// optimized current node. It costs memory for the scans and one full
+    /// re-integration per closure. Call it before the first scan.
+    pub fn rebuild_map_on_loop_closure(&mut self) {
+        if self.rebuild.is_none() {
+            self.rebuild = Some(MapRebuild {
+                initial: self.grid.clone(),
+                scans: Vec::new(),
+                rebuilds: 0,
+            });
+        }
+    }
+
+    /// How many times the map has been rebuilt after a loop closure.
+    pub fn map_rebuilds(&self) -> usize {
+        self.rebuild.as_ref().map_or(0, |r| r.rebuilds)
     }
 
     /// Current estimated base pose in the map frame.
@@ -160,6 +197,9 @@ impl Slam2d {
         let report = integrate_scan(&mut self.grid, scan, sensor_pose_world, &self.config.scan)?;
 
         let node = self.graph.add_node(corrected);
+        if let Some(rebuild) = self.rebuild.as_mut() {
+            rebuild.scans.push((scan.clone(), sensor_from_base));
+        }
         if let Some(previous_odom) = self.previous_odom {
             // A matched step records the relative pose the scan matcher found;
             // only an unmatched step falls back to raw odometry. Recording raw
@@ -179,6 +219,12 @@ impl Slam2d {
         if matched {
             loop_closures = self.try_loop_closure(&points, sensor_from_base, predicted)?;
         }
+        if loop_closures > 0 && self.rebuild.is_some() {
+            self.rebuild_grid()?;
+            if let Some(optimized) = self.graph.node(node) {
+                corrected = optimized;
+            }
+        }
 
         self.pose = corrected;
         self.previous_odom = Some(odom_pose);
@@ -191,6 +237,28 @@ impl Slam2d {
             loop_closures,
             report,
         })
+    }
+
+    /// Re-integrates every kept keyframe scan at its optimized node pose into
+    /// the starting grid.
+    fn rebuild_grid(&mut self) -> Result<(), GridError> {
+        let Some(rebuild) = self.rebuild.as_mut() else {
+            return Ok(());
+        };
+        let mut grid = rebuild.initial.clone();
+        for (node, (scan, sensor_from_base)) in rebuild.scans.iter().enumerate() {
+            if let Some(pose) = self.graph.node(node) {
+                integrate_scan(
+                    &mut grid,
+                    scan,
+                    pose.compose(*sensor_from_base),
+                    &self.config.scan,
+                )?;
+            }
+        }
+        rebuild.rebuilds += 1;
+        self.grid = grid;
+        Ok(())
     }
 
     fn try_loop_closure(
@@ -527,6 +595,69 @@ mod tests {
             (slam.pose().x_m - x).abs() < 0.3,
             "pose={:?} truth_x={x}",
             slam.pose()
+        );
+    }
+
+    /// The out-and-back drive of the test above, with drifting odometry on
+    /// the way back; returns the estimator and the true final x.
+    fn out_and_back(rebuild: bool) -> (Slam2d, f64) {
+        let mut slam = Slam2d::new(empty_room_grid(), SlamConfig::default());
+        if rebuild {
+            slam.rebuild_map_on_loop_closure();
+        }
+        let mut x = -3.0_f64;
+        let mut odom = Pose2d::new(-3.0, 0.0, 0.0);
+        for _ in 0..16 {
+            slam.process(&landmark_scan(x, 0.0), odom, Pose2d::IDENTITY)
+                .expect("update");
+            x += 0.25;
+            odom.x_m += 0.25;
+        }
+        for _ in 0..16 {
+            x -= 0.25;
+            odom.x_m -= 0.25 * 1.04;
+            odom.yaw_rad += 0.004;
+            slam.process(&landmark_scan(x, 0.0), odom, Pose2d::IDENTITY)
+                .expect("update");
+        }
+        (slam, x)
+    }
+
+    #[test]
+    fn map_is_rebuilt_once_per_loop_closure_only_when_asked() {
+        let (plain, _) = out_and_back(false);
+        assert_eq!(plain.map_rebuilds(), 0);
+
+        let (rebuilt, truth_x) = out_and_back(true);
+        let closures = rebuilt.loop_edge_indices().len();
+        assert!(closures > 0, "expected a loop closure on the revisit");
+        assert_eq!(rebuilt.map_rebuilds(), closures);
+        assert!(
+            (rebuilt.pose().x_m - truth_x).abs() < 0.3,
+            "pose={:?} truth_x={truth_x}",
+            rebuilt.pose()
+        );
+        // Rebuilding re-integrates the same scans, so it never loses the
+        // mapped area: every cell known without it is known with it.
+        let mut known_plain = 0;
+        let mut known_both = 0;
+        for y in 0..plain.grid().height() {
+            for x in 0..plain.grid().width() {
+                let cell = GridCoord {
+                    x: x as isize,
+                    y: y as isize,
+                };
+                if plain.grid().is_known(cell) {
+                    known_plain += 1;
+                    if rebuilt.grid().is_known(cell) {
+                        known_both += 1;
+                    }
+                }
+            }
+        }
+        assert!(
+            known_both as f64 >= 0.95 * known_plain as f64,
+            "{known_both} of {known_plain}"
         );
     }
 
