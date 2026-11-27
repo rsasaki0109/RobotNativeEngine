@@ -188,6 +188,7 @@ impl Localizer {
     ) {
         let MatchState {
             last_search_s,
+            last_global_s,
             last_fit,
             open_ground,
             lidarloc,
@@ -215,15 +216,20 @@ impl Localizer {
                     *last_fit = m.map(|m| m.fit_fraction);
                     h.update_lidar_match(m.as_ref(), t).expect("lidar");
                 }
-                // lidar_localization_ros2 tracks every scan from the
-                // odometry bridge and re-acquires locally on its own; every
-                // 5 s without a match it searches the whole map.
+                // lidar_localization_ros2 keeps tracking every scan from the
+                // odometry bridge (and re-acquires locally on its own); without
+                // a match, `rne_slam`'s search over the window once a second,
+                // and lidar_localization_ros2's over the whole map every 5 s.
                 LocalizationSource::DeadReckoning if tracked_by_lidarloc => {
                     let mut m = local();
-                    if m.is_none() && t - *last_search_s >= GLOBAL_SEARCH_PERIOD_S {
+                    if m.is_none() && t - *last_search_s >= 1.0 {
                         *last_search_s = t;
-                        if let Some(loc) = lidarloc.as_mut() {
-                            m = lidar3d::lidarloc_global(loc, map, points, t);
+                        m = lidar3d::search(map, points, pose, z, h.lidar_search_window_m());
+                        if m.is_none() && t - *last_global_s >= GLOBAL_SEARCH_PERIOD_S {
+                            *last_global_s = t;
+                            if let Some(loc) = lidarloc.as_mut() {
+                                m = lidar3d::lidarloc_global(loc, map, points, t);
+                            }
                         }
                     }
                     *last_fit = m.map(|m| m.fit_fraction);
@@ -296,13 +302,14 @@ impl Ghost {
 /// A localizer's 3D matching state.
 struct MatchState {
     last_search_s: f64,
+    /// When lidar_localization_ros2 last searched the whole map.
+    last_global_s: f64,
     /// Share of the latest scan on mapped surfaces, once one matched.
     last_fit: Option<f64>,
     /// Whether the latest scan fit the map but held nothing that pins the
     /// position (only open ground in reach).
     open_ground: bool,
-    /// lidar_localization_ros2's tracking, with `--lidarloc`: its gate and
-    /// its local re-acquisition replace `rne_slam`'s search.
+    /// lidar_localization_ros2's tracking, with `--lidarloc`.
     lidarloc: Option<lidar3d::Tracker>,
 }
 
@@ -310,6 +317,7 @@ impl MatchState {
     fn new(lidarloc: Option<lidar3d::Tracker>) -> Self {
         Self {
             last_search_s: f64::NEG_INFINITY,
+            last_global_s: f64::NEG_INFINITY,
             last_fit: None,
             open_ground: false,
             lidarloc,
