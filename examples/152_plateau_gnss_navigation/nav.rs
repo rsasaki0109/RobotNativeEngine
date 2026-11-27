@@ -197,6 +197,19 @@ impl Localizer {
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
         let tracked_by_lidarloc = lidarloc.is_some();
+        if let Self::Hybrid(h) = self {
+            let c = h.ekf().covariance();
+            *localized |= (c[0][0] + c[1][1]).sqrt() < PLACED_SIGMA_M;
+        }
+        let dead_reckoning =
+            matches!(self, Self::Hybrid(h) if h.source() == LocalizationSource::DeadReckoning);
+        let mut global = None;
+        if dead_reckoning && !*localized && t - *last_global_s >= GLOBAL_SEARCH_PERIOD_S {
+            if let Some(loc) = lidarloc.as_mut() {
+                *last_global_s = t;
+                global = lidar3d::lidarloc_global(loc, map, points, t);
+            }
+        }
         let mut raw = || match lidarloc {
             Some(loc) => lidar3d::lidarloc_match(loc, map, points, pose, z, t),
             None => map.match_scan(points, pose, z, &lidar3d::match_config()),
@@ -208,9 +221,6 @@ impl Localizer {
                 .is_some_and(|m| m.fit_fraction >= 0.6 && !lidar3d::acceptable(m));
             m.filter(lidar3d::acceptable)
         };
-        if let Self::Hybrid(h) = self {
-            *localized |= h.source() != LocalizationSource::DeadReckoning;
-        }
         match self {
             Self::Hybrid(h) => match h.source() {
                 // While GNSS is in charge a match that agrees with it takes
@@ -220,26 +230,20 @@ impl Localizer {
                     *last_fit = m.map(|m| m.fit_fraction);
                     h.update_lidar_match(m.as_ref(), t).expect("lidar");
                 }
-                // lidar_localization_ros2 keeps tracking every scan from the
-                // odometry bridge (and re-acquires locally on its own); without
-                // a match, `rne_slam`'s search over the window once a second,
-                // and, until the robot has first been placed (an unknown
-                // start), lidar_localization_ros2's over the whole map every
-                // 5 s. Not later: the suburb's rows of similar houses hold
-                // other places that fit as well as the right one.
+                // Until the robot has first been placed (an unknown start),
+                // lidar_localization_ros2 searches the whole map every 5 s;
+                // not later, since the suburb's rows of similar houses hold
+                // other places that fit as well as the right one. Once
+                // placed, it keeps tracking every scan from the odometry
+                // bridge (and re-acquires locally on its own), and without a
+                // match `rne_slam` searches the window once a second.
                 LocalizationSource::DeadReckoning if tracked_by_lidarloc => {
-                    let mut m = local();
-                    if m.is_none() && t - *last_search_s >= 1.0 {
-                        *last_search_s = t;
-                        m = lidar3d::search(map, points, pose, z, h.lidar_search_window_m());
-                        if m.is_none()
-                            && !*localized
-                            && t - *last_global_s >= GLOBAL_SEARCH_PERIOD_S
-                        {
-                            *last_global_s = t;
-                            if let Some(loc) = lidarloc.as_mut() {
-                                m = lidar3d::lidarloc_global(loc, map, points, t);
-                            }
+                    let mut m = global;
+                    if m.is_none() && *localized {
+                        m = local();
+                        if m.is_none() && t - *last_search_s >= 1.0 {
+                            *last_search_s = t;
+                            m = lidar3d::search(map, points, pose, z, h.lidar_search_window_m());
                         }
                     }
                     *last_fit = m.map(|m| m.fit_fraction);
@@ -291,6 +295,9 @@ fn timeout_s(route: &[(f64, f64)]) -> f64 {
     TIMEOUT_S.max(TIMEOUT_S_PER_M * route_m)
 }
 
+/// Position sigma, meters, below which the localizer counts as placed.
+const PLACED_SIGMA_M: f64 = 1.0;
+
 /// Seconds between lidar_localization_ros2's global searches while the
 /// localizer dead reckons with no match.
 const GLOBAL_SEARCH_PERIOD_S: f64 = 5.0;
@@ -314,7 +321,8 @@ struct MatchState {
     last_search_s: f64,
     /// When lidar_localization_ros2 last searched the whole map.
     last_global_s: f64,
-    /// Whether the localizer has been out of dead reckoning (placed).
+    /// Whether the localizer has been placed: its position sigma below
+    /// [`PLACED_SIGMA_M`] once.
     localized: bool,
     /// Share of the latest scan on mapped surfaces, once one matched.
     last_fit: Option<f64>,
