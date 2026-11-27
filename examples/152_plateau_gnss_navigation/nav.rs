@@ -214,9 +214,16 @@ impl Localizer {
                     h.update_lidar_match(m.as_ref(), t).expect("lidar");
                 }
                 // lidar_localization_ros2 tracks every scan from the
-                // odometry bridge and re-acquires on its own.
+                // odometry bridge and re-acquires locally on its own; every
+                // 5 s without a match it searches the whole map.
                 LocalizationSource::DeadReckoning if tracked_by_lidarloc => {
-                    let m = local();
+                    let mut m = local();
+                    if m.is_none() && t - *last_search_s >= GLOBAL_SEARCH_PERIOD_S {
+                        *last_search_s = t;
+                        if let Some(loc) = lidarloc.as_mut() {
+                            m = lidar3d::lidarloc_global(loc, map, points, t);
+                        }
+                    }
                     *last_fit = m.map(|m| m.fit_fraction);
                     h.update_lidar_match(m.as_ref(), t).expect("lidar");
                 }
@@ -256,6 +263,10 @@ struct Lidar3dState {
     last_scan_s: f64,
     matching: MatchState,
 }
+
+/// Seconds between lidar_localization_ros2's global searches while the
+/// localizer dead reckons with no match.
+const GLOBAL_SEARCH_PERIOD_S: f64 = 5.0;
 
 /// A localizer that never sees GNSS, on the same LiDAR and wheels
 /// (`--ghost`): what the robot would know without it.

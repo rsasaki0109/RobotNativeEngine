@@ -810,22 +810,31 @@ impl Builder {
         let half = ROAD_HALF_WIDTH_M + 1.0;
         let t = 0.5;
         let mut shell = Vec::new();
-        for s in [-1.0_f64, 1.0] {
-            let wall = |y: f64| y * s;
-            // Walls, chamfers up to the ceiling's edge, and the ceiling.
-            let (a, b) = (wall(half), wall(half + t));
-            shell.extend(cuboid(
-                Vec3::new(x0, a.min(b), 0.0),
-                Vec3::new(x1, a.max(b), 4.5),
-            ));
-            let edge = |y: f64, z: f64| [Vec3::new(x0, s * y, z), Vec3::new(x1, s * y, z)];
-            let [p0, p1] = edge(half, 4.5);
-            let [q0, q1] = edge(2.5, 6.5);
-            let [r0, r1] = edge(half + t, 4.5 + t);
-            let [u0, u1] = edge(2.5, 6.5 + t);
-            shell.extend(convex(&hexahedron([p0, p1, q1, q0], [r0, r1, u1, u0])));
+        // In 10 m sections: the LiDAR map samples a triangle on a grid as
+        // fine along its longest edge as across it, so one 300 m triangle
+        // would hold millions of points.
+        let sections = (length / 10.0).ceil().max(1.0) as usize;
+        for k in 0..sections {
+            let (xa, xb) = (
+                x0 + length * k as f64 / sections as f64,
+                x0 + length * (k + 1) as f64 / sections as f64,
+            );
+            for s in [-1.0_f64, 1.0] {
+                // Walls, chamfers up to the ceiling's edge, and the ceiling.
+                let (a, b) = (s * half, s * (half + t));
+                shell.extend(cuboid(
+                    Vec3::new(xa, a.min(b), 0.0),
+                    Vec3::new(xb, a.max(b), 4.5),
+                ));
+                let edge = |y: f64, z: f64| [Vec3::new(xa, s * y, z), Vec3::new(xb, s * y, z)];
+                let [p0, p1] = edge(half, 4.5);
+                let [q0, q1] = edge(2.5, 6.5);
+                let [r0, r1] = edge(half + t, 4.5 + t);
+                let [u0, u1] = edge(2.5, 6.5 + t);
+                shell.extend(convex(&hexahedron([p0, p1, q1, q0], [r0, r1, u1, u0])));
+            }
+            shell.extend(cuboid(Vec3::new(xa, -2.5, 6.5), Vec3::new(xb, 2.5, 7.0)));
         }
-        shell.extend(cuboid(Vec3::new(x0, -2.5, 6.5), Vec3::new(x1, 2.5, 7.0)));
         self.solid(
             shell,
             CONCRETE,
@@ -878,11 +887,20 @@ impl Builder {
         for x in [x0, x1] {
             let (a, b) = (x - 0.5 * x.signum(), x + 0.5 * x.signum());
             let (lo, hi) = (a.min(b), a.max(b));
-            let mut wall = cuboid(Vec3::new(lo, -40.0, 0.0), Vec3::new(hi, -half - t, 18.0));
-            wall.extend(cuboid(
-                Vec3::new(lo, half + t, 0.0),
-                Vec3::new(hi, 40.0, 18.0),
-            ));
+            // In 10 m columns, for the LiDAR map's sampling.
+            let mut wall = Vec::new();
+            for side in [-1.0_f64, 1.0] {
+                let mut y = half + t;
+                while y < 40.0 - 1.0e-6 {
+                    let next = (y + 10.0).min(40.0);
+                    let (a, b) = (side * y, side * next);
+                    wall.extend(cuboid(
+                        Vec3::new(lo, a.min(b), 0.0),
+                        Vec3::new(hi, a.max(b), 18.0),
+                    ));
+                    y = next;
+                }
+            }
             wall.extend(cuboid(
                 Vec3::new(lo, -half - t, 7.0),
                 Vec3::new(hi, half + t, 18.0),

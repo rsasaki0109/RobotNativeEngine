@@ -5,7 +5,7 @@ use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
 use crate::nav::gaussian;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range, Movers};
-use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig, Reacquisition, Tracking};
+use rne_adapter_lidarloc::{GlobalSearch, LidarLoc, LidarLocConfig, Reacquisition, Tracking};
 use rne_core::DeterministicRng;
 use rne_math::Vec3;
 use rne_math::{DQuat, Mat4};
@@ -479,6 +479,47 @@ pub(crate) fn lidarloc_match(
     if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
         return None;
     }
+    Some(PointCloudMatch {
+        pose: at,
+        z_m: p.w_axis.z,
+        ..refined
+    })
+}
+
+/// lidar_localization_ros2's global localization while the localizer dead
+/// reckons: where in the whole map the scan was taken, with no prior. A pose
+/// found, and confirmed by the point-to-plane fit started there, restarts
+/// the node's tracking there and is a match.
+pub(crate) fn lidarloc_global(
+    tracker: &mut Tracker,
+    map: &PointCloudMap,
+    points: &[Vec3],
+    t: f64,
+) -> Option<PointCloudMatch> {
+    let fix = tracker
+        .loc
+        .global_localize(
+            points,
+            &GlobalSearch {
+                // The street-level scan of a 3D LiDAR on a robot.
+                scan_max_range_m: RANGE_M,
+                num_threads: 1,
+                ..GlobalSearch::default()
+            },
+        )
+        .ok()?;
+    println!(
+        "  [{t:.0} s] lidarloc global search: {} ({} candidates, fitness {:.3}, second {:.3}, {:.0} ms)",
+        fix.reason, fix.candidates, fix.fitness, fix.second_fitness, fix.total_ms
+    );
+    let p = fix.pose?;
+    let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
+    let refined = map.match_scan(points, at, p.w_axis.z, &match_config())?;
+    if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
+        return None;
+    }
+    tracker.loc.set_initial_pose(&p, t).ok()?;
+    tracker.started = true;
     Some(PointCloudMatch {
         pose: at,
         z_m: p.w_axis.z,

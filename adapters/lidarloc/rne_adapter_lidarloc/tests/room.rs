@@ -1,7 +1,7 @@
 //! A room with a pillar, a scan of it from a pose the guess is off from, and
 //! the alignment that finds the pose. Skipped without lidar_localization_core.
 
-use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig, Reacquisition, Tracking};
+use rne_adapter_lidarloc::{GlobalSearch, LidarLoc, LidarLocConfig, Reacquisition, Tracking};
 use rne_math::{Mat4, Vec3};
 
 /// A 20 x 14 m floor, walls 3 m high and a 1 m pillar, every 0.2 m, each
@@ -262,4 +262,42 @@ fn reacquires_after_odometry_drift() {
         }
     }
     panic!("not re-acquired");
+}
+
+/// Global localization: a scan of the room from (2, -3) turned 2.0 rad, no
+/// prior; the search over the whole room finds it.
+#[test]
+fn finds_the_room_pose_with_no_prior() {
+    if !available() {
+        return;
+    }
+    let map = room();
+    let mut loc = LidarLoc::new(&LidarLocConfig {
+        registration_method: "GICP_OMP".into(),
+        ndt_num_threads: 2,
+        ..LidarLocConfig::default()
+    })
+    .expect("core");
+    loc.set_map(&map).expect("map");
+    loc.set_tracking(&Tracking {
+        score_threshold: 0.5,
+        ..Tracking::default()
+    })
+    .expect("tracking");
+    let truth = pose(2.0, -3.0, 2.0);
+    let to_sensor = truth.inverse();
+    let scan: Vec<Vec3> = map.iter().map(|&p| to_sensor.transform_point3(p)).collect();
+    let fix = loc
+        .global_localize(
+            &scan,
+            &GlobalSearch {
+                num_threads: 2,
+                ..GlobalSearch::default()
+            },
+        )
+        .expect("search");
+    let p = fix.pose.unwrap_or_else(|| panic!("not found: {fix:?}"));
+    assert!((p.w_axis.x - 2.0).hypot(p.w_axis.y + 3.0) < 0.05, "{fix:?}");
+    assert!((p.x_axis.y.atan2(p.x_axis.x) - 2.0).abs() < 0.02, "{fix:?}");
+    assert_eq!(fix.reason, "proposed");
 }
