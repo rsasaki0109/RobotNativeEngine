@@ -406,6 +406,11 @@ pub(crate) fn lidarloc(map: &Map3d) -> Result<Tracker, String> {
         enable_seed_correction_guard: true,
         enable_seed_correction_window_guard: true,
         seed_correction_window_guard_sec: 2.0,
+        // Solution remapping, by NDT's Hessian (along a tunnel) and by the
+        // map's surfaces under the scan (bare ground): without it NDT and
+        // the point-to-plane fit slid along the tunnel together.
+        enable_degeneracy_remapping: true,
+        degeneracy_remapping_min_horizontal_constraint: 0.02,
         ..Tracking::default()
     })
     .map_err(|e| e.to_string())?;
@@ -470,21 +475,7 @@ pub(crate) fn lidarloc_match(
         return None;
     }
     let p = update.pose;
-    let (mut dx, mut dy) = (p.w_axis.x - pose.x_m, p.w_axis.y - pose.y_m);
-    // Solution remapping: along the direction NDT's Hessian is weakest in,
-    // when that is a horizontal translation it barely constrains (a tunnel's
-    // axis), NDT slides, and that part of its correction is dropped.
-    if let Some(l) = update.alignment.localizability {
-        let (wx, wy) = (l.weakest_direction[0], l.weakest_direction[1]);
-        let horizontal = wx.hypot(wy);
-        if l.weak_ratio < WEAK_RATIO && horizontal > 0.7 {
-            let (ux, uy) = (wx / horizontal, wy / horizontal);
-            let along = dx * ux + dy * uy;
-            dx -= along * ux;
-            dy -= along * uy;
-        }
-    }
-    let at = Pose2d::new(pose.x_m + dx, pose.y_m + dy, p.x_axis.y.atan2(p.x_axis.x));
+    let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
     // The map's point-to-plane fit, started at the node's pose, must settle
     // there: where it moves away, NDT has stopped in a minimum of its own
     // (its cells pin a scan of open ground with a wall at the edge of range;
@@ -541,10 +532,6 @@ pub(crate) fn lidarloc_global(
     tracker.started = true;
     Some(refined)
 }
-
-/// NDT's weakest over strongest Hessian eigenvalue below which its weakest
-/// direction counts as unconstrained.
-const WEAK_RATIO: f64 = 0.05;
 
 /// How far, meters, the point-to-plane fit may settle from lidar_localization_ros2's
 /// pose for the scan to be used.
