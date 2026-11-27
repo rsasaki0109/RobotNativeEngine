@@ -5,7 +5,7 @@ use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
 use crate::nav::gaussian;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range, Movers};
-use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig};
+use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig, Reacquisition, Tracking};
 use rne_core::DeterministicRng;
 use rne_math::Vec3;
 use rne_math::{DQuat, Mat4};
@@ -381,47 +381,99 @@ pub(crate) fn build_map(
     Map3d { cloud: map, points }
 }
 
-/// lidar_localization_ros2's registration on the map (`--lidarloc`):
-/// NDT_OMP at 1 m on the whole map, one thread so that runs repeat exactly,
-/// the scans already reduced by [`downsample`].
-pub(crate) fn lidarloc(map: &Map3d) -> Result<LidarLoc, String> {
+/// lidar_localization_ros2 on the map (`--lidarloc`), tracking as its node
+/// does: NDT_OMP at 1 m on the whole map, one thread so that runs repeat
+/// exactly, the scans already reduced by [`downsample`]; the node's
+/// measurement gate; the map-distance prefilter at 1 m for the people, cars
+/// and rain the map lacks; and local re-acquisition on an occupancy grid of
+/// the map after the odometry carried the pose through an outage.
+pub(crate) fn lidarloc(map: &Map3d) -> Result<Tracker, String> {
     let mut loc = LidarLoc::new(&LidarLocConfig {
         registration_method: "NDT_OMP".into(),
         ndt_num_threads: 1,
         filter_scan: false,
         inlier_ratio_min_points: 50,
+        map_distance_filter_m: 1.0,
         ..LidarLocConfig::default()
     })
     .map_err(|e| e.to_string())?;
+    // The guards the node's quickstart turns on with an odometry seed: a
+    // scan may not move the pose more than 0.5 m from the seed, nor 0.3 m
+    // in all over 2 s. Without them NDT slides along a tunnel, whose walls
+    // pin nothing along it, and the estimate it seeds slides with it.
+    loc.set_tracking(&Tracking {
+        scan_period_sec: LIDAR3D_PERIOD_S,
+        enable_seed_correction_guard: true,
+        enable_seed_correction_window_guard: true,
+        seed_correction_window_guard_sec: 2.0,
+        ..Tracking::default()
+    })
+    .map_err(|e| e.to_string())?;
+    loc.set_reacquisition(&Reacquisition {
+        // Two seconds of rejected scans, then a try every second.
+        min_rejections: 10,
+        attempt_interval_scans: 5,
+        // Street level: kerbs and parked cars are obstacles, not the
+        // buildings' upper floors.
+        scan_min_z_m: -1.0,
+        scan_max_z_m: 3.0,
+        occupancy_max_obstacle_height_m: 4.0,
+        ..Reacquisition::default()
+    })
+    .map_err(|e| e.to_string())?;
     loc.set_map(&map.points).map_err(|e| e.to_string())?;
-    Ok(loc)
+    Ok(Tracker {
+        loc,
+        started: false,
+    })
 }
 
-/// A match from lidar_localization_ros2: its pose, with the fit and the
-/// covariance of the map's point-to-plane residuals there (one evaluation of
+/// lidar_localization_ros2's tracking, started at the localizer's estimate
+/// on the first scan.
+pub(crate) struct Tracker {
+    loc: LidarLoc,
+    started: bool,
+}
+
+/// Seconds between 3D LiDAR scans.
+pub(crate) const LIDAR3D_PERIOD_S: f64 = 0.2;
+
+/// One scan through lidar_localization_ros2's tracking, seeded with the
+/// localizer's estimate (the odometry bridge). An accepted scan is a match
+/// at the node's pose, with the fit and the covariance of the map's
+/// point-to-plane residuals there (one evaluation of
 /// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
-/// it does its own matches.
+/// it does its own matches; a scan the node's gate rejects is none.
+///
+/// Not the NDT score Hessian's covariance: on bare ground NDT's cells pin
+/// the scan to their lattice, and the Hessian claims 2 cm where nothing
+/// pins the position at all.
 pub(crate) fn lidarloc_match(
-    loc: &mut LidarLoc,
+    tracker: &mut Tracker,
     map: &PointCloudMap,
     points: &[Vec3],
     pose: Pose2d,
     z_m: f64,
+    t: f64,
 ) -> Option<PointCloudMatch> {
-    let guess = Mat4::from_rotation_translation(
+    let seed = Mat4::from_rotation_translation(
         DQuat::from_rotation_z(pose.yaw_rad),
         Vec3::new(pose.x_m, pose.y_m, z_m),
     );
-    let aligned = loc.align(points, &guess).ok()?;
-    if !aligned.target_ready || !aligned.converged {
+    if !tracker.started {
+        tracker.loc.set_initial_pose(&seed, t).ok()?;
+        tracker.started = true;
+    }
+    let update = tracker.loc.localize(points, t, Some(&seed)).ok()?;
+    if !update.accepted {
         return None;
     }
-    let t = aligned.pose.w_axis;
-    let at = Pose2d::new(t.x, t.y, aligned.pose.x_axis.y.atan2(aligned.pose.x_axis.x));
+    let p = update.pose;
+    let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
     let evaluated = map.match_scan(
         points,
         at,
-        t.z,
+        p.w_axis.z,
         &PointCloudMatchConfig {
             max_iterations: 1,
             ..match_config()
@@ -429,7 +481,7 @@ pub(crate) fn lidarloc_match(
     )?;
     Some(PointCloudMatch {
         pose: at,
-        z_m: t.z,
+        z_m: p.w_axis.z,
         ..evaluated
     })
 }
