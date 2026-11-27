@@ -6,6 +6,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_adapter_lidarloc` binds lidar_localization_ros2's per-scan tracking (`LidarLoc::localize`,
+  `Tracking`), its local re-acquisition (`Reacquisition`) and the NDT score Hessian
+  (`Alignment::planar_covariance`); `scripts/build_lidarloc.sh` pins the core with them. A CI
+  job (`lidarloc`) builds the core and runs the adapter's tests against it
+  (`RNE_LIDARLOC_REQUIRED=1` makes a missing core a failure) and example 152 on the suburb.
+- Example 152: `--lidarloc` tracks every scan through the node's gate (with its seed
+  correction guards), map-distance prefilter and local re-acquisition, which replaces
+  `rne_slam`'s relocalizing search; `--area tunnel`, the suburb with a 300 m tunnel through a
+  ridge; `--weather clear|crowd|rain|rush` for the main runs.
 - Active SLAM P2 (`docs/PLAN_ACTIVE_SLAM.md`), all opt-in. On the generated loop worlds,
   nearest-frontier exploration with these lowers SLAM error and raises coverage over P1
   (narrowly); see the plan for the numbers.
