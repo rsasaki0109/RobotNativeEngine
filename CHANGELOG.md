@@ -6,6 +6,10 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 113 renders other splat scenes: `RNE_SPLAT_MANIFEST`, `RNE_WAYPOINTS` and
+  `RNE_MAX_STEPS`. `tools/prepare_voxel51_truck_3dgs.py` turns the Voxel51 Tanks and
+  Temples truck into an outdoor street scene for it (ground plane at y = 0, metric scale
+  assumed from the truck, a loop around it).
 - `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
   lidar_localization_ros2's global localization over the whole map.
 - Example 152:
