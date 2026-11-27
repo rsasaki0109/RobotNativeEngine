@@ -153,6 +153,10 @@ impl Alignment {
     /// yy]], yaw)`. The NDT score's scale is not the sensor's noise, so the
     /// caller scales it (it calibrates the factor once). `None` without a
     /// Hessian or when the Hessian is not negative definite.
+    ///
+    /// It does not detect degenerate scans on flat ground: NDT's cells pin
+    /// a scan of bare ground to their lattice, and the Hessian is then as
+    /// definite as among walls.
     #[must_use]
     pub fn planar_covariance(&self) -> Option<([[f64; 2]; 2], f64)> {
         let h = self.score_hessian?;

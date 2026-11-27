@@ -194,7 +194,7 @@ impl Localizer {
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
         let tracked_by_lidarloc = lidarloc.is_some();
         let mut raw = || match lidarloc {
-            Some(loc) => lidar3d::lidarloc_match(loc, points, pose, z, t),
+            Some(loc) => lidar3d::lidarloc_match(loc, map, points, pose, z, t),
             None => map.match_scan(points, pose, z, &lidar3d::match_config()),
         };
         let mut local = || {

@@ -431,18 +431,19 @@ pub(crate) struct Tracker {
 /// Seconds between 3D LiDAR scans.
 pub(crate) const LIDAR3D_PERIOD_S: f64 = 0.2;
 
-/// Variance, m², per unit of the negated inverse NDT score Hessian:
-/// calibrated on the Shibuya route against `rne_slam`'s point-to-plane
-/// covariance of the same scans (`point_sigma_m` 0.1 m).
-const NDT_COVARIANCE_SCALE: f64 = 1.0;
-
 /// One scan through lidar_localization_ros2's tracking, seeded with the
 /// localizer's estimate (the odometry bridge). An accepted scan is a match
-/// with its fit (the inlier ratio) and the covariance of the NDT score
-/// Hessian, so that the hybrid weighs and gates it as it does its own
-/// matches; a scan the node's gate rejects is none.
+/// at the node's pose, with the fit and the covariance of the map's
+/// point-to-plane residuals there (one evaluation of
+/// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
+/// it does its own matches; a scan the node's gate rejects is none.
+///
+/// Not the NDT score Hessian's covariance: on bare ground NDT's cells pin
+/// the scan to their lattice, and the Hessian claims 2 cm where nothing
+/// pins the position at all.
 pub(crate) fn lidarloc_match(
     tracker: &mut Tracker,
+    map: &PointCloudMap,
     points: &[Vec3],
     pose: Pose2d,
     z_m: f64,
@@ -460,52 +461,22 @@ pub(crate) fn lidarloc_match(
     if !update.accepted {
         return None;
     }
-    let aligned = update.alignment;
     let p = update.pose;
-    let config = match_config();
-    // Without a definite Hessian nothing pins the position: unconstrained.
-    let (position, yaw) = aligned.planar_covariance().map_or(
-        ([[f64::INFINITY, 0.0], [0.0, f64::INFINITY]], f64::INFINITY),
-        |(c, yaw)| {
-            (
-                c.map(|row| row.map(|v| v * NDT_COVARIANCE_SCALE)),
-                yaw * NDT_COVARIANCE_SCALE,
-            )
+    let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
+    let evaluated = map.match_scan(
+        points,
+        at,
+        p.w_axis.z,
+        &PointCloudMatchConfig {
+            max_iterations: 1,
+            ..match_config()
         },
-    );
+    )?;
     Some(PointCloudMatch {
-        pose: Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x)),
+        pose: at,
         z_m: p.w_axis.z,
-        position_covariance_m2: clamp_covariance(
-            position,
-            config.min_position_variance_m2,
-            config.max_position_variance_m2,
-        ),
-        yaw_variance_rad2: yaw.clamp(config.min_yaw_variance_rad2, 1.0),
-        rmse_m: aligned.fitness_score.sqrt(),
-        inlier_fraction: aligned.inlier_ratio,
-        fit_fraction: aligned.inlier_ratio,
-        converged: aligned.converged,
+        ..evaluated
     })
-}
-
-/// A planar covariance with its eigenvalues clamped to `[lo, hi]`, as
-/// `rne_slam` clamps its matches'.
-fn clamp_covariance(c: [[f64; 2]; 2], lo: f64, hi: f64) -> [[f64; 2]; 2] {
-    let [[a, b0], [b1, d]] = c;
-    if !(a.is_finite() && d.is_finite()) {
-        return [[hi, 0.0], [0.0, hi]];
-    }
-    let b = 0.5 * (b0 + b1);
-    let mean = 0.5 * (a + d);
-    let spread = (0.25 * (a - d) * (a - d) + b * b).sqrt();
-    let (l1, l2) = ((mean + spread).clamp(lo, hi), (mean - spread).clamp(lo, hi));
-    let angle = 0.5 * (2.0 * b).atan2(a - d);
-    let (s, c) = angle.sin_cos();
-    [
-        [l1 * c * c + l2 * s * s, (l1 - l2) * s * c],
-        [(l1 - l2) * s * c, l1 * s * s + l2 * c * c],
-    ]
 }
 
 /// The scan reduced for matching.

@@ -589,10 +589,12 @@ as the node is seeded with odometry:
   around the estimate, confirmed by the gate on the next scan. It replaces
   `rne_slam`'s relocalizing search.
 
-The covariance the hybrid weighs and gates a scan by comes from the NDT
-score's Hessian at the pose, scaled once against `rne_slam`'s point-to-plane
-covariance of the same scans: where a scan pins nothing horizontally (open
-ground) the Hessian says so, and the match is not used.
+The fit and the covariance the hybrid weighs and gates an accepted scan by
+are the map's point-to-plane residuals at the node's pose. The C API also
+reports the NDT score's Hessian (`Alignment::planar_covariance`), but it
+cannot tell open ground: on the fields NDT's 1 m cells pin the scan to
+their lattice, and the Hessian claims about 2 cm (σ) in every horizontal
+direction where the point-to-plane residuals, rightly, pin none.
 
 ```bash
 sudo apt-get install libpcl-dev libeigen3-dev libomp-dev
