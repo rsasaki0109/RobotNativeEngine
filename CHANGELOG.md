@@ -12,12 +12,6 @@ All notable changes to Robot Native Engine are documented in this file.
   (`Alignment::degeneracy_dropped_m`, `horizontal_constraint`); example 152 uses it in place of
   its own.
 
-### Fixed
-
-- `rne_render_wgpu`: the mesh and texture caches no longer keep uploads whose source only the
-  cache holds. A capture that builds meshes for each frame ran out of memory after about 500
-  frames (example 152).
-
 - `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
   lidar_localization_ros2's global localization over the whole map.
 - Example 152:
@@ -362,6 +356,10 @@ All notable changes to Robot Native Engine are documented in this file.
   that are not Y-up) come with it.
 
 ### Fixed
+
+- `rne_render_wgpu`: the mesh and texture caches no longer keep uploads whose source only the
+  cache holds. A capture that builds meshes for each frame ran out of memory after about 500
+  frames (example 152).
 
 - `rne_nav::Costmap::cost_at` panicked for a cell just outside the map instead of
   returning `None`: it indexed the costs before checking the bounds.
