@@ -6,6 +6,10 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 113 (`drjohnson_euroc_export`): `RNE_WALKER_MODE=still` has the walkers stand at
+  the start of their lines for the whole episode, as people waiting or at a desk while a
+  map is built.
+
 - `rne_adapter_lidarloc` binds lidar_localization_ros2's per-scan tracking (`LidarLoc::localize`,
   `Tracking`), its local re-acquisition (`Reacquisition`) and the NDT score Hessian
   (`Alignment::planar_covariance`); `scripts/build_lidarloc.sh` pins the core with them. A CI
