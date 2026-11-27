@@ -6,6 +6,17 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Active SLAM P2 (`docs/PLAN_ACTIVE_SLAM.md`), all opt-in; the exit criterion is not met
+  yet, see the plan for the numbers.
+  - `Slam2d::rebuild_map_on_loop_closure` and `Slam2d::map_rebuilds`: after each accepted
+    loop closure, re-integrate every keyframe scan at its optimized pose and move the live
+    pose to the optimized node. Off by default, since a wrong closure then bends the whole
+    map; pair it with a stricter `loop_min_score`.
+  - `rne_explore::RevisitConfig` and `Explorer::with_revisits` / `decide_with_history`:
+    drive back to an earlier pose to close a loop once the robot has gone `open_loop_m`
+    without one (`Decision::Revisit`).
+  - Example 164: `--rebuild-map` (closure score 0.75), `--loop-min-score`, `--revisit`, and
+    a count of loop closures that disagree with ground truth.
 - `rne_explore`, a new crate (`publish = false`) for active SLAM decisions: where a robot
   with no map and no goals goes next (P0 of `docs/PLAN_ACTIVE_SLAM.md`, ADR 036).
   - `extract_frontiers`: free cells next to unknown space, in deterministic 8-connected

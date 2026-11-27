@@ -32,6 +32,11 @@
 //! ```
 //!
 //! `--distance-weight W` sets the information-gain policy's weight (default 4).
+//! P2 options: `--rebuild-map` rebuilds the SLAM map after each loop closure
+//! and raises the closure acceptance score to 0.75; `--loop-min-score S` sets
+//! that score directly; `--revisit` lets the explorer drive back to close
+//! loops. Reports count loop closures that disagree with ground truth by more
+//! than 0.25 m as bad.
 
 mod render;
 mod worlds;
@@ -265,15 +270,21 @@ fn summary(runs: &[Vec<Run>]) {
 /// The information-gain policy, with `--distance-weight W` (square metres of
 /// new area one metre of driving must buy; default 4).
 fn gain_policy() -> ScorePolicy {
+    ScorePolicy::InformationGain {
+        distance_weight: number_arg("--distance-weight").unwrap_or(4.0),
+    }
+}
+
+/// The number after `name` on the command line, if given.
+fn number_arg(name: &str) -> Option<f64> {
     let args: Vec<String> = std::env::args().collect();
-    let distance_weight = args
-        .iter()
-        .position(|a| a == "--distance-weight")
-        .and_then(|i| args.get(i + 1))
-        .map_or(4.0, |w| {
-            w.parse().expect("--distance-weight takes a number")
-        });
-    ScorePolicy::InformationGain { distance_weight }
+    let i = args.iter().position(|a| a == name)?;
+    let value = args.get(i + 1)?;
+    Some(
+        value
+            .parse()
+            .unwrap_or_else(|_| panic!("{name} takes a number")),
+    )
 }
 
 /// The explorer, with revisits when `--revisit` is given.
@@ -308,6 +319,8 @@ fn map_keyframe(
     (due, slam.pose().compose(last.inverse().compose(odom)))
 }
 
+/// Loop-closure acceptance score used with `--rebuild-map`.
+const REBUILD_LOOP_MIN_SCORE: f64 = 0.75;
 /// A loop closure whose relative pose is off the truth by more than this is
 /// counted as wrong.
 const BAD_CLOSURE_M: f64 = 0.25;
@@ -597,14 +610,24 @@ fn new_slam(grid_m: f64) -> Slam2d {
         Pose2d::new(-0.5 * grid_m, -0.5 * grid_m, 0.0),
     )
     .expect("grid");
+    let rebuild = flag("--rebuild-map");
+    // Rebuilding spreads a wrong loop closure over the whole map, so it pairs
+    // with a stricter acceptance score (P2: 0.55 accepted wrong closures even
+    // in the warehouse; 0.75 accepted none there).
+    let default_score = if rebuild {
+        REBUILD_LOOP_MIN_SCORE
+    } else {
+        SlamConfig::default().loop_min_score
+    };
     let mut slam = Slam2d::new(
         template,
         SlamConfig {
             max_beams: 360,
+            loop_min_score: number_arg("--loop-min-score").unwrap_or(default_score),
             ..SlamConfig::default()
         },
     );
-    if flag("--rebuild-map") {
+    if rebuild {
         slam.rebuild_map_on_loop_closure();
     }
     slam

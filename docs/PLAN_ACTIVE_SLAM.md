@@ -243,6 +243,85 @@ All 60 runs ended with `Decision::Done`, none collided.
   both P1 policies, with no loss on the office and maze seeds; the distance
   spent on revisits is reported.
 
+#### P2 progress (exit not met)
+
+What landed, all opt-in so P1's numbers and the CI replay hash stay as they
+were:
+
+- `Explorer::with_revisits(RevisitConfig)`: once the robot has driven
+  `open_loop_m` (15 m) since the last loop closure, it may drive back to a
+  pose of its own trajectory that is at least `min_loop_m` (6 m) back along
+  the trajectory but close in space, within `max_detour_m` (8 m) of the
+  path. A revisit that closes no loop is not tried again within
+  `tried_radius_m`.
+- `Slam2d::rebuild_map_on_loop_closure()`: before it, a loop closure
+  re-optimized the pose graph and changed nothing else, so the grid and the
+  live pose stayed bent. With it, `Slam2d` keeps each keyframe's scan and,
+  after a closure, re-integrates them at the optimized poses and moves the
+  live pose to the optimized node.
+- Example 164 reports **bad loop closures**: closures whose relative pose
+  disagrees with the ground-truth trajectory by more than 0.25 m. Flags
+  `--rebuild-map` (with closure score 0.75, below), `--loop-min-score S`
+  and `--revisit`.
+
+What was found:
+
+- **Many of `Slam2d`'s loop closures are wrong**, even in the warehouse, at
+  the default `loop_min_score` 0.55: on the smoke start, 6 of 12 (nearest
+  frontier) and 5 of 26 (information gain). P1 got away with
+  this only because closures changed nothing.
+- **Rebuilding at score 0.55 is catastrophic.** It spreads the wrong
+  closures over the map, so the next scans match against a broken map and
+  more closures go wrong: 19 of 31 and 21 of 36 were bad, and SLAM error was
+  1.20 m and 13.9 m.
+- **At score 0.75 the warehouse is clean**, and rebuilding helps: 0 bad of
+  7 and of 20, SLAM error 0.239 → 0.180 m and 0.113 → 0.082 m, and coverage
+  93.0 → 95.0 % and 96.1 % (unchanged). Without rebuild, 0.75 still
+  accepted 3 bad of 7 and 0 of 20, and 0.85 no fewer (3 of 6, 0 of 18):
+  the rebuilt runs, which drive differently, happened to accept none, so
+  this is one start, not proof that 0.75 is safe.
+  Over all four warehouse starts with rebuild at 0.75, 1 of 36 closures was
+  bad, and the means improve on P1: nearest frontier SLAM error 0.172 →
+  0.124 m and coverage 94.4 → 95.4 %, information gain 0.076 → 0.067 m at
+  96.3 % (unchanged), with the same driving distance.
+- **Office and maze, seeds 0–2, rebuild at 0.75:** about neutral. Most runs
+  are identical to P1 (no closure accepted); office-1 nearest frontier
+  improves (0.268 → 0.242 m), office-1 information gain gets worse
+  (0.280 → 0.323 m, coverage 92.2 → 91.5 %), and 4 of 88 closures were bad.
+- **The loop worlds, 10 seeds, rebuild at 0.75:**
+
+  | | nearest SLAM err | nearest mapped | IG SLAM err | IG mapped | distance (nearest / IG) |
+  | --- | --- | --- | --- | --- | --- |
+  | P1 | 0.697 m | 85.3 % | 0.946 m | 83.1 % | 61.2 / 65.8 m |
+  | rebuild | 0.697 m | 85.3 % | 0.946 m | 83.1 % | 61.2 / 65.8 m |
+  | rebuild + revisit | 0.766 m | 85.8 % | 0.852 m | 83.5 % | 103.6 / 98.7 m |
+
+  Without revisits, closures happen in only 4 of 20 runs (56 closures, 24
+  bad), and the means equal P1's to the printed digit. Revisits make
+  closures happen in all 20 runs (1,523 closures, 218 bad) at about 20 m of
+  revisit driving per run (40–60 % more driving in total), and they help
+  where the closures are right: loop-1 nearest 0.311 → 0.229 m, loop-5
+  IG 0.972 → 0.601 m. But three runs still accept 40 % bad closures
+  (123/48, 120/50, 114/47) and get worse, and on average nearest frontier
+  loses (0.697 → 0.766 m) while information gain gains (0.946 → 0.852 m).
+  The exit (lower error *and* higher coverage than both P1 policies) is not
+  met.
+
+So the limit is no longer the explorer: the robot now goes back, and the map
+now follows the closures. It is closure verification in `Slam2d`. The loop
+worlds are built from long, similar, textured corridors, where a score
+threshold alone cannot tell the right place from a similar one. Next, in
+`rne_slam`, before more exploration policy:
+
+1. Gate a closure candidate on the drift the graph can explain: reject one
+   whose correction is larger than the odometry uncertainty accumulated
+   since the matched node (the residual gate today is a fixed 0.75 m).
+2. Accept a closure only when the next keyframes confirm it (two or three
+   consecutive closures consistent with each other), the usual guard against
+   perceptual aliasing.
+3. Then re-run this benchmark; D-optimality (design item 4) waits until the
+   closures it would ask for are trustworthy.
+
 ### P3: legged robot, no goals given
 
 - Example 131's Go2 + Mid-360, with `rne_explore` instead of the hand-given
@@ -270,6 +349,9 @@ All 60 runs ended with `Decision::Done`, none collided.
 - P1 scene: the warehouse of example 127 (2026-11-26).
 - P2 scenes: the generated loop worlds, with the office, maze and
   warehouse as regression checks (2026-11-26).
+- `Slam2d` map rebuild stays opt-in and pairs with closure score 0.75 in
+  example 164; the next P2 step is closure verification in `rne_slam`
+  (2026-11-27).
 
 ## Open questions
 
