@@ -486,7 +486,7 @@ cargo run --release -p plateau_gnss_navigation --features capture --example 152_
 | **Unknown start** (`--area shibuya --unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
 | **Park** (`--area park`): through Shinjuku Central Park and back | 0.17 m (3.0 m) | 2.1 m (10.5 m) |
 | **Off the map** (`--area shibuya --map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
-| **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
+| **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.02 m (0.22 m) | 1.09 m (2.5 m) |
 
 * **Open ground.** The suburb is made up, not PLATEAU: two-storey gabled
   houses with eaves, balconies and air conditioners behind block walls or
@@ -523,7 +523,52 @@ river banks, car parks, and a start with no idea where it is.
 
 ![A synthetic suburb: GNSS takes charge across 500 m of fields where the LiDAR sees only the ground; the localizer without GNSS, which has neither the RTK positions nor the dual-antenna heading, curves 235 m off](../../docs/media/plateau-gnss-suburb.gif)
 
+The same run from a low camera behind the robot (`--render-cinematic`,
+encoded with `--width 640 --colors 192`):
+
+![The suburb from behind the robot: houses, parked cars and utility poles, then the fields where only GNSS holds it](../../docs/media/plateau-gnss-suburb-promo.gif)
+
 ![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
+
+### An aged map (`--aged-map`)
+
+The LiDAR map above is the world's own surfaces, which flatters the LiDAR.
+`--aged-map` builds it as a survey some time ago would have it:
+
+* 2 cm of noise on every point, and a slow warp of up to about 8 cm across
+  the area, as a SLAM map drifts;
+* a third of the poles and vending machines, and a quarter of the trees and
+  hedges, gone or moved since, so the map has none of them;
+* cars parked at the kerb of built-up streets during the survey, every
+  45–75 m, that the world no longer has.
+
+```bash
+cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- \
+  --quick --area shibuya --lidar3d --beidou --ghost --aged-map
+```
+
+| RMSE (max), 3D LiDAR, BeiDou | exact map | aged map |
+|------|------|------|
+| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.05 m (0.12 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.05 m (0.10 m) |
+| Nishi-Shinjuku, with GNSS | 0.01 m (0.25 m) | 0.04 m (0.10 m) |
+| Nishi-Shinjuku, without GNSS | 0.01 m (0.25 m) | 0.04 m (0.10 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.04 m (0.16 m) |
+| Suburb, without GNSS | 87 m (235 m) | 86 m (232 m) |
+
+The survey's warp is what the LiDAR now reports, a few centimetres; the
+missing furniture and the phantom cars do not break the match among
+buildings, and the conclusions stand: the map holds the robot wherever
+buildings are in reach, GNSS carries it across the fields.
+
+Among Nishi-Shinjuku's towers RTK once fixes its ambiguities wrongly and
+jumps 3.5 m, as consistently as a rebuilt street would make it disagree
+with the map. The hybrid tells the two apart by which side left the
+wheels: a rebuilt street pulls the matches, and the estimate with them,
+off the odometry; a wrong fix jumps while the estimate follows the wheels
+(`HybridLocalizerConfig::gnss_reanchor_min_departure_ratio`, 0.5 here).
+Before that, the wrong fix took over from an exact match and held the
+robot 3.7 m off (0.61 m RMSE).
 
 ### lidar_localization_ros2's registration (`--lidarloc`)
 
