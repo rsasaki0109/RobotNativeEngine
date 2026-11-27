@@ -486,7 +486,7 @@ cargo run --release -p plateau_gnss_navigation --features capture --example 152_
 | **Unknown start** (`--area shibuya --unknown-start`): both start 25 m from the truth with a 30 m sigma | 0.60 m (25 m, the first second) | 61 m (109 m) |
 | **Park** (`--area park`): through Shinjuku Central Park and back | 0.17 m (3.0 m) | 2.1 m (10.5 m) |
 | **Off the map** (`--area shibuya --map-gap 430:570`): the spur north of the route's turn, 140 m there and back, is not in the LiDAR map | 0.10 m (1.6 m) | 1.06 m (5.4 m) |
-| **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.13 m (1.4 m) | 1.09 m (2.5 m) |
+| **Construction** (`--area shibuya --map-shift 430:570:2.5:0`): the spur's buildings stand 2.5 m east of where the map has them | 0.02 m (0.22 m) | 1.09 m (2.5 m) |
 
 * **Open ground.** The suburb is made up, not PLATEAU: two-storey gabled
   houses with eaves, balconies and air conditioners behind block walls or
@@ -551,18 +551,24 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 |------|------|------|
 | Shibuya, with GNSS | 0.01 m (0.07 m) | 0.05 m (0.12 m) |
 | Shibuya, without GNSS | 0.00 m (0.04 m) | 0.05 m (0.10 m) |
-| Nishi-Shinjuku, with GNSS | 0.61 m (3.68 m) | 0.04 m (0.10 m) |
-| Nishi-Shinjuku, without GNSS | 0.00 m (0.06 m) | 0.04 m (0.10 m) |
+| Nishi-Shinjuku, with GNSS | 0.01 m (0.25 m) | 0.04 m (0.10 m) |
+| Nishi-Shinjuku, without GNSS | 0.01 m (0.25 m) | 0.04 m (0.10 m) |
 | Suburb, with GNSS | 0.00 m (0.05 m) | 0.04 m (0.16 m) |
 | Suburb, without GNSS | 87 m (235 m) | 86 m (232 m) |
 
 The survey's warp is what the LiDAR now reports, a few centimetres; the
 missing furniture and the phantom cars do not break the match among
 buildings, and the conclusions stand: the map holds the robot wherever
-buildings are in reach, GNSS carries it across the fields. Nishi-Shinjuku
-with GNSS on the exact map is the odd one out: once, among the towers, the
-hybrid dead reckons for 25 s and stops for safety; the run without GNSS and
-the aged map's run do not.
+buildings are in reach, GNSS carries it across the fields.
+
+Among Nishi-Shinjuku's towers RTK once fixes its ambiguities wrongly and
+jumps 3.5 m, as consistently as a rebuilt street would make it disagree
+with the map. The hybrid tells the two apart by which side left the
+wheels: a rebuilt street pulls the matches, and the estimate with them,
+off the odometry; a wrong fix jumps while the estimate follows the wheels
+(`HybridLocalizerConfig::gnss_reanchor_min_departure_ratio`, 0.5 here).
+Before that, the wrong fix took over from an exact match and held the
+robot 3.7 m off (0.61 m RMSE).
 
 ### lidar_localization_ros2's registration (`--lidarloc`)
 

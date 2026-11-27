@@ -37,6 +37,12 @@ All notable changes to Robot Native Engine are documented in this file.
   against 61 m RMSE; a stretch missing from the map: 0.10 against 1.06 m; a
   rebuilt stretch: 0.13 against 1.09 m). The HUD adds a top-down map of
   the robot's and the ghost's tracks.
+- `HybridLocalizerConfig::gnss_reanchor_min_departure_ratio`: with
+  `lidar_keeps_charge`, a consistent run of rejected RTK fixed fixes shows
+  the map wrong only when the estimate moved off the wheels by that share of
+  the run's offset since the last RTK fixed fix that agreed. A wrong RTK fix
+  in Nishi-Shinjuku no longer takes over from an exact match (0.61 to
+  0.01 m RMSE); a rebuilt street still hands over to GNSS.
 - Example 152: `--aged-map` surveys the 3D LiDAR map with 2 cm of noise and
   a warp of up to about 8 cm, without a third of the street furniture and a
   quarter of the trees and hedges, and with cars parked at the kerb that are
