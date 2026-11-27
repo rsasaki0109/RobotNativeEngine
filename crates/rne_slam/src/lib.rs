@@ -89,7 +89,7 @@ pub use session::{
     DiscoveryConfig, DiscoveryError, LifelongPoseGraph, MergeOptions, PruneConfig, PruneReport,
     SessionConstraint, SessionError, SessionId, SessionRecognition, SessionScan,
 };
-pub use slam::{closure_consistent, Slam2d, SlamConfig, SlamUpdate};
+pub use slam::{closure_consistent, Slam2d, SlamConfig, SlamUpdate, SubmapLoopConfig};
 pub use slam3d::{
     pose2d_to_transform3, pose3_to_pose2d, Slam3d, Slam3dConfig, Slam3dUpdate,
     SlamError as Slam3dError,
