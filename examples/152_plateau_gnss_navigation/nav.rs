@@ -10,7 +10,6 @@ use crate::gnss::{GnssOutput, RobotGnss, SolutionLabel, BODY_HEIGHT_M};
 use crate::lidar3d;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range_planar, Movers, Street};
-use rne_adapter_lidarloc::LidarLoc;
 use rne_core::DeterministicRng;
 use rne_gnss::{BodyPose, Constellation, GnssScene, ReceiverConfig, SignalPath, TraceConfig};
 use rne_math::Vec3;
@@ -150,7 +149,7 @@ impl Localizer {
         }
     }
 
-    /// Every `LIDAR3D_PERIOD_S`, takes a 3D scan from the true pose
+    /// Every [`lidar3d::LIDAR3D_PERIOD_S`], takes a 3D scan from the true pose
     /// (`sensed`: the pedestrians, rain and the pose), matches it against
     /// the point-cloud map and feeds the match (see [`Self::match_lidar3d`]).
     /// Returns the scan, reduced for matching, when one was taken.
@@ -162,7 +161,7 @@ impl Localizer {
         t: f64,
         state: &mut Lidar3dState,
     ) -> Option<Vec<Vec3>> {
-        if t - state.last_scan_s < LIDAR3D_PERIOD_S - 1.0e-6 {
+        if t - state.last_scan_s < lidar3d::LIDAR3D_PERIOD_S - 1.0e-6 {
             return None;
         }
         state.last_scan_s = t;
@@ -193,8 +192,9 @@ impl Localizer {
         } = state;
         let pose = self.pose();
         let z = city.ground_m(pose.x_m, pose.y_m) + lidar3d::SENSOR_HEIGHT_M;
+        let tracked_by_lidarloc = lidarloc.is_some();
         let mut raw = || match lidarloc {
-            Some(loc) => lidar3d::lidarloc_match(loc, map, points, pose, z),
+            Some(loc) => lidar3d::lidarloc_match(loc, points, pose, z, t),
             None => map.match_scan(points, pose, z, &lidar3d::match_config()),
         };
         let mut local = || {
@@ -209,6 +209,13 @@ impl Localizer {
                 // While GNSS is in charge a match that agrees with it takes
                 // over (with `lidar_keeps_charge`; ignored otherwise).
                 LocalizationSource::Lidar | LocalizationSource::Gnss => {
+                    let m = local();
+                    *last_fit = m.map(|m| m.fit_fraction);
+                    h.update_lidar_match(m.as_ref(), t).expect("lidar");
+                }
+                // lidar_localization_ros2 tracks every scan from the
+                // odometry bridge and re-acquires on its own.
+                LocalizationSource::DeadReckoning if tracked_by_lidarloc => {
                     let m = local();
                     *last_fit = m.map(|m| m.fit_fraction);
                     h.update_lidar_match(m.as_ref(), t).expect("lidar");
@@ -243,9 +250,6 @@ impl Localizer {
     }
 }
 
-/// Seconds between 3D LiDAR scans.
-const LIDAR3D_PERIOD_S: f64 = 0.2;
-
 /// The 3D LiDAR's noise stream and timing.
 struct Lidar3dState {
     rng: DeterministicRng,
@@ -275,13 +279,13 @@ struct MatchState {
     /// Whether the latest scan fit the map but held nothing that pins the
     /// position (only open ground in reach).
     open_ground: bool,
-    /// lidar_localization_ros2's registration, with `--lidarloc`; the
-    /// relocalizing search stays `rne_slam`'s.
-    lidarloc: Option<LidarLoc>,
+    /// lidar_localization_ros2's tracking, with `--lidarloc`: its gate and
+    /// its local re-acquisition replace `rne_slam`'s search.
+    lidarloc: Option<lidar3d::Tracker>,
 }
 
 impl MatchState {
-    fn new(lidarloc: Option<LidarLoc>) -> Self {
+    fn new(lidarloc: Option<lidar3d::Tracker>) -> Self {
         Self {
             last_search_s: f64::NEG_INFINITY,
             last_fit: None,
@@ -292,7 +296,7 @@ impl MatchState {
 }
 
 impl Lidar3dState {
-    fn new(seed: u64, lidarloc: Option<LidarLoc>) -> Self {
+    fn new(seed: u64, lidarloc: Option<lidar3d::Tracker>) -> Self {
         Self {
             rng: DeterministicRng::new(seed),
             last_scan_s: f64::NEG_INFINITY,
@@ -957,7 +961,7 @@ fn robot_gnss(
 
 /// lidar_localization_ros2's registration on the map, with `--lidarloc`
 /// (one per localizer).
-fn lidarloc(cloud: Option<&lidar3d::Map3d>, options: &RunOptions) -> Option<LidarLoc> {
+fn lidarloc(cloud: Option<&lidar3d::Map3d>, options: &RunOptions) -> Option<lidar3d::Tracker> {
     cloud
         .filter(|_| options.lidar3d && options.lidarloc)
         .map(|map| lidar3d::lidarloc(map).unwrap_or_else(|e| panic!("--lidarloc: {e}")))

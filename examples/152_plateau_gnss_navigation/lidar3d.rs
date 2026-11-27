@@ -5,7 +5,7 @@ use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
 use crate::nav::gaussian;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range, Movers};
-use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig};
+use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig, Reacquisition, Tracking};
 use rne_core::DeterministicRng;
 use rne_math::Vec3;
 use rne_math::{DQuat, Mat4};
@@ -381,57 +381,131 @@ pub(crate) fn build_map(
     Map3d { cloud: map, points }
 }
 
-/// lidar_localization_ros2's registration on the map (`--lidarloc`):
-/// NDT_OMP at 1 m on the whole map, one thread so that runs repeat exactly,
-/// the scans already reduced by [`downsample`].
-pub(crate) fn lidarloc(map: &Map3d) -> Result<LidarLoc, String> {
+/// lidar_localization_ros2 on the map (`--lidarloc`), tracking as its node
+/// does: NDT_OMP at 1 m on the whole map, one thread so that runs repeat
+/// exactly, the scans already reduced by [`downsample`]; the node's
+/// measurement gate; the map-distance prefilter at 1 m for the people, cars
+/// and rain the map lacks; and local re-acquisition on an occupancy grid of
+/// the map after the odometry carried the pose through an outage.
+pub(crate) fn lidarloc(map: &Map3d) -> Result<Tracker, String> {
     let mut loc = LidarLoc::new(&LidarLocConfig {
         registration_method: "NDT_OMP".into(),
         ndt_num_threads: 1,
         filter_scan: false,
         inlier_ratio_min_points: 50,
+        map_distance_filter_m: 1.0,
         ..LidarLocConfig::default()
     })
     .map_err(|e| e.to_string())?;
+    loc.set_tracking(&Tracking {
+        scan_period_sec: LIDAR3D_PERIOD_S,
+        ..Tracking::default()
+    })
+    .map_err(|e| e.to_string())?;
+    loc.set_reacquisition(&Reacquisition {
+        // Two seconds of rejected scans, then a try every second.
+        min_rejections: 10,
+        attempt_interval_scans: 5,
+        // Street level: kerbs and parked cars are obstacles, not the
+        // buildings' upper floors.
+        scan_min_z_m: -1.0,
+        scan_max_z_m: 3.0,
+        occupancy_max_obstacle_height_m: 4.0,
+        ..Reacquisition::default()
+    })
+    .map_err(|e| e.to_string())?;
     loc.set_map(&map.points).map_err(|e| e.to_string())?;
-    Ok(loc)
+    Ok(Tracker {
+        loc,
+        started: false,
+    })
 }
 
-/// A match from lidar_localization_ros2: its pose, with the fit and the
-/// covariance of the map's point-to-plane residuals there (one evaluation of
-/// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
-/// it does its own matches.
+/// lidar_localization_ros2's tracking, started at the localizer's estimate
+/// on the first scan.
+pub(crate) struct Tracker {
+    loc: LidarLoc,
+    started: bool,
+}
+
+/// Seconds between 3D LiDAR scans.
+pub(crate) const LIDAR3D_PERIOD_S: f64 = 0.2;
+
+/// Variance, m², per unit of the negated inverse NDT score Hessian:
+/// calibrated on the Shibuya route against `rne_slam`'s point-to-plane
+/// covariance of the same scans (`point_sigma_m` 0.1 m).
+const NDT_COVARIANCE_SCALE: f64 = 1.0;
+
+/// One scan through lidar_localization_ros2's tracking, seeded with the
+/// localizer's estimate (the odometry bridge). An accepted scan is a match
+/// with its fit (the inlier ratio) and the covariance of the NDT score
+/// Hessian, so that the hybrid weighs and gates it as it does its own
+/// matches; a scan the node's gate rejects is none.
 pub(crate) fn lidarloc_match(
-    loc: &mut LidarLoc,
-    map: &PointCloudMap,
+    tracker: &mut Tracker,
     points: &[Vec3],
     pose: Pose2d,
     z_m: f64,
+    t: f64,
 ) -> Option<PointCloudMatch> {
-    let guess = Mat4::from_rotation_translation(
+    let seed = Mat4::from_rotation_translation(
         DQuat::from_rotation_z(pose.yaw_rad),
         Vec3::new(pose.x_m, pose.y_m, z_m),
     );
-    let aligned = loc.align(points, &guess).ok()?;
-    if !aligned.target_ready || !aligned.converged {
+    if !tracker.started {
+        tracker.loc.set_initial_pose(&seed, t).ok()?;
+        tracker.started = true;
+    }
+    let update = tracker.loc.localize(points, t, Some(&seed)).ok()?;
+    if !update.accepted {
         return None;
     }
-    let t = aligned.pose.w_axis;
-    let at = Pose2d::new(t.x, t.y, aligned.pose.x_axis.y.atan2(aligned.pose.x_axis.x));
-    let evaluated = map.match_scan(
-        points,
-        at,
-        t.z,
-        &PointCloudMatchConfig {
-            max_iterations: 1,
-            ..match_config()
+    let aligned = update.alignment;
+    let p = update.pose;
+    let config = match_config();
+    // Without a definite Hessian nothing pins the position: unconstrained.
+    let (position, yaw) = aligned.planar_covariance().map_or(
+        ([[f64::INFINITY, 0.0], [0.0, f64::INFINITY]], f64::INFINITY),
+        |(c, yaw)| {
+            (
+                c.map(|row| row.map(|v| v * NDT_COVARIANCE_SCALE)),
+                yaw * NDT_COVARIANCE_SCALE,
+            )
         },
-    )?;
+    );
     Some(PointCloudMatch {
-        pose: at,
-        z_m: t.z,
-        ..evaluated
+        pose: Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x)),
+        z_m: p.w_axis.z,
+        position_covariance_m2: clamp_covariance(
+            position,
+            config.min_position_variance_m2,
+            config.max_position_variance_m2,
+        ),
+        yaw_variance_rad2: yaw.clamp(config.min_yaw_variance_rad2, 1.0),
+        rmse_m: aligned.fitness_score.sqrt(),
+        inlier_fraction: aligned.inlier_ratio,
+        fit_fraction: aligned.inlier_ratio,
+        converged: aligned.converged,
     })
+}
+
+/// A planar covariance with its eigenvalues clamped to `[lo, hi]`, as
+/// `rne_slam` clamps its matches'.
+fn clamp_covariance(c: [[f64; 2]; 2], lo: f64, hi: f64) -> [[f64; 2]; 2] {
+    let [[a, b0], [b1, d]] = c;
+    if !(a.is_finite() && d.is_finite()) {
+        return [[hi, 0.0], [0.0, hi]];
+    }
+    let b = 0.5 * (b0 + b1);
+    let mean = 0.5 * (a + d);
+    let spread = (0.25 * (a - d) * (a - d) + b * b).sqrt();
+    let (l1, l2) = ((mean + spread).clamp(lo, hi), (mean - spread).clamp(lo, hi));
+    let angle = 0.5 * (2.0 * b).atan2(a - d);
+    let (s, c) = angle.sin_cos();
+    [
+        [l1 * c * c + l2 * s * s, (l1 - l2) * s * c],
+        [(l1 - l2) * s * c, l1 * s * s + l2 * c * c],
+    ]
 }
 
 /// The scan reduced for matching.

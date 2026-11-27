@@ -572,15 +572,27 @@ robot 3.7 m off (0.61 m RMSE).
 
 ### lidar_localization_ros2's registration (`--lidarloc`)
 
-`--lidarloc` matches the 3D scans with
-[lidar_localization_ros2](https://github.com/rsasaki0109/lidar_localization_ros2)'s
-registration instead of `rne_slam::PointCloudMap`, through its ROS-free core
-and [`rne_adapter_lidarloc`](../../adapters/lidarloc/rne_adapter_lidarloc):
-the code the ROS 2 node runs, without ROS. NDT_OMP at 1 m on the whole map,
-one thread so that runs repeat exactly. The pose is NDT's; the fit and the
-covariance the hybrid weighs and gates it by are the map's point-to-plane
-residuals at that pose. The relocalizing search after dead reckoning stays
-`rne_slam`'s.
+`--lidarloc` localizes the 3D scans with
+[lidar_localization_ros2](https://github.com/rsasaki0109/lidar_localization_ros2)
+instead of `rne_slam::PointCloudMap`, through its ROS-free core and
+[`rne_adapter_lidarloc`](../../adapters/lidarloc/rne_adapter_lidarloc): the
+code the ROS 2 node runs, without ROS. Every scan goes through the node's
+per-scan tracking (`lidarloc_localize`), seeded with the hybrid's estimate
+as the node is seeded with odometry:
+
+* NDT_OMP at 1 m on the whole map, one thread so that runs repeat exactly;
+* the node's measurement gate, which decides whether a scan is used;
+* the map-distance prefilter at 1 m, which leaves the people, cars and rain
+  the map lacks out of the alignment;
+* local re-acquisition after an outage: once two seconds of scans are
+  rejected, a branch-and-bound search on an occupancy grid of the map
+  around the estimate, confirmed by the gate on the next scan. It replaces
+  `rne_slam`'s relocalizing search.
+
+The covariance the hybrid weighs and gates a scan by comes from the NDT
+score's Hessian at the pose, scaled once against `rne_slam`'s point-to-plane
+covariance of the same scans: where a scan pins nothing horizontally (open
+ground) the Hessian says so, and the match is not used.
 
 ```bash
 sudo apt-get install libpcl-dev libeigen3-dev libomp-dev

@@ -647,6 +647,44 @@ jobs:
           name: fuzz-smoke-report
           path: artifacts/fuzz-smoke/report.json
 
+  # lidar_localization_ros2's ROS-free core, built from the revision
+  # scripts/build_lidarloc.sh pins and linked into rne_adapter_lidarloc (the
+  # other jobs build the adapter's stub): the adapter's tests, required to run,
+  # and example 152 driving the synthetic suburb with --lidarloc.
+  lidarloc:
+    runs-on: ubuntu-latest
+    env:
+      RNE_LIDARLOC_DIR: ${{ github.workspace }}/../lidarloc/install
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: lidarloc
+      - name: Install PCL and Eigen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libpcl-dev libeigen3-dev
+      - name: Restore lidar_localization_core
+        id: core
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/../lidarloc/install
+          key: lidarloc-core-${{ runner.os }}-${{ hashFiles('scripts/build_lidarloc.sh') }}
+      - name: Build lidar_localization_core
+        if: steps.core.outputs.cache-hit != 'true'
+        run: LIDARLOC_JOBS=4 scripts/build_lidarloc.sh "$(dirname "$RNE_LIDARLOC_DIR")"
+      - name: Adapter tests against the core
+        env:
+          RNE_LIDARLOC_REQUIRED: "1"
+        run: cargo test --locked -p rne_adapter_lidarloc
+      - name: Example 152 on the suburb with --lidarloc
+        run: |
+          cargo run --locked --release -p plateau_gnss_navigation \
+            --example 152_plateau_gnss_navigation -- \
+            --quick --area suburb --lidar3d --lidarloc | tee lidarloc-suburb.log
+          grep -q "RMSE" lidarloc-suburb.log
+
   # Aggregate gate so tooling that watched the old single job has one required
   # context to point at; it passes only when every stage passes.
   workspace:
