@@ -579,6 +579,9 @@ leaving the tunnel and puts the robot where it is (0.00 m); without GNSS it
 crosses the fields with the error it left the tunnel with, which grows to
 70 m before the far town.
 
+The last 200 m of the tunnel and the fields after it, from a low camera behind
+the robot (`--render-cinematic --render-from 1250 --render-to 1560`):
+
 ![The long tunnel's exit: 11 m of drift along a kilometre of tunnel, taken back by the first RTK fixes on leaving it; the localizer without GNSS crosses the fields with it](../../docs/media/plateau-gnss-long-tunnel.gif)
 
 ### Crowds and traffic for the 3D LiDAR (`--weather`)
