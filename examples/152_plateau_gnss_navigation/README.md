@@ -545,17 +545,41 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 
 | 3D LiDAR, BeiDou | RMSE (max) |
 |------|------|
-| With GNSS | 0.52 m (2.90 m) |
-| Without GNSS (`--ghost`) | 0.52 m (2.90 m) |
+| With GNSS | 0.72 m (3.08 m) |
+| Without GNSS (`--ghost`) | 0.72 m (3.08 m) |
 
 GNSS adds nothing here, and the tunnel is not the hard case it looks:
 the scan's point-to-plane covariance is narrow across the tunnel and wide
 along it, so the hybrid takes the lateral position from LiDAR and the
-along-track position from the wheels. Over 300 m that drifts 2.9 m, and
+along-track position from the wheels. Over 300 m that drifts 3 m, and
 the far headwall, in reach before the exit, takes it back. The fields on
 either side are only 100 m long, and a headwall or the houses are always
-within the LiDAR's 60 m. GNSS (none for 27 % of the run) would matter for
-a longer tunnel, or one that opens onto open ground.
+within the LiDAR's 60 m. GNSS (none for 26 % of the run) matters for a
+longer tunnel that opens onto open ground.
+
+### A long tunnel (`--area longtunnel`)
+
+A 2.4 km road: the towns at both ends, and in the middle a kilometre of
+the same tunnel between 350 m of fields on either side.
+
+```bash
+cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- \
+  --quick --area longtunnel --lidar3d --beidou --ghost
+```
+
+| 3D LiDAR, BeiDou | RMSE (max) |
+|------|------|
+| With GNSS | 4.2 m (11.5 m) |
+| Without GNSS (`--ghost`) | 17.8 m (70 m) |
+
+Along a kilometre of tunnel the wheels (1 % scale error) drift 11 m. At the
+exit the far headwall is behind the robot and the fields ahead hold nothing
+to pin it, so LiDAR cannot take the 11 m back. RTK fixes within seconds of
+leaving the tunnel and puts the robot where it is (0.00 m); without GNSS it
+crosses the fields with the error it left the tunnel with, which grows to
+70 m before the far town.
+
+![The long tunnel's exit: 11 m of drift along a kilometre of tunnel, taken back by the first RTK fixes on leaving it; the localizer without GNSS crosses the fields with it](../../docs/media/plateau-gnss-long-tunnel.gif)
 
 ### Crowds and traffic for the 3D LiDAR (`--weather`)
 
@@ -623,15 +647,31 @@ as the node is seeded with odometry:
   the map lacks out of the alignment;
 * local re-acquisition after an outage: once two seconds of scans are
   rejected, a branch-and-bound search on an occupancy grid of the map
-  around the estimate, confirmed by the gate on the next scan. It replaces
-  `rne_slam`'s relocalizing search.
+  around the estimate, confirmed by the gate on the next scan;
+* global localization (`lidarloc_global_localize`, the node's G2 "bbs3d"
+  search over the whole map) every 5 s until the robot is first placed:
+  with an unknown start. Not later: the suburb's rows of similar houses
+  hold other places that fit as well as the right one.
 
-The fit and the covariance the hybrid weighs and gates an accepted scan by
-are the map's point-to-plane residuals at the node's pose. The C API also
-reports the NDT score's Hessian (`Alignment::planar_covariance`), but it
-cannot tell open ground: on the fields NDT's 1 m cells pin the scan to
-their lattice, and the Hessian claims about 2 cm (σ) in every horizontal
-direction where the point-to-plane residuals, rightly, pin none.
+Two checks stand between NDT and the hybrid:
+
+* **The point-to-plane fit.** Started at NDT's pose, the map's
+  point-to-plane fit must settle within 0.3 m of it. On the open ground
+  before the tunnel, with the headwall at the edge of range, NDT stopped
+  0.5–2.6 m off (its 1 m cells pin a scan of bare ground to their lattice)
+  and the gate let it through. The fit's residuals give the covariance the
+  hybrid weighs the scan by.
+* **Solution remapping.** Where NDT's Hessian is weakest along a horizontal
+  translation, with under 5 % of its strongest eigenvalue (along a tunnel),
+  the part of NDT's correction in that direction is dropped. NDT and the
+  point-to-plane fit otherwise slid along the tunnel together, below the
+  seed guards' limits, and dragged the estimate 95 m.
+
+While the hybrid dead reckons, `rne_slam`'s search over the window runs once
+a second. The NDT Hessian is also reported as a covariance
+(`Alignment::planar_covariance`), but it cannot tell open ground: on the
+fields it claims about 2 cm (σ) in every horizontal direction, where the
+point-to-plane residuals, rightly, pin none.
 
 ```bash
 sudo apt-get install libpcl-dev libeigen3-dev libomp-dev
@@ -643,28 +683,29 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 | 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2, registration only (before) | lidar_localization_ros2, tracking |
 |------|------|------|------|
 | Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.04 m (0.40 m) |
-| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.10 m) |
-| Shibuya at rush hour (`--weather rush`), with GNSS | 0.01 m (0.07 m) | | 0.08 m (0.60 m) |
-| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.06 m (1.00 m) |
-| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 75 m (214 m) |
-| Tunnel (`--area tunnel`), with GNSS | 0.52 m (2.90 m) | | 1.78 m (12.1 m) |
-| Tunnel, without GNSS | 0.52 m (2.90 m) | | 31 m (54 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.11 m) |
+| Shibuya at rush hour (`--weather rush`), with GNSS | 0.01 m (0.07 m) | | 0.03 m (0.13 m) |
+| Shibuya, unknown start, with GNSS | 0.60 m (25 m) | | 0.60 m (25 m) |
+| Shibuya, unknown start, without GNSS | 61 m (109 m) | | 0.64 m (25 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.02 m (0.27 m) |
+| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 85 m (230 m) |
+| Tunnel (`--area tunnel`), with GNSS | 0.72 m (3.08 m) | | 0.84 m (2.85 m) |
+| Tunnel, without GNSS | 0.72 m (3.08 m) | | 0.84 m (2.83 m) |
 
-The node's gate keeps the scans NDT fits badly out of the hybrid: in
-Shibuya with GNSS the worst error falls from 1.06 m to 0.40 m. NDT's 1 m
-cells are coarser than point-to-plane on a map sampled from the very
-surfaces the LiDAR sees, so it stays a few centimetres less exact here, and
-the conclusions hold: either LiDAR holds the robot among the buildings, and
-only GNSS carries it across the fields. Two cases are still `rne_slam`'s:
-
-* **Crowds.** At rush hour the map-distance prefilter keeps most people
-  out of NDT, but not all; `rne_slam`'s own filter of unmapped returns
-  does better.
-* **The tunnel.** Without the seed correction guards NDT slides along the
-  tunnel and drags the estimate with it (42 m RMSE). With them it holds
-  1–2 m inside, but on the open ground at the portals the gate accepts NDT
-  poses a few metres off, LiDAR keeps charge though RTK is fixed there, and
-  the error peaks at 12 m before the far town pins it again.
+* **Unknown start.** lidar_localization_ros2's global search finds the robot
+  in the first scan (14 s of computing), without GNSS. `rne_slam` searches
+  only a few metres around a start 25 m off, and without GNSS never finds
+  itself.
+* **Everywhere else** the two hold the robot alike. NDT's 1 m cells are
+  coarser than point-to-plane on a map sampled from the very surfaces the
+  LiDAR sees, so it stays a few centimetres less exact, and the conclusions
+  hold: either LiDAR holds the robot among the buildings, and only GNSS
+  carries it across the fields.
+* **What each check is for**, in the tunnel with GNSS: without the seed
+  correction guards NDT slid along the tunnel (42 m RMSE); without the
+  point-to-plane check it stopped metres off on the open ground at the
+  portals (12 m at most); without solution remapping it slid along the
+  tunnel together with the point-to-plane fit (95 m at most).
 
 ## Limits
 
