@@ -28,3 +28,4 @@ serde_json = { workspace = true }
 [[example]]
 name = "131_go2_mid360_navigation"
 path = "main.rs"
+test = true

@@ -33,6 +33,8 @@
 //! cargo run --release -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --explore
 //! ```
 
+mod layouts;
+
 use std::f64::consts::PI;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -51,8 +53,8 @@ use rne_data::PointCloud;
 use rne_explore::{Decision, Explorer, ExplorerConfig, FrontierConfig, ScorePolicy, SensorModel};
 use rne_math::{Quat, Transform3, Vec3};
 use rne_nav::{
-    plan_path, Costmap, CostmapConfig, FrameId, GlobalPlannerConfig, GridCoord, LaserScan2d,
-    OccupancyGrid, Path2d, Pose2d, COST_INSCRIBED, COST_LETHAL,
+    integrate_scan, plan_path, Costmap, CostmapConfig, FrameId, GlobalPlannerConfig, GridCoord,
+    LaserScan2d, OccupancyGrid, Path2d, Pose2d, ScanIntegrationConfig, COST_INSCRIBED, COST_LETHAL,
 };
 use rne_render::{
     Camera, MeshRenderCache, RenderBackend, RenderScene, RenderSceneItem, TriangleMesh, VisualShape,
@@ -129,12 +131,26 @@ const ODOM_YAW_RATE_BIAS_RAD_S: f64 = 0.02;
 /// Scan band relative to the sensor, which rides 0.447 m above the floor.
 const SCAN_MIN_HEIGHT_M: f64 = -0.30;
 const SCAN_MAX_HEIGHT_M: f64 = 0.20;
-/// Exploration's band tops out 0.35 m above the floor, under the lowest
-/// furniture (a 0.40 m crate). Beams above a crate's top reach the wall
-/// behind it and mark the crate's cells free; that lured the explorer to
-/// frontiers behind crates, where a leg caught the crate. Driving to fixed
-/// goals never went there.
-const EXPLORE_SCAN_MAX_HEIGHT_M: f64 = -0.10;
+/// The Mid-360's height above the floor on the standing Go2.
+const MID360_HEIGHT_M: f64 = 0.447;
+/// Heights above the floor the Go2's body and legs can hit: returns there
+/// mark the obstacle layer.
+const COLLISION_BAND_M: [f64; 2] = [0.10, 0.55];
+/// Returns below this height above the floor are floor: their rays clear
+/// the obstacle layer.
+const FLOOR_RETURN_M: f64 = 0.05;
+/// Stepping out of the inscribed band before a turn in place: speed, and how
+/// far ahead or behind (cosine of the bearing) the obstacle must be for a step
+/// along the body axis to help.
+const ESCAPE_SPEED_M_S: f64 = 0.1;
+const ESCAPE_MIN_ALIGNMENT: f64 = 0.3;
+/// A step away lasts this long, and the next cannot start for this long after:
+/// re-deciding every frame made the step and the turn alternate until the
+/// trot fell.
+const ESCAPE_HOLD_S: f64 = 1.0;
+const ESCAPE_COOLDOWN_S: f64 = 2.0;
+/// Log-odds given to obstacle-layer cells copied into the navigation map.
+const OBSTACLE_LOG_ODDS: f64 = 5.0;
 /// Returns closer than this are the robot itself.
 const SCAN_MIN_RANGE_M: f64 = 0.40;
 const SCAN_MAX_RANGE_M: f64 = 20.0;
@@ -191,6 +207,14 @@ struct Nav {
     path: Option<Path2d>,
     /// Present with `--explore`: chooses frontiers instead of [`GOALS`].
     explorer: Option<Explorer>,
+    /// Set each frame with `--explore`: step away from an obstacle at this
+    /// speed instead of turning in place next to it.
+    escape_speed_m_s: Option<f64>,
+    /// The step away in progress, if any.
+    escape: Escape,
+    /// Present with `--explore`: obstacles at the Go2's height, kept apart
+    /// from the SLAM map (see [`Nav::update_obstacle_layer`]).
+    obstacle_layer: Option<OccupancyGrid>,
     /// Set once the explorer finds nothing reachable left to explore.
     explored: bool,
     /// Frontier goals reached, and how often no path to one was found.
@@ -208,6 +232,8 @@ struct Nav {
     min_clearance_m: f64,
     /// Closest any of [`BODY_LINKS`] came to an obstacle's footprint.
     min_body_clearance_m: f64,
+    /// Where that was: link, obstacle, time.
+    closest_approach: (&'static str, String, f64),
     min_height_m: f64,
     obstacles: Vec<StaticObject>,
     matched_frames: u64,
@@ -215,11 +241,8 @@ struct Nav {
 }
 
 impl Nav {
-    fn new(explore: bool) -> Self {
-        let mut sim = UrdfSceneSim::from_scene_path(&repo_path(
-            "assets/scenes/unitree_go2_two_rooms.rne.scene.toml",
-        ))
-        .expect("load two-room scene");
+    fn new(explore: bool, scene: &Path) -> Self {
+        let mut sim = UrdfSceneSim::from_scene_path(scene).expect("load two-room scene");
         // Ease each walk in over a second: a full-speed first step can tip
         // the 16 kg Go2 into a stumble.
         let trot = UnitreeGo2ModelTrot::stand_up(&mut sim).with_command_ease_in_s(1.0);
@@ -240,6 +263,7 @@ impl Nav {
             Pose2d::new(MAP_ORIGIN[0], MAP_ORIGIN[1], 0.0),
         )
         .expect("map grid");
+        let obstacle_layer = explore.then(|| grid.clone());
         // Odometry starts at the true start pose, so the map frame is the world's.
         let start = true_pose(&sim);
         let obstacles = static_obstacles(sim.world());
@@ -258,6 +282,9 @@ impl Nav {
             odom_at_slam: start,
             path: None,
             explorer: explore.then(|| Explorer::new(explorer_config())),
+            obstacle_layer,
+            escape_speed_m_s: None,
+            escape: Escape::default(),
             explored: false,
             frontier_goals: 0,
             plan_failures: 0,
@@ -272,6 +299,7 @@ impl Nav {
             error_samples: 0,
             min_clearance_m: f64::MAX,
             min_body_clearance_m: f64::MAX,
+            closest_approach: ("", String::new(), 0.0),
             min_height_m: f64::MAX,
             obstacles,
             matched_frames: 0,
@@ -311,7 +339,8 @@ impl Nav {
             Some(&self.rig),
             SensorNoiseKey::new(self.sim.world_seed(), self.spec.seed, 1, self.frame_index),
         );
-        let scan = self.build_scan(&cloud, &sweep);
+        let returns = self.levelled_returns(&cloud, &sweep);
+        let scan = self.build_scan(&returns);
         let since_slam = self.odom_at_slam.inverse().compose(self.odom);
         let keyframe = self.slam.scans_processed() == 0
             || since_slam.x_m.hypot(since_slam.y_m) >= KEYFRAME_TRANSLATION_M
@@ -319,6 +348,8 @@ impl Nav {
         if keyframe {
             self.process_keyframe(&scan);
         }
+        self.update_obstacle_layer(&returns);
+        self.escape_speed_m_s = self.escape_speed();
         self.odom_at_frame_start = self.odom;
         self.frame_start_pose = end_pose;
         self.last_cloud = Some(cloud);
@@ -353,12 +384,13 @@ impl Nav {
         self.odom_at_slam = self.odom;
     }
 
-    /// Turns a frame's returns into a 2D scan at the sensor's pose at the frame end.
-    fn build_scan(&self, cloud: &PointCloud, sweep: &LidarSweep) -> LaserScan2d {
+    /// Each return levelled by the IMU attitude and de-skewed to the sensor
+    /// pose at the frame end: its planar position there, its height relative
+    /// to the sensor, and its planar range at emission (for the self filter).
+    fn levelled_returns(&self, cloud: &PointCloud, sweep: &LidarSweep) -> Vec<LevelledReturn> {
         let frame_motion = self.odom_at_frame_start.inverse().compose(self.odom);
         let sensor_from_base = Pose2d::new(UNITREE_GO2_MID360_FORWARD_OF_BASE_M, 0.0, 0.0);
-        let mut ranges = vec![f64::NAN; SCAN_BEAMS];
-        let increment = 2.0 * PI / SCAN_BEAMS as f64;
+        let mut out = Vec::with_capacity(cloud.points_m.len());
         for (point, time_s) in cloud.points_m.iter().zip(cloud.timestamps_s.iter()) {
             let fraction = (time_s / self.spec.rotation_period_s).clamp(0.0, 1.0);
             // What the driver reports: the return in the sensor frame at emission.
@@ -368,20 +400,8 @@ impl Nav {
             let yaw = yaw_of(sensor.rotation);
             let tilt = Quat::from_rotation_y(yaw).inverse() * sensor.rotation;
             let level = tilt * raw;
-            let height = level.y;
-            let max_height = if self.explorer.is_some() {
-                EXPLORE_SCAN_MAX_HEIGHT_M
-            } else {
-                SCAN_MAX_HEIGHT_M
-            };
-            if !(SCAN_MIN_HEIGHT_M..=max_height).contains(&height) {
-                continue;
-            }
             // Leveled axes: +x forward, +y left.
             let at_emission = Vec3::new(level.x, -level.z, 0.0);
-            if at_emission.length() < SCAN_MIN_RANGE_M {
-                continue;
-            }
             // De-skew with odometry: the base pose at emission, relative to the
             // frame end, interpolated along the frame's odometry motion.
             let partial = Pose2d::new(
@@ -394,21 +414,145 @@ impl Nav {
             let at_end = sensor_from_base
                 .inverse()
                 .transform_point(emission_from_end.transform_point(base_point));
-            let range = at_end.x.hypot(at_end.y);
-            let beam = ((at_end.y.atan2(at_end.x) + PI) / increment).floor() as usize % SCAN_BEAMS;
+            out.push(LevelledReturn {
+                at_end,
+                height_m: level.y,
+                emission_range_m: at_emission.length(),
+            });
+        }
+        out
+    }
+
+    /// Turns a frame's returns into a 2D scan at the sensor's pose at the frame end.
+    fn build_scan(&self, returns: &[LevelledReturn]) -> LaserScan2d {
+        let mut ranges = vec![f64::NAN; SCAN_BEAMS];
+        for point in returns {
+            if !(SCAN_MIN_HEIGHT_M..=SCAN_MAX_HEIGHT_M).contains(&point.height_m)
+                || point.emission_range_m < SCAN_MIN_RANGE_M
+            {
+                continue;
+            }
+            let (beam, range) = point.beam();
             if ranges[beam].is_nan() || range < ranges[beam] {
                 ranges[beam] = range;
             }
         }
-        LaserScan2d {
-            time_s: self.trot.time_s(),
-            frame: FrameId::new("mid360_level"),
-            angle_min_rad: -PI + 0.5 * increment,
-            angle_increment_rad: increment,
-            range_min_m: SCAN_MIN_RANGE_M,
-            range_max_m: SCAN_MAX_RANGE_M,
-            ranges_m: ranges,
+        level_scan(self.trot.time_s(), ranges)
+    }
+
+    /// Updates the obstacle layer from a frame: the nearest return at a
+    /// height the Go2 can hit marks a cell, and rays that reach the floor
+    /// clear the cells they cross, up to the nearest such return.
+    fn update_obstacle_layer(&mut self, returns: &[LevelledReturn]) {
+        let sensor_pose =
+            self.estimate()
+                .compose(Pose2d::new(UNITREE_GO2_MID360_FORWARD_OF_BASE_M, 0.0, 0.0));
+        let time_s = self.trot.time_s();
+        let Some(layer) = self.obstacle_layer.as_mut() else {
+            return;
+        };
+        let mut nearest = vec![f64::NAN; SCAN_BEAMS];
+        let mut floor = vec![f64::NAN; SCAN_BEAMS];
+        for point in returns {
+            if point.emission_range_m < SCAN_MIN_RANGE_M {
+                continue;
+            }
+            let (beam, range) = point.beam();
+            let above_floor = point.height_m + MID360_HEIGHT_M;
+            if (COLLISION_BAND_M[0]..=COLLISION_BAND_M[1]).contains(&above_floor) {
+                if nearest[beam].is_nan() || range < nearest[beam] {
+                    nearest[beam] = range;
+                }
+            } else if above_floor < FLOOR_RETURN_M && (floor[beam].is_nan() || range > floor[beam])
+            {
+                floor[beam] = range;
+            }
         }
+        let clear: Vec<f64> = floor
+            .iter()
+            .zip(&nearest)
+            .map(|(&f, &n)| {
+                if n.is_finite() {
+                    f.min(n - MAP_RESOLUTION_M)
+                } else {
+                    f
+                }
+            })
+            .collect();
+        integrate_scan(
+            layer,
+            &level_scan(time_s, clear),
+            sensor_pose,
+            &ScanIntegrationConfig {
+                occupied_log_odds: 0.0,
+                ..ScanIntegrationConfig::default()
+            },
+        )
+        .expect("clear obstacle layer");
+        integrate_scan(
+            layer,
+            &level_scan(time_s, nearest),
+            sensor_pose,
+            &ScanIntegrationConfig {
+                mark_free: false,
+                ..ScanIntegrationConfig::default()
+            },
+        )
+        .expect("mark obstacle layer");
+    }
+
+    /// With `--explore`, when an obstacle is within the inscribed radius of
+    /// the estimate and lies mostly ahead or behind: the speed that walks
+    /// straight away from it.
+    fn escape_speed(&self) -> Option<f64> {
+        let layer = self.obstacle_layer.as_ref()?;
+        let grid = self.slam.grid();
+        let estimate = self.estimate();
+        let centre = grid.world_to_grid(Vec3::new(estimate.x_m, estimate.y_m, 0.0))?;
+        let reach = (EXPLORE_INSCRIBED_RADIUS_M / grid.resolution_m()).ceil() as isize;
+        let mut nearest: Option<(f64, Vec3)> = None;
+        for dy in -reach..=reach {
+            for dx in -reach..=reach {
+                let cell = GridCoord {
+                    x: centre.x + dx,
+                    y: centre.y + dy,
+                };
+                if !(grid.is_occupied(cell) || layer.is_occupied(cell)) {
+                    continue;
+                }
+                let offset = grid.grid_to_world(cell) - Vec3::new(estimate.x_m, estimate.y_m, 0.0);
+                let distance = offset.x.hypot(offset.y);
+                if distance < EXPLORE_INSCRIBED_RADIUS_M
+                    && nearest.is_none_or(|(best, _)| distance < best)
+                {
+                    nearest = Some((distance, offset));
+                }
+            }
+        }
+        let (_, offset) = nearest?;
+        let along = (offset.y.atan2(offset.x) - estimate.yaw_rad).cos();
+        (along.abs() > ESCAPE_MIN_ALIGNMENT).then(|| -along.signum() * ESCAPE_SPEED_M_S)
+    }
+
+    /// The map exploration plans on: the SLAM map with the obstacle layer's
+    /// occupied cells added.
+    fn navigation_grid(&self) -> OccupancyGrid {
+        let mut grid = self.slam.grid().clone();
+        if let Some(layer) = &self.obstacle_layer {
+            for y in 0..layer.height() {
+                for x in 0..layer.width() {
+                    let cell = GridCoord {
+                        x: x as isize,
+                        y: y as isize,
+                    };
+                    if layer.is_occupied(cell) && !grid.is_occupied(cell) {
+                        grid.reset(cell);
+                        grid.apply_occupied(cell, OBSTACLE_LOG_ODDS);
+                    }
+                }
+            }
+        }
+        grid
     }
 
     fn replan(&mut self) {
@@ -443,10 +587,11 @@ impl Nav {
     fn replan_explore(&mut self) {
         self.frames_since_plan = 0;
         let estimate = self.estimate();
+        let navigation = self.navigation_grid();
+        let grid = &navigation;
         let Some(explorer) = self.explorer.as_mut() else {
             return;
         };
-        let grid = self.slam.grid();
         match explorer.decide(grid, estimate).expect("explore decision") {
             Decision::Done => {
                 self.explored = true;
@@ -509,10 +654,14 @@ impl Nav {
         if self.trot.steps().is_multiple_of(BODY_CLEARANCE_EVERY_STEPS) {
             for link in BODY_LINKS {
                 let at = self.sim.named_transform(link).expect("Go2 link");
-                self.min_body_clearance_m = self.min_body_clearance_m.min(clearance_m(
-                    &self.obstacles,
-                    [at.translation.x, at.translation.z],
-                ));
+                let position = [at.translation.x, at.translation.z];
+                for obstacle in &self.obstacles {
+                    let clearance = obstacle.clearance_m(position);
+                    if clearance < self.min_body_clearance_m {
+                        self.min_body_clearance_m = clearance;
+                        self.closest_approach = (link, obstacle.name.clone(), self.trot.time_s());
+                    }
+                }
             }
         }
         self.min_clearance_m = self.min_clearance_m.min(clearance_m(
@@ -559,6 +708,27 @@ impl Nav {
         let bearing = wrap_angle(
             (lookahead.y - estimate.y_m).atan2(lookahead.x - estimate.x_m) - estimate.yaw_rad,
         );
+        if bearing.abs() > 1.0 {
+            // A turn in place next to an obstacle would swing a leg into it:
+            // step away along the body axis first, for a fixed time so the
+            // step and the turn do not alternate frame by frame.
+            let now_s = self.trot.time_s();
+            if now_s >= self.escape.cooldown_until_s {
+                if let Some(speed) = self.escape_speed_m_s {
+                    self.escape = Escape {
+                        speed_m_s: speed,
+                        until_s: now_s + ESCAPE_HOLD_S,
+                        cooldown_until_s: now_s + ESCAPE_HOLD_S + ESCAPE_COOLDOWN_S,
+                    };
+                }
+            }
+            if now_s < self.escape.until_s {
+                return UnitreeGo2TrotCommand {
+                    forward_speed_m_s: self.escape.speed_m_s,
+                    yaw_rate_rad_s: 0.0,
+                };
+            }
+        }
         let alignment = bearing.cos().max(0.0).powi(2);
         let approach = (to_goal_m / SLOW_RADIUS_M).clamp(0.4, 1.0);
         UnitreeGo2TrotCommand {
@@ -657,6 +827,49 @@ fn room_coverage(grid: &OccupancyGrid, obstacles: &[StaticObject]) -> Vec<f64> {
         .collect()
 }
 
+/// A step away from an obstacle: its speed, when it ends, and when the next
+/// may start.
+#[derive(Clone, Copy, Debug, Default)]
+struct Escape {
+    speed_m_s: f64,
+    until_s: f64,
+    cooldown_until_s: f64,
+}
+
+/// A return of a Mid-360 frame, levelled and de-skewed to the frame end.
+struct LevelledReturn {
+    /// Planar position in the levelled sensor frame (+x forward, +y left).
+    at_end: Vec3,
+    /// Height relative to the sensor.
+    height_m: f64,
+    /// Planar range when it was emitted.
+    emission_range_m: f64,
+}
+
+impl LevelledReturn {
+    /// The scan beam it falls in, and its range.
+    fn beam(&self) -> (usize, f64) {
+        let increment = 2.0 * PI / SCAN_BEAMS as f64;
+        let beam =
+            ((self.at_end.y.atan2(self.at_end.x) + PI) / increment).floor() as usize % SCAN_BEAMS;
+        (beam, self.at_end.x.hypot(self.at_end.y))
+    }
+}
+
+/// A levelled 720-beam scan with these ranges (NaN: no return).
+fn level_scan(time_s: f64, ranges_m: Vec<f64>) -> LaserScan2d {
+    let increment = 2.0 * PI / SCAN_BEAMS as f64;
+    LaserScan2d {
+        time_s,
+        frame: FrameId::new("mid360_level"),
+        angle_min_rad: -PI + 0.5 * increment,
+        angle_increment_rad: increment,
+        range_min_m: SCAN_MIN_RANGE_M,
+        range_max_m: SCAN_MAX_RANGE_M,
+        ranges_m,
+    }
+}
+
 fn costmap_config() -> CostmapConfig {
     CostmapConfig {
         // The Go2 is 0.31 m wide; keep its centre 0.3 m off obstacles.
@@ -746,7 +959,7 @@ fn map_precision(grid: &OccupancyGrid, obstacles: &[StaticObject]) -> (usize, f6
 }
 
 fn run(explore: bool, mut on_frame: impl FnMut(&Nav)) -> Nav {
-    let mut nav = Nav::new(explore);
+    let mut nav = Nav::new(explore, &scene_path());
     while !nav.done() {
         nav.step_frame();
         on_frame(&nav);
@@ -823,7 +1036,7 @@ fn report_and_gate_goals(nav: &Nav) {
 fn report_and_gate_exploration(nav: &Nav) {
     let coverage = room_coverage(nav.slam.grid(), &nav.obstacles);
     println!(
-        "explored in {:.1} s ({}): {} frontier goals, {} without a path; mapped room A {:.1} %, room B {:.1} %; clearance >= {:.2} m (body {:.2} m), lowest body {:.3} m",
+        "explored in {:.1} s ({}): {} frontier goals, {} without a path; mapped room A {:.1} %, room B {:.1} %; clearance >= {:.2} m (body {:.2} m: {} to {} at {:.1} s), lowest body {:.3} m",
         nav.trot.time_s(),
         if nav.explored { "nothing left" } else { "timed out" },
         nav.frontier_goals,
@@ -832,6 +1045,9 @@ fn report_and_gate_exploration(nav: &Nav) {
         coverage[1] * 100.0,
         nav.min_clearance_m,
         nav.min_body_clearance_m,
+        nav.closest_approach.0,
+        nav.closest_approach.1,
+        nav.closest_approach.2,
         nav.min_height_m
     );
     assert!(nav.explored, "exploration did not finish");
@@ -848,10 +1064,44 @@ fn report_and_gate_exploration(nav: &Nav) {
     );
 }
 
+/// The dressed two-room scene, or with `--layout-seed N` a generated layout
+/// written under `target/`.
+fn scene_path() -> PathBuf {
+    let Some(seed) = layout_seed() else {
+        return repo_path("assets/scenes/unitree_go2_two_rooms.rne.scene.toml");
+    };
+    let robot = repo_path("assets/robots/unitree_go2_jump.rne.robot.toml");
+    let robot = robot.canonicalize().expect("Go2 robot file");
+    let layout = layouts::generate(seed);
+    let dir = repo_path("target/rne-go2-layouts");
+    fs::create_dir_all(&dir).expect("create layout directory");
+    let path = dir.join(format!("layout-{seed}.rne.scene.toml"));
+    let robot = robot.to_str().expect("UTF-8 path");
+    fs::write(&path, layouts::scene_toml(&layout, robot)).expect("write layout scene");
+    path
+}
+
+fn layout_seed() -> Option<u64> {
+    let args: Vec<String> = std::env::args().collect();
+    let at = args.iter().position(|a| a == "--layout-seed")?;
+    Some(
+        args.get(at + 1)
+            .and_then(|s| s.parse().ok())
+            .expect("--layout-seed takes a number"),
+    )
+}
+
 fn main() {
     let explore = std::env::args().any(|arg| arg == "--explore");
+    assert!(
+        explore || layout_seed().is_none(),
+        "--layout-seed needs --explore: the goals are placed for the dressed scene"
+    );
     if std::env::args().any(|arg| arg == "--smoke") {
         let nav = run(explore, |_| {});
+        if let Some(seed) = layout_seed() {
+            println!("layout seed {seed}: {:?}", layouts::generate(seed));
+        }
         report_and_gate(&nav);
         if explore {
             println!("smoke ok: the Go2 explored both rooms on its Mid-360 with no goals given");

@@ -398,46 +398,68 @@ goal run, whose output is unchanged.
 
 | | goals given (131) | explored (P3) |
 | --- | --- | --- |
-| finished | both goals, 180 s budget | nothing left to explore at 99 s |
-| room A / room B floor mapped | — | 96.1 % / 98.9 % |
-| SLAM error | 0.042 m RMS | 0.041 m RMS (0.068 max) |
-| odometry alone, max | — | 6.7 m |
-| base / body to obstacles | > 0.2 m | 0.48 m / 0.23 m |
+| finished | both goals, 180 s budget | nothing left to explore at 47 s |
+| room A / room B floor mapped | — | 96.6 % / 98.9 % |
+| SLAM error | 0.042 m RMS | 0.041 m RMS (0.064 max) |
+| odometry alone, max | — | 3.9 m |
+| base / body to obstacles | > 0.2 m | 0.49 m / 0.33 m |
 | map cells on a real obstacle | 100 % | 100 % |
 
-Getting there took three things the wheeled robot of P1 never needed. Each
-was found by a fall, and the body clearance (head, hips, knees and feet
-against the furniture's footprints, sampled at 50 Hz) is now reported and
-gated (> 0.10 m):
+The body clearance (head, hips, knees and feet against the furniture's
+footprints, sampled at 50 Hz, link radii of 2–5 cm not subtracted) is
+reported and gated (> 0.10 m): every fall on the way was a leg touching
+furniture.
 
-- **A scan band under the lowest furniture.** Example 131 keeps returns
-  0.15–0.65 m above the floor. Beams over a 0.4–0.5 m crate reach the wall
-  behind it and mark the crate free; the explorer then sent the robot to
-  frontiers behind crates, where a leg caught one. Exploration's band stops
-  at 0.35 m. Goal-directed driving never went there, so 131's band is
-  unchanged.
+What exploration needs that the goal run does not:
+
+- **An obstacle layer for navigation.** The Mid-360 rides 0.447 m up, above
+  the 0.40–0.50 m crates, so a beam to a distant wall still clears a nearby
+  crate's top, and the 2D scan's free-space carving erased the crate from
+  the SLAM map (in one layout 1 of 400 cells was left). Exploration plans on
+  the SLAM map plus a separate layer, updated every frame from the 3D
+  returns: the nearest return 0.10–0.55 m above the floor marks a cell, and
+  only rays that reach the floor clear cells, up to that nearest return. A
+  floor ray descends steeply, so a low obstacle in its way blocks it rather
+  than being cleared. SLAM's own map and scan band are 131's.
 - **Paths through the middle of free space.** `plan_path` with its default
   cost weight (0.5) runs along the inscribed band, and the trot turning there
   put a foot within 1–2 cm of furniture. Weight 4 keeps paths centred; the
   inscribed band is made lethal (except within 0.3 m of the robot, so it can
-  back out), because `plan_path` only refuses lethal cells. Without that,
-  the body came to 0.10 m.
+  back out), because `plan_path` only refuses lethal cells.
 - **The Go2's size, not its width.** Inscribed radius 0.42 m: the legs reach
-  about 0.38 m from the base, and 0.30 and 0.38 let one reach furniture. The
-  1.0 m doorway leaves 0.16 m to pass.
+  about 0.38 m from the base. The 1.0 m doorway leaves 0.16 m to pass.
+- **No turn in place against an obstacle.** When the robot has to turn
+  more than 1 rad and something is within the inscribed radius ahead or
+  behind, it first walks straight away from it for 1 s, and may not do so
+  again for 2 s. Re-deciding that every frame made the step and the turn
+  alternate until the trot fell.
 
-Robustness: the run passes with each setting nudged on its own (cost weight
-3 or 5, inscribed radius 0.40 or 0.45, band top 0.05 m higher or lower), with
-body clearance 0.15–0.24 m. It fails at cost weight 0.5 and at radius 0.38 or
-below. This is one scene and one start; generated Go2 scenes would test it
-further.
+**Generated layouts** (`--explore --layout-seed N`, `layouts.rs`): the same
+shell with the doorway moved and 6–8 seeded boxes, 0.40–1.20 m tall,
+against a wall or at least 1.0 m from walls and each other, every floor
+cell reachable (tested on 50 seeds). Over the dressed scene and seeds 0–19:
 
-Found on the way, not needed in the end: with the higher band the explorer
-also chose a frontier 0.2 m away over and over. The scan drops returns
-within 0.4 m (the robot's body), so standing on a frontier cannot clear it.
-Skipping reached frontiers fixed that, but with the settings above the robot
-never reaches a frontier before it disappears, so it was left out.
-`rne_explore` is unchanged in P3.
+| | runs | fell | body clearance > 0.10 m | floor mapped, worst room | SLAM error |
+| --- | --- | --- | --- | --- | --- |
+| P3 settings before the obstacle layer (seeds 0–9) | 10 | 1 | 7 | 69.5 % (the fall) | — |
+| final | 21 | 0 | 19 | 96.6 % | 0.019–0.062 m RMS (passing runs) |
+
+The two that miss the gate come within 0.07 m (seed 10, a calf passing the
+north wall) and exactly 0.10 m (seed 12), with no fall. Each fix above moved
+the closest approach of some other layout, so the margin, not the fall rate,
+is what remains: legged exploration in rooms of 1.0 m passages leaves the
+legs centimetres from furniture. A footprint-aware planner (a rectangle
+turning with the body instead of a disc) is the next step there. Seed 4 runs
+in CI next to the dressed scene.
+
+On the way: an earlier version kept the SLAM scan band under the lowest
+crate (0.35 m) instead of adding the layer. It passed the dressed scene but
+not the layouts, because beams from the 0.447 m sensor to distant points
+under 0.35 m still clear a crate's top. With the band lowered the explorer
+also chose a frontier 0.2 m away over and over (the scan drops returns
+within 0.4 m, the robot's body, so standing on a frontier cannot clear it);
+skipping reached frontiers fixed that, but it never triggers with the final
+settings and was left out. `rne_explore` is unchanged in P3.
 
 ### P4: camera-based belief (with visloc-rs)
 
