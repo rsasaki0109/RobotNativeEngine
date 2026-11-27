@@ -203,6 +203,33 @@ envelopes the dressed render draws inside; see [GO2_DOOR.md](GO2_DOOR.md#dressed
 | Clearance | at least 0.41 m |
 | Occupied map cells within 10 cm of a real obstacle | 100 % of 1,065 |
 
+## Exploring on the Mid-360
+
+<p align="center">
+  <img src="media/go2-mid360-explore.gif" alt="The same two rooms, unexplored floor dark: the Go2 is given no goal, walks to the nearest edge of what its Mid-360 has mapped, then the next, crosses the doorway and maps the second room, uncovering the floor as it goes" width="720">
+</p>
+
+`--explore` runs example 131 with no goals: `rne_explore` picks the nearest
+frontier of the SLAM map every second, until nothing reachable is left unknown
+(active SLAM P3, [PLAN_ACTIVE_SLAM.md](PLAN_ACTIVE_SLAM.md)). Sensor model, leg
+odometry and `Slam2d` are the goal run's.
+
+| Measure | Result |
+| --- | --- |
+| Finished | nothing left to explore at 99.1 s |
+| Floor mapped, room A / room B | 96.1 % / 98.9 % |
+| Localization error | 0.041 m RMS, 0.068 m worst |
+| Leg odometry alone | 6.7 m worst |
+| Clearance, base / legs and head | at least 0.48 m / 0.23 m |
+| Occupied map cells within 10 cm of a real obstacle | 100 % of 1,044 |
+
+Exploration needs three settings the goal run does not. Its scan band stops
+0.35 m above the floor, under the lowest crate: beams over a crate's top mark
+it free and draw the explorer behind it. Paths keep to the middle of free
+space (cost weight 4, inscribed band lethal). And the base keeps 0.42 m from
+obstacles, the reach of the legs, not 0.30 m. Without any one of them a leg
+came within 0.1 m of the furniture, and in most such runs the trot fell.
+
 ## What is not established
 
 - **Timestamp jitter.** Real `t` values carry packet-level host jitter (−270

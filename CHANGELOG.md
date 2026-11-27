@@ -6,6 +6,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 131 `--explore` (active SLAM P3, `docs/PLAN_ACTIVE_SLAM.md`): the Go2 explores both
+  rooms on its Mid-360 with `rne_explore` and no goals given, maps 96–99 % of each room's
+  floor, and localizes at 0.041 m RMS, against 0.042 m for the goal-directed run. It
+  reports how close the legs came to furniture and gates on it. The goal-directed run is
+  unchanged; CI runs both.
+
 - Active SLAM P2 (`docs/PLAN_ACTIVE_SLAM.md`), all opt-in. On the generated loop worlds,
   nearest-frontier exploration with these lowers SLAM error and raises coverage over P1
   (narrowly); see the plan for the numbers.

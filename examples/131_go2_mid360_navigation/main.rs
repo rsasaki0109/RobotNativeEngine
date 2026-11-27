@@ -21,9 +21,16 @@
 //! The gate compares the estimate with the simulation's truth: both goals
 //! reached, localization error, clearance, and that the map has the walls.
 //!
+//! With `--explore` no goals are given: `rne_explore` picks the next frontier
+//! from the SLAM map each second until nothing reachable is left unknown
+//! (`docs/PLAN_ACTIVE_SLAM.md` P3). That gate asks for both rooms mapped
+//! instead of goals reached.
+//!
 //! ```text
 //! cargo run --release -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --smoke
 //! cargo run --release -p go2_mid360_navigation --example 131_go2_mid360_navigation
+//! cargo run --release -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --explore --smoke
+//! cargo run --release -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --explore
 //! ```
 
 use std::f64::consts::PI;
@@ -32,7 +39,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use go2_indoor::{
-    clearance_m, static_obstacles, two_room_floors, DecorOptions, Interior, StaticObject,
+    clearance_m, static_obstacles, two_room_floors, DecorOptions, Finish, Interior, StaticObject,
 };
 use png::{BitDepth, ColorType, Encoder};
 use rne_ai::{
@@ -41,10 +48,11 @@ use rne_ai::{
     UNITREE_GO2_MODEL_TROT_CONTROL_HZ,
 };
 use rne_data::PointCloud;
+use rne_explore::{Decision, Explorer, ExplorerConfig, FrontierConfig, ScorePolicy, SensorModel};
 use rne_math::{Quat, Transform3, Vec3};
 use rne_nav::{
     plan_path, Costmap, CostmapConfig, FrameId, GlobalPlannerConfig, GridCoord, LaserScan2d,
-    OccupancyGrid, Path2d, Pose2d,
+    OccupancyGrid, Path2d, Pose2d, COST_INSCRIBED, COST_LETHAL,
 };
 use rne_render::{
     Camera, MeshRenderCache, RenderBackend, RenderScene, RenderSceneItem, TriangleMesh, VisualShape,
@@ -59,6 +67,47 @@ use rne_world::Transform3 as WorldTransform3;
 /// Goals in world `[x, z]`: the far corner of room B, then back into room A.
 const GOALS: [[f64; 2]; 2] = [[6.2, 1.6], [-1.5, -0.3]];
 const MAX_DURATION_S: f64 = 180.0;
+/// Exploration gets longer: it has to find the rooms before it can cross them.
+const EXPLORE_MAX_DURATION_S: f64 = 300.0;
+/// Range the explorer credits the Mid-360's scan band with when it scores a
+/// frontier by the unknown area it would see. The band reaches 20 m, but the
+/// rooms are under 5 m across.
+const EXPLORE_SENSOR_RANGE_M: f64 = 5.0;
+/// Floor counted as mapped: true floor at least this far from every obstacle,
+/// on a grid of this pitch.
+const COVERAGE_CLEARANCE_M: f64 = 0.10;
+const COVERAGE_PITCH_M: f64 = 0.10;
+/// Exploration keeps the base this far off mapped obstacles: the Go2's legs
+/// reach about 0.38 m from it. With the settings here 0.30 and 0.38 let a leg
+/// reach furniture and the trot fell; 0.40 to 0.45 did not. The 1.0 m doorway
+/// leaves 0.16 m to pass.
+const EXPLORE_INSCRIBED_RADIUS_M: f64 = 0.42;
+/// Weight of the inflation cost in the exploration planner. At the default
+/// 0.5 a path runs along the inscribed band, and turning there brought a foot
+/// within 1–2 cm of furniture and the trot fell; at 3 to 5 paths keep to the
+/// middle of the free space.
+const EXPLORE_COST_WEIGHT: f64 = 4.0;
+/// Links whose origins bound the Go2's footprint: head, hips, knees and feet.
+/// Their distance to the obstacles' footprints, sampled at 50 Hz, says how
+/// close the body came; link radii (2–5 cm) are not subtracted.
+const BODY_LINKS: [&str; 13] = [
+    "Head_upper",
+    "FL_hip",
+    "FR_hip",
+    "RL_hip",
+    "RR_hip",
+    "FL_calf",
+    "FR_calf",
+    "RL_calf",
+    "RR_calf",
+    "FL_foot",
+    "FR_foot",
+    "RL_foot",
+    "RR_foot",
+];
+const BODY_CLEARANCE_EVERY_STEPS: u64 = 10;
+/// Each room's floor must be at least this much mapped.
+const EXPLORE_MIN_ROOM_COVERAGE: f64 = 0.90;
 /// Path following.
 const LOOKAHEAD_M: f64 = 0.6;
 const MAX_SPEED_M_S: f64 = 0.25;
@@ -80,6 +129,12 @@ const ODOM_YAW_RATE_BIAS_RAD_S: f64 = 0.02;
 /// Scan band relative to the sensor, which rides 0.447 m above the floor.
 const SCAN_MIN_HEIGHT_M: f64 = -0.30;
 const SCAN_MAX_HEIGHT_M: f64 = 0.20;
+/// Exploration's band tops out 0.35 m above the floor, under the lowest
+/// furniture (a 0.40 m crate). Beams above a crate's top reach the wall
+/// behind it and mark the crate's cells free; that lured the explorer to
+/// frontiers behind crates, where a leg caught the crate. Driving to fixed
+/// goals never went there.
+const EXPLORE_SCAN_MAX_HEIGHT_M: f64 = -0.10;
 /// Returns closer than this are the robot itself.
 const SCAN_MIN_RANGE_M: f64 = 0.40;
 const SCAN_MAX_RANGE_M: f64 = 20.0;
@@ -134,6 +189,13 @@ struct Nav {
     slam_pose: Pose2d,
     odom_at_slam: Pose2d,
     path: Option<Path2d>,
+    /// Present with `--explore`: chooses frontiers instead of [`GOALS`].
+    explorer: Option<Explorer>,
+    /// Set once the explorer finds nothing reachable left to explore.
+    explored: bool,
+    /// Frontier goals reached, and how often no path to one was found.
+    frontier_goals: usize,
+    plan_failures: usize,
     goal: usize,
     goal_true_error_m: Vec<f64>,
     frames_since_plan: u64,
@@ -144,6 +206,8 @@ struct Nav {
     odom_error_max_m: f64,
     error_samples: u64,
     min_clearance_m: f64,
+    /// Closest any of [`BODY_LINKS`] came to an obstacle's footprint.
+    min_body_clearance_m: f64,
     min_height_m: f64,
     obstacles: Vec<StaticObject>,
     matched_frames: u64,
@@ -151,7 +215,7 @@ struct Nav {
 }
 
 impl Nav {
-    fn new() -> Self {
+    fn new(explore: bool) -> Self {
         let mut sim = UrdfSceneSim::from_scene_path(&repo_path(
             "assets/scenes/unitree_go2_two_rooms.rne.scene.toml",
         ))
@@ -193,6 +257,10 @@ impl Nav {
             slam_pose: start,
             odom_at_slam: start,
             path: None,
+            explorer: explore.then(|| Explorer::new(explorer_config())),
+            explored: false,
+            frontier_goals: 0,
+            plan_failures: 0,
             goal: 0,
             goal_true_error_m: Vec::new(),
             frames_since_plan: REPLAN_EVERY_FRAMES,
@@ -203,6 +271,7 @@ impl Nav {
             odom_error_max_m: 0.0,
             error_samples: 0,
             min_clearance_m: f64::MAX,
+            min_body_clearance_m: f64::MAX,
             min_height_m: f64::MAX,
             obstacles,
             matched_frames: 0,
@@ -211,7 +280,11 @@ impl Nav {
     }
 
     fn done(&self) -> bool {
-        self.goal >= GOALS.len() || self.trot.time_s() >= MAX_DURATION_S
+        if self.explorer.is_some() {
+            self.explored || self.trot.time_s() >= EXPLORE_MAX_DURATION_S
+        } else {
+            self.goal >= GOALS.len() || self.trot.time_s() >= MAX_DURATION_S
+        }
     }
 
     /// The robot's best pose estimate now: the last SLAM pose moved by the
@@ -296,7 +369,12 @@ impl Nav {
             let tilt = Quat::from_rotation_y(yaw).inverse() * sensor.rotation;
             let level = tilt * raw;
             let height = level.y;
-            if !(SCAN_MIN_HEIGHT_M..=SCAN_MAX_HEIGHT_M).contains(&height) {
+            let max_height = if self.explorer.is_some() {
+                EXPLORE_SCAN_MAX_HEIGHT_M
+            } else {
+                SCAN_MAX_HEIGHT_M
+            };
+            if !(SCAN_MIN_HEIGHT_M..=max_height).contains(&height) {
                 continue;
             }
             // Leveled axes: +x forward, +y left.
@@ -334,6 +412,10 @@ impl Nav {
     }
 
     fn replan(&mut self) {
+        if self.explorer.is_some() {
+            self.replan_explore();
+            return;
+        }
         let Some(goal) = GOALS.get(self.goal) else {
             return;
         };
@@ -356,6 +438,65 @@ impl Nav {
         }
     }
 
+    /// Asks the explorer for a frontier and follows the path it found there,
+    /// through known free space only (unknown space is what is being mapped).
+    fn replan_explore(&mut self) {
+        self.frames_since_plan = 0;
+        let estimate = self.estimate();
+        let Some(explorer) = self.explorer.as_mut() else {
+            return;
+        };
+        let grid = self.slam.grid();
+        match explorer.decide(grid, estimate).expect("explore decision") {
+            Decision::Done => {
+                self.explored = true;
+                self.path = None;
+            }
+            Decision::Goal(candidate) | Decision::Revisit(candidate) => {
+                if candidate.path_m < GOAL_TOLERANCE_M {
+                    // Already there: count it and choose again next frame.
+                    explorer.clear_goal();
+                    self.frontier_goals += 1;
+                    self.path = None;
+                    self.frames_since_plan = REPLAN_EVERY_FRAMES;
+                    return;
+                }
+                // Cost-aware A* keeps the trot off walls; the inscribed band is
+                // made lethal (except right around the robot, so it can back
+                // out) because `plan_path` only refuses lethal cells. The
+                // explorer's own shortest path, which hugs that band, is the
+                // fallback.
+                let planned = plan_path(
+                    &explore_planning_costmap(grid, estimate),
+                    Vec3::new(estimate.x_m, estimate.y_m, 0.0),
+                    Vec3::new(candidate.goal.x_m, candidate.goal.y_m, 0.0),
+                    &GlobalPlannerConfig {
+                        cost_weight: EXPLORE_COST_WEIGHT,
+                        ..GlobalPlannerConfig::default()
+                    },
+                )
+                .ok()
+                .or_else(|| {
+                    explorer
+                        .path_to(grid, candidate.goal_cell)
+                        .filter(|cells| cells.len() >= 2)
+                        .map(|mut cells| {
+                            cells[0] = Vec3::new(estimate.x_m, estimate.y_m, 0.0);
+                            Path2d::from_points(&cells)
+                        })
+                });
+                match planned {
+                    Some(path) => self.path = Some(path.prune_collinear(0.02)),
+                    None => {
+                        explorer.clear_goal();
+                        self.plan_failures += 1;
+                        self.path = None;
+                    }
+                }
+            }
+        }
+    }
+
     fn step_control(&mut self) {
         let command = self.follow();
         self.trot.step(&mut self.sim, command);
@@ -365,6 +506,15 @@ impl Nav {
             self.true_trail.push([observed.base_x_m, observed.base_z_m]);
         }
         self.min_height_m = self.min_height_m.min(observed.base_y_m);
+        if self.trot.steps().is_multiple_of(BODY_CLEARANCE_EVERY_STEPS) {
+            for link in BODY_LINKS {
+                let at = self.sim.named_transform(link).expect("Go2 link");
+                self.min_body_clearance_m = self.min_body_clearance_m.min(clearance_m(
+                    &self.obstacles,
+                    [at.translation.x, at.translation.z],
+                ));
+            }
+        }
         self.min_clearance_m = self.min_clearance_m.min(clearance_m(
             &self.obstacles,
             [observed.base_x_m, observed.base_z_m],
@@ -384,6 +534,15 @@ impl Nav {
             return UnitreeGo2TrotCommand::default();
         };
         let to_goal_m = (goal.x_m - estimate.x_m).hypot(goal.y_m - estimate.y_m);
+        if to_goal_m < GOAL_TOLERANCE_M && self.explorer.is_some() {
+            if let Some(explorer) = self.explorer.as_mut() {
+                explorer.clear_goal();
+            }
+            self.frontier_goals += 1;
+            self.path = None;
+            self.frames_since_plan = REPLAN_EVERY_FRAMES;
+            return UnitreeGo2TrotCommand::default();
+        }
         if to_goal_m < GOAL_TOLERANCE_M {
             let truth = true_pose(&self.sim);
             let (gx, gy) = nav_xy(GOALS[self.goal]);
@@ -441,6 +600,63 @@ impl Nav {
     }
 }
 
+/// Frontier exploration for the Go2: nearest frontier first (P1 and P2 found
+/// it the steadier policy), the same inflation the planner uses, and a lidar
+/// model for scoring.
+fn explorer_config() -> ExplorerConfig {
+    ExplorerConfig {
+        frontier: FrontierConfig {
+            min_cluster_cells: 8,
+        },
+        sensor: SensorModel {
+            range_m: EXPLORE_SENSOR_RANGE_M,
+            fov_rad: 2.0 * PI,
+            rays: 180,
+        },
+        costmap: explore_costmap_config(),
+        policy: ScorePolicy::NearestFrontier,
+        min_gain_m2: 0.3,
+        switch_margin: 0.5,
+        hysteresis_radius_m: 1.0,
+        escape_radius_m: 0.3,
+    }
+}
+
+/// Fraction of each room's true floor that the map knows (free or occupied),
+/// room A (wood) then room B (tile). The map frame is the world's: odometry
+/// starts at the true pose.
+fn room_coverage(grid: &OccupancyGrid, obstacles: &[StaticObject]) -> Vec<f64> {
+    [Finish::Wood, Finish::Tile]
+        .iter()
+        .map(|finish| {
+            let room = two_room_floors()
+                .into_iter()
+                .find(|patch| patch.finish == *finish)
+                .expect("room floor");
+            let (mut floor, mut known) = (0_usize, 0_usize);
+            let cells = |lo: f64, hi: f64| ((hi - lo) / COVERAGE_PITCH_M) as usize;
+            for i in 0..cells(room.min[0], room.max[0]) {
+                for j in 0..cells(room.min[1], room.max[1]) {
+                    let x = room.min[0] + (i as f64 + 0.5) * COVERAGE_PITCH_M;
+                    let z = room.min[1] + (j as f64 + 0.5) * COVERAGE_PITCH_M;
+                    if clearance_m(obstacles, [x, z]) < COVERAGE_CLEARANCE_M {
+                        continue;
+                    }
+                    floor += 1;
+                    let (nx, ny) = nav_xy([x, z]);
+                    if grid
+                        .world_to_grid(Vec3::new(nx, ny, 0.0))
+                        .is_some_and(|cell| grid.is_known(cell))
+                    {
+                        known += 1;
+                    }
+                }
+            }
+            known as f64 / floor.max(1) as f64
+        })
+        .collect()
+}
+
 fn costmap_config() -> CostmapConfig {
     CostmapConfig {
         // The Go2 is 0.31 m wide; keep its centre 0.3 m off obstacles.
@@ -448,6 +664,40 @@ fn costmap_config() -> CostmapConfig {
         inflation_radius_m: 0.75,
         ..CostmapConfig::default()
     }
+}
+
+/// Exploration drives to frontiers, which lie where the map ends: often
+/// right beside an obstacle whose near face the scan has only just seen, and
+/// the Go2 turns toward them. The base is kept [`EXPLORE_INSCRIBED_RADIUS_M`]
+/// off mapped obstacles.
+fn explore_costmap_config() -> CostmapConfig {
+    CostmapConfig {
+        inscribed_radius_m: EXPLORE_INSCRIBED_RADIUS_M,
+        ..costmap_config()
+    }
+}
+
+/// The exploration costmap with its inscribed band made lethal, except within
+/// the explorer's escape radius of the robot.
+fn explore_planning_costmap(grid: &OccupancyGrid, robot: Pose2d) -> Costmap {
+    let mut costmap = Costmap::from_occupancy(grid, &explore_costmap_config()).expect("costmap");
+    let escape = explorer_config().escape_radius_m;
+    for y in 0..costmap.height() {
+        for x in 0..costmap.width() {
+            let cell = GridCoord {
+                x: x as isize,
+                y: y as isize,
+            };
+            if costmap.cost_at(cell) != Some(COST_INSCRIBED) {
+                continue;
+            }
+            let centre = costmap.grid_to_world(cell);
+            if (centre.x - robot.x_m).hypot(centre.y - robot.y_m) > escape {
+                costmap.apply_cost(cell, COST_LETHAL);
+            }
+        }
+    }
+    costmap
 }
 
 /// Scan matching over all 360 beams, searched on a finer grid than the default.
@@ -495,8 +745,8 @@ fn map_precision(grid: &OccupancyGrid, obstacles: &[StaticObject]) -> (usize, f6
     (occupied, on_obstacle as f64 / occupied.max(1) as f64)
 }
 
-fn run(mut on_frame: impl FnMut(&Nav)) -> Nav {
-    let mut nav = Nav::new();
+fn run(explore: bool, mut on_frame: impl FnMut(&Nav)) -> Nav {
+    let mut nav = Nav::new(explore);
     while !nav.done() {
         nav.step_frame();
         on_frame(&nav);
@@ -506,18 +756,11 @@ fn run(mut on_frame: impl FnMut(&Nav)) -> Nav {
 
 fn report_and_gate(nav: &Nav) {
     let (occupied, precision) = map_precision(nav.slam.grid(), &nav.obstacles);
-    println!(
-        "reached {}/{} goals in {:.1} s (true error at arrival {:?} m); clearance >= {:.2} m, lowest body {:.3} m",
-        nav.goal,
-        GOALS.len(),
-        nav.trot.time_s(),
-        nav.goal_true_error_m
-            .iter()
-            .map(|e| (e * 100.0).round() / 100.0)
-            .collect::<Vec<_>>(),
-        nav.min_clearance_m,
-        nav.min_height_m
-    );
+    if nav.explorer.is_some() {
+        report_and_gate_exploration(nav);
+    } else {
+        report_and_gate_goals(nav);
+    }
     println!(
         "localization: SLAM {:.3} m RMS ({:.3} max) vs odometry alone {:.3} m max; {} keyframes matched over {} frames, {} loop closures",
         nav.slam_rms_m(),
@@ -530,12 +773,6 @@ fn report_and_gate(nav: &Nav) {
     println!(
         "map: {occupied} occupied cells, {:.1} % within 10 cm of a real obstacle",
         precision * 100.0
-    );
-    assert_eq!(nav.goal, GOALS.len(), "not every goal was reached");
-    assert!(
-        nav.goal_true_error_m.iter().all(|e| *e < 0.5),
-        "arrived off goal: {:?}",
-        nav.goal_true_error_m
     );
     assert!(
         nav.min_height_m > 0.2,
@@ -560,17 +797,73 @@ fn report_and_gate(nav: &Nav) {
     assert!(precision > 0.95, "map precision {:.3}", precision);
 }
 
-fn main() {
-    if std::env::args().any(|arg| arg == "--smoke") {
-        let nav = run(|_| {});
-        report_and_gate(&nav);
-        println!("smoke ok: the Go2 mapped and navigated both rooms on its Mid-360");
-        return;
-    }
-    render_media();
+/// The hand-given goals: both reached, close to where they are.
+fn report_and_gate_goals(nav: &Nav) {
+    println!(
+        "reached {}/{} goals in {:.1} s (true error at arrival {:?} m); clearance >= {:.2} m, lowest body {:.3} m",
+        nav.goal,
+        GOALS.len(),
+        nav.trot.time_s(),
+        nav.goal_true_error_m
+            .iter()
+            .map(|e| (e * 100.0).round() / 100.0)
+            .collect::<Vec<_>>(),
+        nav.min_clearance_m,
+        nav.min_height_m
+    );
+    assert_eq!(nav.goal, GOALS.len(), "not every goal was reached");
+    assert!(
+        nav.goal_true_error_m.iter().all(|e| *e < 0.5),
+        "arrived off goal: {:?}",
+        nav.goal_true_error_m
+    );
 }
 
-fn render_media() {
+/// Exploration: the explorer finished on its own, and both rooms are mapped.
+fn report_and_gate_exploration(nav: &Nav) {
+    let coverage = room_coverage(nav.slam.grid(), &nav.obstacles);
+    println!(
+        "explored in {:.1} s ({}): {} frontier goals, {} without a path; mapped room A {:.1} %, room B {:.1} %; clearance >= {:.2} m (body {:.2} m), lowest body {:.3} m",
+        nav.trot.time_s(),
+        if nav.explored { "nothing left" } else { "timed out" },
+        nav.frontier_goals,
+        nav.plan_failures,
+        coverage[0] * 100.0,
+        coverage[1] * 100.0,
+        nav.min_clearance_m,
+        nav.min_body_clearance_m,
+        nav.min_height_m
+    );
+    assert!(nav.explored, "exploration did not finish");
+    // Measured 0.23 m with the settings above (0.15–0.24 m with each one
+    // nudged); contact makes the trot fall.
+    assert!(
+        nav.min_body_clearance_m > 0.10,
+        "a leg came within {:.2} m of an obstacle",
+        nav.min_body_clearance_m
+    );
+    assert!(
+        coverage.iter().all(|c| *c > EXPLORE_MIN_ROOM_COVERAGE),
+        "a room is not mapped: {coverage:?}"
+    );
+}
+
+fn main() {
+    let explore = std::env::args().any(|arg| arg == "--explore");
+    if std::env::args().any(|arg| arg == "--smoke") {
+        let nav = run(explore, |_| {});
+        report_and_gate(&nav);
+        if explore {
+            println!("smoke ok: the Go2 explored both rooms on its Mid-360 with no goals given");
+        } else {
+            println!("smoke ok: the Go2 mapped and navigated both rooms on its Mid-360");
+        }
+        return;
+    }
+    render_media(explore);
+}
+
+fn render_media(explore: bool) {
     let view = CameraOrbit {
         focus: Vec3::new(2.3, 0.0, 0.2),
         yaw_rad: -2.05,
@@ -581,11 +874,15 @@ fn render_media() {
     let camera = Camera::new(WIDTH, HEIGHT, std::f64::consts::FRAC_PI_4);
     let mut mesh_cache = MeshRenderCache::new();
     let interior = Interior::new(two_room_floors());
-    let frames_dir = repo_path("target/rne-go2-mid360-navigation-frames");
+    let frames_dir = repo_path(if explore {
+        "target/rne-go2-mid360-explore-frames"
+    } else {
+        "target/rne-go2-mid360-navigation-frames"
+    });
     let _ = fs::remove_dir_all(&frames_dir);
     fs::create_dir_all(&frames_dir).expect("create frame directory");
     let mut frame = 0_usize;
-    let nav = run(|nav| {
+    let nav = run(explore, |nav| {
         if !nav.frame_index.is_multiple_of(LIDAR_FRAMES_PER_GIF_FRAME) {
             return;
         }
@@ -602,11 +899,16 @@ fn render_media() {
     });
     report_and_gate(&nav);
     let media_dir = repo_path("docs/media");
-    let gif_path = media_dir.join("go2-mid360-navigation.gif");
+    let name = if explore {
+        "go2-mid360-explore"
+    } else {
+        "go2-mid360-navigation"
+    };
+    let gif_path = media_dir.join(format!("{name}.gif"));
     build_gif(&frames_dir, &gif_path).expect("encode gif");
     image::open(frames_dir.join(format!("frame-{:03}.png", frame * 3 / 5)))
         .expect("read poster frame")
-        .save(media_dir.join("go2-mid360-navigation.png"))
+        .save(media_dir.join(format!("{name}.png")))
         .expect("write poster");
     println!("wrote {} ({frame} frames)", gif_path.display());
 }
@@ -641,7 +943,8 @@ fn render_frame(
         }
         push_mesh(&mut scene, mesh, [0.98, 0.84, 0.25, 1.0]);
     }
-    for (index, goal) in GOALS.iter().enumerate() {
+    let goals: &[[f64; 2]] = if nav.explorer.is_some() { &[] } else { &GOALS };
+    for (index, goal) in goals.iter().enumerate() {
         let color = if index < nav.goal {
             [0.35, 0.85, 0.45, 1.0]
         } else {
