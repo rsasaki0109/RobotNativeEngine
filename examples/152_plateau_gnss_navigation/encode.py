@@ -109,7 +109,7 @@ def hud(image, area, frame, width, timeline, constellation="GPS+Galileo+QZSS", m
     if minimap is not None:
         frames, upto, mm = minimap
         mm.draw(image, width - mm.size - pad, hud_bottom + pad, frames, upto, small)
-    model = "synthetic scene" if area.startswith(("Suburb", "Tunnel")) else "PLATEAU LOD2"
+    model = "synthetic scene" if area.startswith(("Suburb", "Tunnel", "Long tunnel")) else "PLATEAU LOD2"
     title = f"{area} - {model}, ray-traced {constellation}"
     heading = big
     while draw.textlength(title, font=heading) > width - 2 * pad and heading.size > 10:

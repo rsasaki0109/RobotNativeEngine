@@ -82,9 +82,12 @@ struct Area {
     /// Run only when named with `--area` (the open areas that show what
     /// GNSS adds), not by default.
     by_name_only: bool,
+    /// Without tiles: the synthetic suburb's road length, its open middle
+    /// and the tunnel in it ([`suburb::build`]), meters.
+    synthetic: (f64, f64, f64),
 }
 
-const AREAS: [Area; 5] = [
+const AREAS: [Area; 6] = [
     Area {
         name: "Shibuya",
         slug: "shibuya",
@@ -97,6 +100,7 @@ const AREAS: [Area; 5] = [
         // Yoyogi Park, about 1.3 km north-west.
         base: (35.6690, 139.6950),
         by_name_only: false,
+        synthetic: (0.0, 0.0, 0.0),
     },
     Area {
         name: "Shinjuku",
@@ -115,6 +119,7 @@ const AREAS: [Area; 5] = [
         // Shinjuku Gyoen, about 1.4 km east-south-east.
         base: (35.6850, 139.7090),
         by_name_only: false,
+        synthetic: (0.0, 0.0, 0.0),
     },
     Area {
         name: "Shinjuku Central Park",
@@ -136,6 +141,7 @@ const AREAS: [Area; 5] = [
         // Shinjuku Gyoen, about 1.8 km east-south-east.
         base: (35.6850, 139.7090),
         by_name_only: true,
+        synthetic: (0.0, 0.0, 0.0),
     },
     Area {
         name: "Suburb",
@@ -149,6 +155,7 @@ const AREAS: [Area; 5] = [
         // A field about 1 km south.
         base: (35.6910, 139.4500),
         by_name_only: true,
+        synthetic: (SUBURB_LENGTH_M, SUBURB_OPEN_M, 0.0),
     },
     Area {
         name: "Tunnel",
@@ -161,6 +168,20 @@ const AREAS: [Area; 5] = [
         waypoints: &[(-560.0, 0.0), (560.0, 0.0)],
         base: (35.6910, 139.4500),
         by_name_only: true,
+        synthetic: (SUBURB_LENGTH_M, SUBURB_OPEN_M, TUNNEL_M),
+    },
+    Area {
+        name: "Long tunnel",
+        slug: "longtunnel",
+        // No tiles: a 2.4 km road, a kilometre of tunnel in the middle of
+        // 1.7 km of fields, the towns at both ends ([`suburb::build`]).
+        tiles: &[],
+        center: (35.7000, 139.4500),
+        ground_tp_m: 0.0,
+        waypoints: &[(-1160.0, 0.0), (1160.0, 0.0)],
+        base: (35.6910, 139.4500),
+        by_name_only: true,
+        synthetic: (2400.0, 1700.0, 1000.0),
     },
 ];
 
@@ -183,14 +204,8 @@ const SKY_EPOCH_S: f64 = 20_000.0;
 /// without tiles.
 fn load_city(area: &Area, data: &Path) -> Result<PlateauCity, String> {
     if area.tiles.is_empty() {
-        let tunnel = if area.slug == "tunnel" { TUNNEL_M } else { 0.0 };
-        return Ok(suburb::build(
-            area.name,
-            area.center,
-            SUBURB_LENGTH_M,
-            SUBURB_OPEN_M,
-            tunnel,
-        ));
+        let (length, open, tunnel) = area.synthetic;
+        return Ok(suburb::build(area.name, area.center, length, open, tunnel));
     }
     let paths: Vec<PathBuf> = area
         .tiles

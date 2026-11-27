@@ -5,7 +5,7 @@ use crate::crowd::{PEDESTRIAN_HEIGHT_M, PEDESTRIAN_RADIUS_M};
 use crate::nav::gaussian;
 use crate::plateau::PlateauCity;
 use crate::traffic::{vehicle_range, Movers};
-use rne_adapter_lidarloc::{LidarLoc, LidarLocConfig, Reacquisition, Tracking};
+use rne_adapter_lidarloc::{GlobalSearch, LidarLoc, LidarLocConfig, Reacquisition, Tracking};
 use rne_core::DeterministicRng;
 use rne_math::Vec3;
 use rne_math::{DQuat, Mat4};
@@ -441,9 +441,10 @@ pub(crate) const LIDAR3D_PERIOD_S: f64 = 0.2;
 /// One scan through lidar_localization_ros2's tracking, seeded with the
 /// localizer's estimate (the odometry bridge). An accepted scan is a match
 /// at the node's pose, with the fit and the covariance of the map's
-/// point-to-plane residuals there (one evaluation of
-/// [`PointCloudMap::match_scan`]), so that the hybrid weighs and gates it as
-/// it does its own matches; a scan the node's gate rejects is none.
+/// point-to-plane fit started there ([`PointCloudMap::match_scan`]), so that
+/// the hybrid weighs and gates it as it does its own matches. A scan the
+/// node's gate rejects, or whose point-to-plane fit settles more than
+/// [`LIDARLOC_AGREEMENT_M`] away, is none.
 ///
 /// Not the NDT score Hessian's covariance: on bare ground NDT's cells pin
 /// the scan to their lattice, and the Hessian claims 2 cm where nothing
@@ -469,22 +470,85 @@ pub(crate) fn lidarloc_match(
         return None;
     }
     let p = update.pose;
-    let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
-    let evaluated = map.match_scan(
-        points,
-        at,
-        p.w_axis.z,
-        &PointCloudMatchConfig {
-            max_iterations: 1,
-            ..match_config()
-        },
-    )?;
+    let (mut dx, mut dy) = (p.w_axis.x - pose.x_m, p.w_axis.y - pose.y_m);
+    // Solution remapping: along the direction NDT's Hessian is weakest in,
+    // when that is a horizontal translation it barely constrains (a tunnel's
+    // axis), NDT slides, and that part of its correction is dropped.
+    if let Some(l) = update.alignment.localizability {
+        let (wx, wy) = (l.weakest_direction[0], l.weakest_direction[1]);
+        let horizontal = wx.hypot(wy);
+        if l.weak_ratio < WEAK_RATIO && horizontal > 0.7 {
+            let (ux, uy) = (wx / horizontal, wy / horizontal);
+            let along = dx * ux + dy * uy;
+            dx -= along * ux;
+            dy -= along * uy;
+        }
+    }
+    let at = Pose2d::new(pose.x_m + dx, pose.y_m + dy, p.x_axis.y.atan2(p.x_axis.x));
+    // The map's point-to-plane fit, started at the node's pose, must settle
+    // there: where it moves away, NDT has stopped in a minimum of its own
+    // (its cells pin a scan of open ground with a wall at the edge of range;
+    // it slides along a tunnel, whose walls pin nothing along it), and the
+    // scan is not used.
+    let refined = map.match_scan(points, at, p.w_axis.z, &match_config())?;
+    if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
+        return None;
+    }
     Some(PointCloudMatch {
         pose: at,
         z_m: p.w_axis.z,
-        ..evaluated
+        ..refined
     })
 }
+
+/// lidar_localization_ros2's global localization while the localizer dead
+/// reckons: where in the whole map the scan was taken, with no prior. A pose
+/// found, and confirmed by the point-to-plane fit started there, restarts
+/// the node's tracking there and is a match.
+pub(crate) fn lidarloc_global(
+    tracker: &mut Tracker,
+    map: &PointCloudMap,
+    points: &[Vec3],
+    t: f64,
+) -> Option<PointCloudMatch> {
+    let fix = tracker
+        .loc
+        .global_localize(
+            points,
+            &GlobalSearch {
+                // The street-level scan of a 3D LiDAR on a robot.
+                scan_max_range_m: RANGE_M,
+                num_threads: 1,
+                ..GlobalSearch::default()
+            },
+        )
+        .ok()?;
+    println!(
+        "  [{t:.0} s] lidarloc global search: {} ({} candidates, fitness {:.3}, second {:.3}, {:.0} ms)",
+        fix.reason, fix.candidates, fix.fitness, fix.second_fitness, fix.total_ms
+    );
+    let p = fix.pose?;
+    let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
+    let refined = map.match_scan(points, at, p.w_axis.z, &match_config())?;
+    if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
+        return None;
+    }
+    let start = Mat4::from_rotation_translation(
+        DQuat::from_rotation_z(refined.pose.yaw_rad),
+        Vec3::new(refined.pose.x_m, refined.pose.y_m, refined.z_m),
+    );
+    tracker.loc.set_initial_pose(&start, t).ok()?;
+    tracker.started = true;
+    Some(refined)
+}
+
+/// NDT's weakest over strongest Hessian eigenvalue below which its weakest
+/// direction counts as unconstrained.
+const WEAK_RATIO: f64 = 0.05;
+
+/// How far, meters, the point-to-plane fit may settle from lidar_localization_ros2's
+/// pose for the scan to be used.
+const LIDARLOC_AGREEMENT_M: f64 = 0.3;
 
 /// The scan reduced for matching.
 pub(crate) fn downsample(points: &[Vec3]) -> Vec<Vec3> {

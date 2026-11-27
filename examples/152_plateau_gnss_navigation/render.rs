@@ -1008,9 +1008,34 @@ pub(crate) fn render(
         initialized: false,
         cinematic: cinematic(),
     };
+    // `--render-from S` / `--render-to S`: only the frames of that stretch of
+    // the run.
+    let seconds = |flag: &str| -> Result<Option<f64>> {
+        Ok(match std::env::args().skip_while(|a| a != flag).nth(1) {
+            Some(v) => Some(v.parse()?),
+            None => None,
+        })
+    };
+    let (from_s, to_s) = (seconds("--render-from")?, seconds("--render-to")?);
     let started = std::time::Instant::now();
     let mut index = Vec::new();
-    for (k, frame) in run.frames.iter().step_by(stride.max(1)).enumerate() {
+    let write_index = |index: &Vec<serde_json::Value>| -> Result<()> {
+        std::fs::write(
+            dir.join("frames.json"),
+            serde_json::to_string(&serde_json::json!({
+                "area": city.name,
+                "constellation": run.constellation,
+                "map": minimap(city, route, run),
+                "frames": index,
+            }))?,
+        )?;
+        Ok(())
+    };
+    let frames = run
+        .frames
+        .iter()
+        .filter(|f| from_s.is_none_or(|s| f.t >= s) && to_s.is_none_or(|s| f.t <= s));
+    for (k, frame) in frames.step_by(stride.max(1)).enumerate() {
         let orbit = chase.update(frame);
         let mut scene = base_scene.clone();
         frame_items(&mut scene, &gnss_scene, city, &streets, run, frame);
@@ -1065,6 +1090,8 @@ pub(crate) fn render(
             },
         }));
         if k % 50 == 0 {
+            // Kept up to date, so that a render cut short can still be encoded.
+            write_index(&index)?;
             println!(
                 "    rendered frame {k} (t = {:.0} s, {:.0} s elapsed)",
                 frame.t,
@@ -1072,15 +1099,7 @@ pub(crate) fn render(
             );
         }
     }
-    std::fs::write(
-        dir.join("frames.json"),
-        serde_json::to_string(&serde_json::json!({
-            "area": city.name,
-            "constellation": run.constellation,
-            "map": minimap(city, route, run),
-            "frames": index,
-        }))?,
-    )?;
+    write_index(&index)?;
     println!("  wrote {} frames to {}", index.len(), dir.display());
     Ok(())
 }
