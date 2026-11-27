@@ -6,7 +6,6 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
-<<<<<<< HEAD
 - `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
   lidar_localization_ros2's global localization over the whole map.
 - Example 152:
@@ -16,7 +15,6 @@ All notable changes to Robot Native Engine are documented in this file.
     without GNSS, against 61 m), checks NDT against the point-to-plane fit, and drops NDT's
     correction along its Hessian's weakest direction (solution remapping) in a tunnel;
   - `--render-from` and `--render-to` render a stretch of the run.
-=======
 - Example 131 `--explore --layout-seed N`: generated two-room layouts (doorway moved, seeded
   furniture 0.40–1.20 m tall, every floor cell reachable). Exploration now plans on the SLAM
   map plus an obstacle layer from the 3D returns (marked by returns at the Go2's height,
@@ -32,7 +30,6 @@ All notable changes to Robot Native Engine are documented in this file.
   reports how close the legs came to furniture and gates on it. The goal-directed run is
   unchanged; CI runs both.
 
->>>>>>> origin/main
 - Example 113 (`drjohnson_euroc_export`): `RNE_WALKER_MODE=still` has the walkers stand at
   the start of their lines for the whole episode, as people waiting or at a desk while a
   map is built.
