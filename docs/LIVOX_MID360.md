@@ -216,19 +216,24 @@ odometry and `Slam2d` are the goal run's.
 
 | Measure | Result |
 | --- | --- |
-| Finished | nothing left to explore at 99.1 s |
-| Floor mapped, room A / room B | 96.1 % / 98.9 % |
-| Localization error | 0.041 m RMS, 0.068 m worst |
-| Leg odometry alone | 6.7 m worst |
-| Clearance, base / legs and head | at least 0.48 m / 0.23 m |
-| Occupied map cells within 10 cm of a real obstacle | 100 % of 1,044 |
+| Finished | nothing left to explore at 47.1 s |
+| Floor mapped, room A / room B | 96.6 % / 98.9 % |
+| Localization error | 0.041 m RMS, 0.064 m worst |
+| Leg odometry alone | 3.9 m worst |
+| Clearance, base / legs and head | at least 0.49 m / 0.33 m |
+| Occupied map cells within 10 cm of a real obstacle | 100 % of 1,000 |
 
-Exploration needs three settings the goal run does not. Its scan band stops
-0.35 m above the floor, under the lowest crate: beams over a crate's top mark
-it free and draw the explorer behind it. Paths keep to the middle of free
-space (cost weight 4, inscribed band lethal). And the base keeps 0.42 m from
-obstacles, the reach of the legs, not 0.30 m. Without any one of them a leg
-came within 0.1 m of the furniture, and in most such runs the trot fell.
+The Mid-360 rides above the 0.4–0.5 m crates, so a beam to a distant wall
+passes over a nearby crate, and a 2D scan's free-space carving erases it.
+Exploration therefore plans on the SLAM map plus an obstacle layer built from
+the 3D returns: returns 0.10–0.55 m above the floor mark it, and only rays
+that reach the floor, which a crate in the way blocks, clear it. Paths keep
+to the middle of free space (cost weight 4, inscribed band lethal), the base
+keeps 0.42 m from obstacles (the reach of the legs, not 0.30 m), and the robot
+steps away from an obstacle before turning in place next to it. On 20
+generated layouts plus this scene, no run fell and 19 of 21 kept every leg
+more than 0.10 m from the furniture; see
+[PLAN_ACTIVE_SLAM.md](PLAN_ACTIVE_SLAM.md) P3.
 
 ## What is not established
 

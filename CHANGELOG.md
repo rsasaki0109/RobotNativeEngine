@@ -6,6 +6,15 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 131 `--explore --layout-seed N`: generated two-room layouts (doorway moved, seeded
+  furniture 0.40–1.20 m tall, every floor cell reachable). Exploration now plans on the SLAM
+  map plus an obstacle layer from the 3D returns (marked by returns at the Go2's height,
+  cleared only by rays that reach the floor), because beams from the 0.447 m Mid-360 passed
+  over low crates and erased them; and it steps away from an obstacle before turning in
+  place next to it. On the dressed scene and 20 layouts no run fell and 19 of 21 kept every
+  leg more than 0.10 m from furniture (7 of 10 and one fall before). The exploration scan
+  band is 131's again. CI runs layout seed 4.
+
 - Example 131 `--explore` (active SLAM P3, `docs/PLAN_ACTIVE_SLAM.md`): the Go2 explores both
   rooms on its Mid-360 with `rne_explore` and no goals given, maps 96–99 % of each room's
   floor, and localizes at 0.041 m RMS, against 0.042 m for the goal-directed run. It
