@@ -243,28 +243,77 @@ All 60 runs ended with `Decision::Done`, none collided.
   both P1 policies, with no loss on the office and maze seeds; the distance
   spent on revisits is reported.
 
-#### P2 progress (exit not met)
+#### P2 result
 
-What landed, all opt-in so P1's numbers and the CI replay hash stay as they
-were:
+Configuration: example 164 with `--rebuild-map --submap-loops --revisit`
+(map rebuild, verified submap loop closure, longest-loop revisits; all
+opt-in, so P1's numbers and the CI replay hash `afcbe980c2c754a1` are
+unchanged). Means over 10 seeds (warehouse: 4 starts), against P1:
 
+| world | policy | SLAM err P1 → P2 | mapped P1 → P2 | distance P1 → P2 | closures (bad) |
+| --- | --- | --- | --- | --- | --- |
+| loop | nearest | 0.696 → 0.667 m | 85.3 → 86.4 % | 61.2 → 87.2 m | 396 (0), both policies |
+| loop | information gain | 0.944 → 0.836 m | 82.9 → 83.3 % | 65.4 → 90.8 m | |
+| office | nearest | 0.131 → 0.113 m | 95.7 → 96.0 % | 37.2 → 43.5 m | 368 (3) |
+| office | information gain | 0.127 → 0.119 m | 95.5 → 95.4 % | 42.3 → 46.9 m | |
+| maze | nearest | 0.228 → 0.227 m | 96.6 → 96.6 % | 62.2 → 72.6 m | 416 (2) |
+| maze | information gain | 0.195 → 0.211 m | 97.1 → 96.9 % | 64.6 → 79.1 m | |
+| warehouse | nearest | 0.172 → 0.129 m | 94.4 → 95.3 % | 32.8 → 35.6 m | 72 (0) |
+| warehouse | information gain | 0.076 → 0.065 m | 96.3 → 96.3 % | 33.0 → 37.5 m | |
+
+- On the loop seeds, P2 lowers SLAM error on 7 (nearest) and 8
+  (information gain) of 10 seeds and raises coverage on 7 and 6. With
+  nearest frontier it beats both P1 policies on error and coverage, so the
+  exit is **met for nearest frontier, narrowly**: the mean gain is 4 % in
+  error and 1 point in coverage. Information gain improves on its own P1
+  (11 % lower error) but stays behind nearest frontier.
+- "No loss on office and maze" holds for nearest frontier; information
+  gain loses a little on the maze (0.195 → 0.211 m, 97.1 → 96.9 %) and
+  0.1 point of office coverage.
+- The price is driving: revisits cost 13–15 m per loop run (40 % more
+  driving in total), 3 m in the office, 8–10 m in the maze.
+- Wrong loop closures, the failure that blocked P2 at first, are down from
+  14–43 % to 5 of 1,252 (0.4 %). Without revisits, the loop worlds rarely
+  bring the robot back near an old pose (58 closures in 20 runs, 4 bad),
+  and the means stay at P1's.
+
+What landed:
+
+- `Slam2d::close_loops_against_submaps(SubmapLoopConfig)`: a closure
+  candidate is an earlier keyframe within 2.5 m of the estimate and at
+  least 8 m back along the trajectory. The current scan is matched, with a
+  1 m window, against a submap of only the keyframes around the candidate;
+  the default closure matches against the whole map, which already holds
+  the robot's own recent scans, so it mostly confirmed the drifted
+  estimate and could not see drift beyond its 0.3 m window. A match is
+  rejected when it is degenerate (weaker score curvature under 0.1 of the
+  stronger: a corridor), when its correction exceeds 0.3 m plus 5 % of the
+  path since the candidate, or when the next keyframes do not confirm it
+  (two closures in a row agreeing within 0.15 m). After an accepted
+  closure, none is searched for over the next 2 m; corrections under 5 cm
+  are added without re-optimizing.
+- `Slam2d::rebuild_map_on_loop_closure()`: after a closure that moved the
+  graph, re-integrate every keyframe scan at its optimized pose and move
+  the live pose to the optimized node. Before it, a closure changed the
+  pose graph and nothing else.
+- `PoseGraph` factors only each row's envelope in its Cholesky solve. The
+  skipped entries are exact zeros, so results are unchanged (examples 127,
+  131, 132 and 164 print identical output), but a chain with a few loops
+  no longer costs the cube of its length: with frequent closures the
+  dense solve had made one loop run take over 20 minutes.
 - `Explorer::with_revisits(RevisitConfig)`: once the robot has driven
-  `open_loop_m` (15 m) since the last loop closure, it may drive back to a
-  pose of its own trajectory that is at least `min_loop_m` (6 m) back along
-  the trajectory but close in space, within `max_detour_m` (8 m) of the
-  path. A revisit that closes no loop is not tried again within
-  `tried_radius_m`.
-- `Slam2d::rebuild_map_on_loop_closure()`: before it, a loop closure
-  re-optimized the pose graph and changed nothing else, so the grid and the
-  live pose stayed bent. With it, `Slam2d` keeps each keyframe's scan and,
-  after a closure, re-integrates them at the optimized poses and moves the
-  live pose to the optimized node.
-- Example 164 reports **bad loop closures**: closures whose relative pose
-  disagrees with the ground-truth trajectory by more than 0.25 m. Flags
-  `--rebuild-map` (with closure score 0.75, below), `--loop-min-score S`
-  and `--revisit`.
+  `open_loop_m` (15 m) without a closure, it goes back to a pose of its
+  trajectory at least `min_loop_m` (6 m) back and within `max_detour_m`
+  (15 m) by path, choosing the one that closes the **longest loop for the
+  detour** (trajectory length between it and the robot, minus the path
+  there). After `max_tries` (3) revisits without a closure it stops
+  revisiting until one closes.
+- Example 164: flags `--rebuild-map` (raises the default closure's score
+  to 0.75), `--submap-loops`, `--loop-min-score`, `--revisit`; reports
+  bad loop closures against ground truth (relative pose off by more than
+  0.25 m) and why submap closures were rejected.
 
-What was found:
+How it got there (all on the benchmark worlds):
 
 - **Many of `Slam2d`'s loop closures are wrong**, even in the warehouse, at
   the default `loop_min_score` 0.55: on the smoke start, 6 of 12 (nearest
@@ -306,21 +355,31 @@ What was found:
   loses (0.697 → 0.766 m) while information gain gains (0.946 → 0.852 m).
   The exit (lower error *and* higher coverage than both P1 policies) is not
   met.
+- **Verified submap closures, revisits to the nearest old place:** 0 bad
+  closures, but SLAM error barely moved, and wider windows (2 m) or search
+  radii (4 m) did not change that. The revisits went back down the
+  corridor just driven, closing short loops that correct little. Scoring
+  them by loop length with a 15 m detour helped nearest frontier on loop
+  seeds 0–2 (0.741 → 0.633 m) but not information gain (0.723 →
+  0.758 m); the 10-seed result above is with it.
+- The degeneracy threshold was swept on loop seeds 0–2 (mean of both
+  policies): 0.2, the covariance model's own, rejected most corridor
+  matches (0.804 m); 0.1 gave 0.732 m; 0.05 and 0.02 were identical to
+  each other (0.760 m). No setting accepted a bad closure.
+- Without a cap, a policy whose revisits never close a loop kept
+  revisiting: 190 revisits and 625 m on one run.
 
-So the limit is no longer the explorer: the robot now goes back, and the map
-now follows the closures. It is closure verification in `Slam2d`. The loop
-worlds are built from long, similar, textured corridors, where a score
-threshold alone cannot tell the right place from a similar one. Next, in
-`rne_slam`, before more exploration policy:
+Open after P2:
 
-1. Gate a closure candidate on the drift the graph can explain: reject one
-   whose correction is larger than the odometry uncertainty accumulated
-   since the matched node (the residual gate today is a fixed 0.75 m).
-2. Accept a closure only when the next keyframes confirm it (two or three
-   consecutive closures consistent with each other), the usual guard against
-   perceptual aliasing.
-3. Then re-run this benchmark; D-optimality (design item 4) waits until the
-   closures it would ask for are trustworthy.
+- The gains on the loop worlds are small next to the seed-to-seed spread
+  (SLAM error 0.16–1.28 m per run). Where the remaining error comes from
+  was not measured; P1 put it on heading error built up at the corners,
+  which only a closure around the whole ring removes. D-optimality (design item 4), choosing revisits by the
+  pose-graph uncertainty they remove, is the next policy step.
+- The default `Slam2d` closure (whole map, score 0.55) is unchanged; its
+  wrong closures are harmless only because it does not rebuild the map.
+  Whether submap closure should become the default is a separate
+  `rne_slam` decision.
 
 ### P3: legged robot, no goals given
 
@@ -349,8 +408,8 @@ threshold alone cannot tell the right place from a similar one. Next, in
 - P1 scene: the warehouse of example 127 (2026-11-26).
 - P2 scenes: the generated loop worlds, with the office, maze and
   warehouse as regression checks (2026-11-26).
-- `Slam2d` map rebuild stays opt-in and pairs with closure score 0.75 in
-  example 164; the next P2 step is closure verification in `rne_slam`
+- P2 configuration: map rebuild with verified submap closures and
+  longest-loop revisits, all opt-in; `Slam2d`'s default closure unchanged
   (2026-11-27).
 
 ## Open questions

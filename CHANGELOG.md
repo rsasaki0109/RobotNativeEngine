@@ -6,17 +6,23 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
-- Active SLAM P2 (`docs/PLAN_ACTIVE_SLAM.md`), all opt-in; the exit criterion is not met
-  yet, see the plan for the numbers.
-  - `Slam2d::rebuild_map_on_loop_closure` and `Slam2d::map_rebuilds`: after each accepted
-    loop closure, re-integrate every keyframe scan at its optimized pose and move the live
-    pose to the optimized node. Off by default, since a wrong closure then bends the whole
-    map; pair it with a stricter `loop_min_score`.
+- Active SLAM P2 (`docs/PLAN_ACTIVE_SLAM.md`), all opt-in. On the generated loop worlds,
+  nearest-frontier exploration with these lowers SLAM error and raises coverage over P1
+  (narrowly); see the plan for the numbers.
+  - `Slam2d::close_loops_against_submaps` with `SubmapLoopConfig`, and
+    `Slam2d::submap_loop_rejections`: loop closure against a submap of the keyframes around
+    an earlier pose, rejecting degenerate (corridor) matches, corrections larger than the
+    path can explain, and closures the next keyframes do not confirm. Wrong closures
+    (against ground truth) fall from 14–43 % to 0.4 %.
+  - `Slam2d::rebuild_map_on_loop_closure` and `Slam2d::map_rebuilds`: after a closure that
+    moves the graph, re-integrate every keyframe scan at its optimized pose and move the
+    live pose to the optimized node.
   - `rne_explore::RevisitConfig` and `Explorer::with_revisits` / `decide_with_history`:
-    drive back to an earlier pose to close a loop once the robot has gone `open_loop_m`
-    without one (`Decision::Revisit`).
-  - Example 164: `--rebuild-map` (closure score 0.75), `--loop-min-score`, `--revisit`, and
-    a count of loop closures that disagree with ground truth.
+    drive back to close the longest loop for the detour once the robot has gone
+    `open_loop_m` without a closure (`Decision::Revisit`), up to `max_tries` in a row.
+  - Example 164: `--rebuild-map`, `--submap-loops`, `--loop-min-score`, `--revisit`, and a
+    count of loop closures that disagree with ground truth.
+
 - `rne_explore`, a new crate (`publish = false`) for active SLAM decisions: where a robot
   with no map and no goals goes next (P0 of `docs/PLAN_ACTIVE_SLAM.md`, ADR 036).
   - `extract_frontiers`: free cells next to unknown space, in deterministic 8-connected
@@ -230,6 +236,9 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Changed
 
+- `rne_slam::PoseGraph` optimization factors only each row's envelope in its Cholesky
+  solve. Results are bit-identical; a chain with a few loop closures no longer costs the
+  cube of its length.
 - `CameraDistortion` now has OpenCV's and ROS's meaning: a ray at ideal
   normalized `(x, y)` is imaged at `distort(x, y)`. The resampling applied the
   model the other way round, so `k1 < 0` rendered pincushion instead of barrel
