@@ -6,6 +6,12 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- Example 131 `--explore` (active SLAM P3, `docs/PLAN_ACTIVE_SLAM.md`): the Go2 explores both
+  rooms on its Mid-360 with `rne_explore` and no goals given, maps 96–99 % of each room's
+  floor, and localizes at 0.041 m RMS, against 0.042 m for the goal-directed run. It
+  reports how close the legs came to furniture and gates on it. The goal-directed run is
+  unchanged; CI runs both.
+
 - Example 113 (`drjohnson_euroc_export`): `RNE_WALKER_MODE=still` has the walkers stand at
   the start of their lines for the whole episode, as people waiting or at a desk while a
   map is built.

@@ -388,6 +388,57 @@ Open after P2:
 - Exit: both rooms explored; localization error in the range of 131's
   (0.042 m RMS).
 
+#### P3 result (exit met)
+
+`131_go2_mid360_navigation --explore`: the welded Go2 trots out of room A
+with no goals and no map, nearest frontier first, until `rne_explore`
+reports nothing reachable left. Same simulation, sensor model, leg odometry
+and `Slam2d` as example 131's goal run; CI runs it as a smoke next to the
+goal run, whose output is unchanged.
+
+| | goals given (131) | explored (P3) |
+| --- | --- | --- |
+| finished | both goals, 180 s budget | nothing left to explore at 99 s |
+| room A / room B floor mapped | — | 96.1 % / 98.9 % |
+| SLAM error | 0.042 m RMS | 0.041 m RMS (0.068 max) |
+| odometry alone, max | — | 6.7 m |
+| base / body to obstacles | > 0.2 m | 0.48 m / 0.23 m |
+| map cells on a real obstacle | 100 % | 100 % |
+
+Getting there took three things the wheeled robot of P1 never needed. Each
+was found by a fall, and the body clearance (head, hips, knees and feet
+against the furniture's footprints, sampled at 50 Hz) is now reported and
+gated (> 0.10 m):
+
+- **A scan band under the lowest furniture.** Example 131 keeps returns
+  0.15–0.65 m above the floor. Beams over a 0.4–0.5 m crate reach the wall
+  behind it and mark the crate free; the explorer then sent the robot to
+  frontiers behind crates, where a leg caught one. Exploration's band stops
+  at 0.35 m. Goal-directed driving never went there, so 131's band is
+  unchanged.
+- **Paths through the middle of free space.** `plan_path` with its default
+  cost weight (0.5) runs along the inscribed band, and the trot turning there
+  put a foot within 1–2 cm of furniture. Weight 4 keeps paths centred; the
+  inscribed band is made lethal (except within 0.3 m of the robot, so it can
+  back out), because `plan_path` only refuses lethal cells. Without that,
+  the body came to 0.10 m.
+- **The Go2's size, not its width.** Inscribed radius 0.42 m: the legs reach
+  about 0.38 m from the base, and 0.30 and 0.38 let one reach furniture. The
+  1.0 m doorway leaves 0.16 m to pass.
+
+Robustness: the run passes with each setting nudged on its own (cost weight
+3 or 5, inscribed radius 0.40 or 0.45, band top 0.05 m higher or lower), with
+body clearance 0.15–0.24 m. It fails at cost weight 0.5 and at radius 0.38 or
+below. This is one scene and one start; generated Go2 scenes would test it
+further.
+
+Found on the way, not needed in the end: with the higher band the explorer
+also chose a frontier 0.2 m away over and over. The scan drops returns
+within 0.4 m (the robot's body), so standing on a frontier cannot clear it.
+Skipping reached frontiers fixed that, but with the settings above the robot
+never reaches a frontier before it disappears, so it was left out.
+`rne_explore` is unchanged in P3.
+
 ### P4: camera-based belief (with visloc-rs)
 
 - An example crate that depends on visloc-rs (VISLOC_NAVIGATION_PLAN's
@@ -411,6 +462,8 @@ Open after P2:
 - P2 configuration: map rebuild with verified submap closures and
   longest-loop revisits, all opt-in; `Slam2d`'s default closure unchanged
   (2026-11-27).
+- P3 lives in example 131 behind `--explore`, not a new example: the scene,
+  sensor model and estimator are the point of comparison (2026-11-27).
 
 ## Open questions
 
