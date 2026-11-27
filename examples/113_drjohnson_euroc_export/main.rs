@@ -15,7 +15,8 @@
 //!   sorted with the scene (see `walkers.rs`); `RNE_WALKER_COUNT` (4, at
 //!   most 6) and `RNE_WALKER_SCALE` (1). `RNE_WALKER_MODE=ahead` keeps them
 //!   crossing just in front of the robot instead of pacing lines across its
-//!   route. Their positions go to `people.csv`.
+//!   route; `RNE_WALKER_MODE=still` has them stand at the start of their
+//!   lines all episode. Their positions go to `people.csv`.
 //! - `RNE_START_WAYPOINT=N`: start the route at waypoint N (0), for a query
 //!   episode that differs from the map's.
 //! - Always: `wheel_odom.tum`, the base's wheel odometry (2 % distance and

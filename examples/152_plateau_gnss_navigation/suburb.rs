@@ -799,6 +799,126 @@ impl Builder {
         }
     }
 
+    /// A road tunnel `length` long through a ridge across the road, centred
+    /// on the origin: concrete walls 4.5 m high, chamfers and a ceiling at
+    /// 6.5 m, lamps every 12 m on both walls, a recess for an emergency
+    /// telephone every 100 m, and a headwall 18 m high and 80 m wide at each
+    /// portal. The ridge over it is drawn only; the ceiling and headwalls
+    /// block the sky.
+    fn tunnel(&mut self, length: f64) {
+        let (x0, x1) = (-0.5 * length, 0.5 * length);
+        let half = ROAD_HALF_WIDTH_M + 1.0;
+        let t = 0.5;
+        let mut shell = Vec::new();
+        for s in [-1.0_f64, 1.0] {
+            let wall = |y: f64| y * s;
+            // Walls, chamfers up to the ceiling's edge, and the ceiling.
+            let (a, b) = (wall(half), wall(half + t));
+            shell.extend(cuboid(
+                Vec3::new(x0, a.min(b), 0.0),
+                Vec3::new(x1, a.max(b), 4.5),
+            ));
+            let edge = |y: f64, z: f64| [Vec3::new(x0, s * y, z), Vec3::new(x1, s * y, z)];
+            let [p0, p1] = edge(half, 4.5);
+            let [q0, q1] = edge(2.5, 6.5);
+            let [r0, r1] = edge(half + t, 4.5 + t);
+            let [u0, u1] = edge(2.5, 6.5 + t);
+            shell.extend(convex(&hexahedron([p0, p1, q1, q0], [r0, r1, u1, u0])));
+        }
+        shell.extend(cuboid(Vec3::new(x0, -2.5, 6.5), Vec3::new(x1, 2.5, 7.0)));
+        self.solid(
+            shell,
+            CONCRETE,
+            0.6,
+            Finish::Plain,
+            SurfaceMaterial::CONCRETE,
+        );
+        let mut fittings = Vec::new();
+        let mut x = x0 + 6.0;
+        while x < x1 - 3.0 {
+            for s in [-1.0_f64, 1.0] {
+                let y = s * (half - 0.15);
+                fittings.extend(cuboid(
+                    Vec3::new(x - 0.4, y.min(s * half), 4.0),
+                    Vec3::new(x + 0.4, y.max(s * half), 4.25),
+                ));
+            }
+            x += 12.0;
+        }
+        self.solid(
+            fittings,
+            FRAME,
+            0.3,
+            Finish::Plain,
+            SurfaceMaterial::CONCRETE,
+        );
+        // Emergency telephone recesses: 1.5 m wide, 0.6 m deep, 2.2 m high,
+        // alternating sides.
+        let mut recesses = Vec::new();
+        let mut k = 0;
+        let mut x = x0 + 50.0;
+        while x < x1 - 20.0 {
+            let s = if k % 2 == 0 { -1.0 } else { 1.0 };
+            let (a, b) = (s * (half - 0.05), s * (half + 0.6));
+            recesses.extend(cuboid(
+                Vec3::new(x - 0.75, a.min(b), 0.0),
+                Vec3::new(x + 0.75, a.max(b), 2.2),
+            ));
+            x += 100.0;
+            k += 1;
+        }
+        self.solid(
+            recesses,
+            DOOR,
+            0.5,
+            Finish::Plain,
+            SurfaceMaterial::CONCRETE,
+        );
+        // Headwalls with the opening.
+        for x in [x0, x1] {
+            let (a, b) = (x - 0.5 * x.signum(), x + 0.5 * x.signum());
+            let (lo, hi) = (a.min(b), a.max(b));
+            let mut wall = cuboid(Vec3::new(lo, -40.0, 0.0), Vec3::new(hi, -half - t, 18.0));
+            wall.extend(cuboid(
+                Vec3::new(lo, half + t, 0.0),
+                Vec3::new(hi, 40.0, 18.0),
+            ));
+            wall.extend(cuboid(
+                Vec3::new(lo, -half - t, 7.0),
+                Vec3::new(hi, half + t, 18.0),
+            ));
+            self.solid(
+                wall,
+                CONCRETE,
+                0.7,
+                Finish::Blocks,
+                SurfaceMaterial::CONCRETE,
+            );
+        }
+        // The ridge: 18 m at the headwalls, 45 m over the middle, falling
+        // to the fields 300 m to each side.
+        let (step_x, step_y) = (length / 12.0, 25.0);
+        let height = |x: f64, y: f64| {
+            let along = 18.0 + 27.0 * (std::f64::consts::PI * (x - x0) / length).sin();
+            let across = ((300.0 - y.abs()) / 260.0).clamp(0.0, 1.0);
+            along * across.sqrt()
+        };
+        let mut ridge = Vec::new();
+        for i in 0..12 {
+            for j in 0..24 {
+                let v = |ii: usize, jj: usize| {
+                    let (x, y) = (x0 + step_x * ii as f64, -300.0 + step_y * jj as f64);
+                    Vec3::new(x, y, height(x, y))
+                };
+                ridge.extend(panel(
+                    [v(i, j), v(i + 1, j), v(i + 1, j + 1), v(i, j + 1)],
+                    Vec3::Z,
+                ));
+            }
+        }
+        self.paint(HILLS, 1.0, Finish::Leaves, ridge);
+    }
+
     /// Wooded hills 650–1000 m from the road on both sides, drawn only.
     fn hills(&mut self, x0: f64, x1: f64, d: &mut Draws) {
         let step = 80.0;
@@ -886,8 +1006,16 @@ fn rotate_up(v: Vec3, centre: Vec3, toward: f64) -> Vec3 {
     centre + Vec3::new(r.x, -toward * r.z, toward * r.y)
 }
 
-/// The suburb: a road `length_m` long with `open_m` of fields in the middle.
-pub(crate) fn build(name: &str, center: (f64, f64), length_m: f64, open_m: f64) -> PlateauCity {
+/// The suburb: a road `length_m` long with `open_m` of fields in the middle,
+/// and with `tunnel_m` above 0 a tunnel that long through a ridge in the
+/// middle of the fields.
+pub(crate) fn build(
+    name: &str,
+    center: (f64, f64),
+    length_m: f64,
+    open_m: f64,
+    tunnel_m: f64,
+) -> PlateauCity {
     let mut d = Draws(0x5EED_CAFE);
     let mut b = Builder::default();
     let half = length_m * 0.5;
@@ -902,8 +1030,16 @@ pub(crate) fn build(name: &str, center: (f64, f64), length_m: f64, open_m: f64) 
     b.poles(-edge, -open_m * 0.5, &west_lanes, &mut d);
     b.poles(open_m * 0.5, edge, &east_lanes, &mut d);
     let verge = ROAD_HALF_WIDTH_M + 2.0;
-    b.fields(-open_m * 0.5, open_m * 0.5, verge, FAR_M + 60.0, &mut d);
-    b.countryside(-open_m * 0.5 + 10.0, open_m * 0.5 - 10.0, &mut d);
+    if tunnel_m > 0.0 {
+        let ridge = 0.5 * tunnel_m;
+        for (x0, x1) in [(-open_m * 0.5, -ridge), (ridge, open_m * 0.5)] {
+            b.fields(x0, x1, verge, FAR_M + 60.0, &mut d);
+        }
+        b.tunnel(tunnel_m);
+    } else {
+        b.fields(-open_m * 0.5, open_m * 0.5, verge, FAR_M + 60.0, &mut d);
+        b.countryside(-open_m * 0.5 + 10.0, open_m * 0.5 - 10.0, &mut d);
+    }
     // Fields behind the houses.
     b.fields(-edge, -open_m * 0.5, 45.0, 160.0, &mut d);
     b.fields(open_m * 0.5, edge, 45.0, 160.0, &mut d);

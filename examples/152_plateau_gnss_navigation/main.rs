@@ -84,7 +84,7 @@ struct Area {
     by_name_only: bool,
 }
 
-const AREAS: [Area; 4] = [
+const AREAS: [Area; 5] = [
     Area {
         name: "Shibuya",
         slug: "shibuya",
@@ -150,11 +150,25 @@ const AREAS: [Area; 4] = [
         base: (35.6910, 139.4500),
         by_name_only: true,
     },
+    Area {
+        name: "Tunnel",
+        slug: "tunnel",
+        // No tiles: the suburb with a tunnel through a ridge in the middle
+        // of its fields ([`suburb::build`]).
+        tiles: &[],
+        center: (35.7000, 139.4500),
+        ground_tp_m: 0.0,
+        waypoints: &[(-560.0, 0.0), (560.0, 0.0)],
+        base: (35.6910, 139.4500),
+        by_name_only: true,
+    },
 ];
 
 /// The synthetic suburb's road length and its open middle, meters.
 const SUBURB_LENGTH_M: f64 = 1200.0;
 const SUBURB_OPEN_M: f64 = 500.0;
+/// The tunnel area's tunnel, in the middle of the open stretch, meters.
+const TUNNEL_M: f64 = 300.0;
 
 /// Radius of buildings loaded around each station, meters.
 const LOAD_RADIUS_M: f64 = 450.0;
@@ -169,11 +183,13 @@ const SKY_EPOCH_S: f64 = 20_000.0;
 /// without tiles.
 fn load_city(area: &Area, data: &Path) -> Result<PlateauCity, String> {
     if area.tiles.is_empty() {
+        let tunnel = if area.slug == "tunnel" { TUNNEL_M } else { 0.0 };
         return Ok(suburb::build(
             area.name,
             area.center,
             SUBURB_LENGTH_M,
             SUBURB_OPEN_M,
+            tunnel,
         ));
     }
     let paths: Vec<PathBuf> = area
@@ -289,7 +305,12 @@ fn main() -> Result<(), String> {
         // The 3D LiDAR's prior map: the mesh and terrain along the route.
         let cloud = use_lidar3d
             .then(|| lidar3d::build_map(&city, &route, lidar3d::RANGE_M + 4.0, map_edit()));
+        let weather = weather_flag()?;
         for (label, options, glass_from_m) in runs {
+            let options = RunOptions {
+                weather: weather.unwrap_or(options.weather),
+                ..options
+            };
             if quick && main_run.is_some() {
                 break;
             }
@@ -338,6 +359,34 @@ fn main() -> Result<(), String> {
 }
 
 /// The constellations the sky survey compares.
+/// `--weather crowd|rain|rush`: the runs' conditions, as in `--conditions`
+/// (a crowd along the route; the crowd in rain; rush hour, with a scramble
+/// crossing and traffic).
+fn weather_flag() -> Result<Option<Weather>, String> {
+    let Some(name) = std::env::args().skip_while(|a| a != "--weather").nth(1) else {
+        return Ok(None);
+    };
+    let crowd = Weather {
+        pedestrians: PEDESTRIANS,
+        ..Weather::default()
+    };
+    Ok(Some(match name.as_str() {
+        "clear" => Weather::default(),
+        "crowd" => crowd,
+        "rain" => Weather {
+            rain: true,
+            ..crowd
+        },
+        "rush" => Weather {
+            pedestrians: RUSH_HOUR_PEDESTRIANS,
+            rain: false,
+            scramble: SCRAMBLE_CROSSERS,
+            vehicles: RUSH_HOUR_VEHICLES,
+        },
+        other => return Err(format!("--weather {other}: clear, crowd, rain or rush")),
+    }))
+}
+
 /// `--ghost` and `--unknown-start` on a run's options.
 fn with_flags(options: RunOptions) -> RunOptions {
     RunOptions {
