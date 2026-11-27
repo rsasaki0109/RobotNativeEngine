@@ -266,6 +266,15 @@ struct Lidar3dState {
     matching: MatchState,
 }
 
+/// [`TIMEOUT_S`], or [`TIMEOUT_S_PER_M`] a metre of the route if longer.
+fn timeout_s(route: &[(f64, f64)]) -> f64 {
+    let route_m: f64 = route
+        .windows(2)
+        .map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1))
+        .sum();
+    TIMEOUT_S.max(TIMEOUT_S_PER_M * route_m)
+}
+
 /// Seconds between lidar_localization_ros2's global searches while the
 /// localizer dead reckons with no match.
 const GLOBAL_SEARCH_PERIOD_S: f64 = 5.0;
@@ -825,11 +834,7 @@ pub(crate) fn run(
         z_m: city.ground_m(p.x_m, p.y_m) + BODY_HEIGHT_M,
         yaw_rad: p.yaw_rad,
     };
-    let route_m: f64 = route
-        .windows(2)
-        .map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1))
-        .sum();
-    let timeout_s = TIMEOUT_S.max(TIMEOUT_S_PER_M * route_m);
+    let timeout_s = timeout_s(route);
     let mut tick = 0_usize;
     let wall = std::time::Instant::now();
     let verbose = std::env::args().any(|a| a == "--verbose");

@@ -439,12 +439,11 @@ pub(crate) struct Tracker {
 pub(crate) const LIDAR3D_PERIOD_S: f64 = 0.2;
 
 /// One scan through lidar_localization_ros2's tracking, seeded with the
-/// localizer's estimate (the odometry bridge). An accepted scan is a match
-/// at the node's pose, with the fit and the covariance of the map's
-/// point-to-plane fit started there ([`PointCloudMap::match_scan`]), so that
-/// the hybrid weighs and gates it as it does its own matches. A scan the
-/// node's gate rejects, or whose point-to-plane fit settles more than
-/// [`LIDARLOC_AGREEMENT_M`] away, is none.
+/// localizer's estimate (the odometry bridge). An accepted scan's pose is
+/// refined by the map's point-to-plane fit ([`PointCloudMap::match_scan`])
+/// into a match with its fit and covariance, so that the hybrid weighs and
+/// gates it as it does its own matches. A scan the node's gate rejects, or
+/// whose fit settles more than [`LIDARLOC_AGREEMENT_M`] away, is none.
 ///
 /// Not the NDT score Hessian's covariance: on bare ground NDT's cells pin
 /// the scan to their lattice, and the Hessian claims 2 cm where nothing
@@ -471,19 +470,14 @@ pub(crate) fn lidarloc_match(
     }
     let p = update.pose;
     let at = Pose2d::new(p.w_axis.x, p.w_axis.y, p.x_axis.y.atan2(p.x_axis.x));
-    // The map's point-to-plane fit, started at the node's pose, must settle
-    // there: where it moves away, NDT has stopped in a minimum of its own
-    // (open ground with a wall at the edge of range pins the scan to NDT's
-    // cells), and its pose is not used.
+    // NDT's pose refined by the map's point-to-plane fit: NDT stops a few
+    // decimetres to metres off where its cells pin the scan (open ground with
+    // a wall at the edge of range, a tunnel's walls), and the fit started
+    // there settles on the surfaces. Where the two are metres apart, NDT has
+    // found another place, and neither is used.
     let refined = map.match_scan(points, at, p.w_axis.z, &match_config())?;
-    if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
-        return None;
-    }
-    Some(PointCloudMatch {
-        pose: at,
-        z_m: p.w_axis.z,
-        ..refined
-    })
+    ((refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) <= LIDARLOC_AGREEMENT_M)
+        .then_some(refined)
 }
 
 /// lidar_localization_ros2's global localization while the localizer dead
@@ -518,18 +512,18 @@ pub(crate) fn lidarloc_global(
     if (refined.pose.x_m - at.x_m).hypot(refined.pose.y_m - at.y_m) > LIDARLOC_AGREEMENT_M {
         return None;
     }
-    tracker.loc.set_initial_pose(&p, t).ok()?;
+    let start = Mat4::from_rotation_translation(
+        DQuat::from_rotation_z(refined.pose.yaw_rad),
+        Vec3::new(refined.pose.x_m, refined.pose.y_m, refined.z_m),
+    );
+    tracker.loc.set_initial_pose(&start, t).ok()?;
     tracker.started = true;
-    Some(PointCloudMatch {
-        pose: at,
-        z_m: p.w_axis.z,
-        ..refined
-    })
+    Some(refined)
 }
 
 /// How far, meters, the point-to-plane fit may settle from lidar_localization_ros2's
-/// pose for that pose to be used.
-const LIDARLOC_AGREEMENT_M: f64 = 0.3;
+/// pose for the scan to be used.
+const LIDARLOC_AGREEMENT_M: f64 = 2.0;
 
 /// The scan reduced for matching.
 pub(crate) fn downsample(points: &[Vec3]) -> Vec<Vec3> {
