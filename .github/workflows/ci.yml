@@ -652,7 +652,9 @@ jobs:
   # other jobs build the adapter's stub): the adapter's tests, required to run,
   # and example 152 driving the synthetic suburb with --lidarloc.
   lidarloc:
-    runs-on: ubuntu-latest
+    # PCL 1.14: ndt_omp_ros2's humble branch includes pcl/filters/boost.h,
+    # which PCL 1.15 (newer runner images) no longer ships.
+    runs-on: ubuntu-24.04
     env:
       RNE_LIDARLOC_DIR: ${{ github.workspace }}/../lidarloc/install
     steps:
@@ -670,7 +672,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/../lidarloc/install
-          key: lidarloc-core-${{ runner.os }}-${{ hashFiles('scripts/build_lidarloc.sh') }}
+          key: lidarloc-core-ubuntu-24.04-${{ hashFiles('scripts/build_lidarloc.sh') }}
       - name: Build lidar_localization_core
         if: steps.core.outputs.cache-hit != 'true'
         run: LIDARLOC_JOBS=4 scripts/build_lidarloc.sh "$(dirname "$RNE_LIDARLOC_DIR")"
