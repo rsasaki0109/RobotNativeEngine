@@ -530,6 +530,40 @@ encoded with `--width 640 --colors 192`):
 
 ![Shibuya with the localizers switched on 25 m from where they think: the localizer without GNSS never finds itself, up to 109 m off](../../docs/media/plateau-gnss-shibuya-unknown-start.gif)
 
+### A tunnel (`--area tunnel`)
+
+The suburb with a ridge across its fields and a 300 m road tunnel through
+it: concrete walls, a ceiling at 6.5 m, lamps every 12 m, an emergency
+telephone recess every 100 m, and an 18 m headwall at each portal. Inside,
+no satellite is in view, and the walls pin the robot across the tunnel but
+not along it.
+
+```bash
+cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_navigation -- \
+  --quick --area tunnel --lidar3d --beidou --ghost
+```
+
+| 3D LiDAR, BeiDou | RMSE (max) |
+|------|------|
+| With GNSS | 0.52 m (2.90 m) |
+| Without GNSS (`--ghost`) | 0.52 m (2.90 m) |
+
+GNSS adds nothing here, and the tunnel is not the hard case it looks:
+the scan's point-to-plane covariance is narrow across the tunnel and wide
+along it, so the hybrid takes the lateral position from LiDAR and the
+along-track position from the wheels. Over 300 m that drifts 2.9 m, and
+the far headwall, in reach before the exit, takes it back. The fields on
+either side are only 100 m long, and a headwall or the houses are always
+within the LiDAR's 60 m. GNSS (none for 27 % of the run) would matter for
+a longer tunnel, or one that opens onto open ground.
+
+### Crowds and traffic for the 3D LiDAR (`--weather`)
+
+`--weather crowd|rain|rush` runs the main configuration in the conditions
+of `--conditions` (60 pedestrians; them in rain; rush hour with 150
+pedestrians, a scramble crossing and 40 vehicles), so that they can be
+combined with `--lidar3d` and `--lidarloc` (results above).
+
 ### An aged map (`--aged-map`)
 
 The LiDAR map above is the world's own surfaces, which flatters the LiDAR.
@@ -581,7 +615,10 @@ per-scan tracking (`lidarloc_localize`), seeded with the hybrid's estimate
 as the node is seeded with odometry:
 
 * NDT_OMP at 1 m on the whole map, one thread so that runs repeat exactly;
-* the node's measurement gate, which decides whether a scan is used;
+* the node's measurement gate, which decides whether a scan is used, with
+  the seed correction guards its quickstart turns on with an odometry seed
+  (no scan may move the pose more than 0.5 m from the seed, nor 0.3 m in
+  all over 2 s);
 * the map-distance prefilter at 1 m, which leaves the people, cars and rain
   the map lacks out of the alignment;
 * local re-acquisition after an outage: once two seconds of scans are
@@ -605,17 +642,29 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 
 | 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2, registration only (before) | lidar_localization_ros2, tracking |
 |------|------|------|------|
-| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.03 m (0.12 m) |
-| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.12 m) |
-| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.09 m (1.87 m) |
-| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 70 m (199 m) |
+| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.04 m (0.40 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.10 m) |
+| Shibuya at rush hour (`--weather rush`), with GNSS | 0.01 m (0.07 m) | | 0.08 m (0.60 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.06 m (1.00 m) |
+| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 75 m (214 m) |
+| Tunnel (`--area tunnel`), with GNSS | 0.52 m (2.90 m) | | 1.78 m (12.1 m) |
+| Tunnel, without GNSS | 0.52 m (2.90 m) | | 31 m (54 m) |
 
 The node's gate keeps the scans NDT fits badly out of the hybrid: in
-Shibuya with GNSS the worst error falls from 1.06 m to 0.12 m. NDT's 1 m
+Shibuya with GNSS the worst error falls from 1.06 m to 0.40 m. NDT's 1 m
 cells are coarser than point-to-plane on a map sampled from the very
 surfaces the LiDAR sees, so it stays a few centimetres less exact here, and
 the conclusions hold: either LiDAR holds the robot among the buildings, and
-only GNSS carries it across the fields.
+only GNSS carries it across the fields. Two cases are still `rne_slam`'s:
+
+* **Crowds.** At rush hour the map-distance prefilter keeps most people
+  out of NDT, but not all; `rne_slam`'s own filter of unmapped returns
+  does better.
+* **The tunnel.** Without the seed correction guards NDT slides along the
+  tunnel and drags the estimate with it (42 m RMSE). With them it holds
+  1–2 m inside, but on the open ground at the portals the gate accepts NDT
+  poses a few metres off, LiDAR keeps charge though RTK is fixed there, and
+  the error peaks at 12 m before the far town pins it again.
 
 ## Limits
 
