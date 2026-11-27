@@ -6,6 +6,7 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+<<<<<<< HEAD
 - `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
   lidar_localization_ros2's global localization over the whole map.
 - Example 152:
@@ -15,6 +16,23 @@ All notable changes to Robot Native Engine are documented in this file.
     without GNSS, against 61 m), checks NDT against the point-to-plane fit, and drops NDT's
     correction along its Hessian's weakest direction (solution remapping) in a tunnel;
   - `--render-from` and `--render-to` render a stretch of the run.
+=======
+- Example 131 `--explore --layout-seed N`: generated two-room layouts (doorway moved, seeded
+  furniture 0.40–1.20 m tall, every floor cell reachable). Exploration now plans on the SLAM
+  map plus an obstacle layer from the 3D returns (marked by returns at the Go2's height,
+  cleared only by rays that reach the floor), because beams from the 0.447 m Mid-360 passed
+  over low crates and erased them; and it steps away from an obstacle before turning in
+  place next to it. On the dressed scene and 20 layouts no run fell and 19 of 21 kept every
+  leg more than 0.10 m from furniture (7 of 10 and one fall before). The exploration scan
+  band is 131's again. CI runs layout seed 4.
+
+- Example 131 `--explore` (active SLAM P3, `docs/PLAN_ACTIVE_SLAM.md`): the Go2 explores both
+  rooms on its Mid-360 with `rne_explore` and no goals given, maps 96–99 % of each room's
+  floor, and localizes at 0.041 m RMS, against 0.042 m for the goal-directed run. It
+  reports how close the legs came to furniture and gates on it. The goal-directed run is
+  unchanged; CI runs both.
+
+>>>>>>> origin/main
 - Example 113 (`drjohnson_euroc_export`): `RNE_WALKER_MODE=still` has the walkers stand at
   the start of their lines for the whole episode, as people waiting or at a desk while a
   map is built.

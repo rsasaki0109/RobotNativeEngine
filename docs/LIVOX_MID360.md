@@ -203,6 +203,38 @@ envelopes the dressed render draws inside; see [GO2_DOOR.md](GO2_DOOR.md#dressed
 | Clearance | at least 0.41 m |
 | Occupied map cells within 10 cm of a real obstacle | 100 % of 1,065 |
 
+## Exploring on the Mid-360
+
+<p align="center">
+  <img src="media/go2-mid360-explore.gif" alt="The same two rooms, unexplored floor dark: the Go2 is given no goal, walks to the nearest edge of what its Mid-360 has mapped, then the next, crosses the doorway and maps the second room, uncovering the floor as it goes" width="720">
+</p>
+
+`--explore` runs example 131 with no goals: `rne_explore` picks the nearest
+frontier of the SLAM map every second, until nothing reachable is left unknown
+(active SLAM P3, [PLAN_ACTIVE_SLAM.md](PLAN_ACTIVE_SLAM.md)). Sensor model, leg
+odometry and `Slam2d` are the goal run's.
+
+| Measure | Result |
+| --- | --- |
+| Finished | nothing left to explore at 47.1 s |
+| Floor mapped, room A / room B | 96.6 % / 98.9 % |
+| Localization error | 0.041 m RMS, 0.064 m worst |
+| Leg odometry alone | 3.9 m worst |
+| Clearance, base / legs and head | at least 0.49 m / 0.33 m |
+| Occupied map cells within 10 cm of a real obstacle | 100 % of 1,000 |
+
+The Mid-360 rides above the 0.4–0.5 m crates, so a beam to a distant wall
+passes over a nearby crate, and a 2D scan's free-space carving erases it.
+Exploration therefore plans on the SLAM map plus an obstacle layer built from
+the 3D returns: returns 0.10–0.55 m above the floor mark it, and only rays
+that reach the floor, which a crate in the way blocks, clear it. Paths keep
+to the middle of free space (cost weight 4, inscribed band lethal), the base
+keeps 0.42 m from obstacles (the reach of the legs, not 0.30 m), and the robot
+steps away from an obstacle before turning in place next to it. On 20
+generated layouts plus this scene, no run fell and 19 of 21 kept every leg
+more than 0.10 m from the furniture; see
+[PLAN_ACTIVE_SLAM.md](PLAN_ACTIVE_SLAM.md) P3.
+
 ## What is not established
 
 - **Timestamp jitter.** Real `t` values carry packet-level host jitter (−270

@@ -2926,6 +2926,12 @@ fn run_locomotion_smokes() -> anyhow::Result<()> {
     run_step(
         "cargo run --locked -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --smoke",
     )?;
+    run_step(
+        "cargo run --locked -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --explore --smoke",
+    )?;
+    run_step(
+        "cargo run --locked -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --explore --smoke --layout-seed 4",
+    )?;
     run_step("cargo run --locked -p go2_door --example 132_go2_door -- --smoke")?;
     run_step(
         "cargo run --locked -p position_motor_calibration --example 141_position_motor_calibration -- --verify-report docs/media/position-motor-calibration-inactive-limit-source.json",

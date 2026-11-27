@@ -2006,6 +2006,7 @@ dependencies = [
  "png",
  "rne_ai",
  "rne_data",
+ "rne_explore",
  "rne_math",
  "rne_nav",
  "rne_render",
