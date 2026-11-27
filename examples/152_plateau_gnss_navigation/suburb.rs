@@ -810,30 +810,34 @@ impl Builder {
         let half = ROAD_HALF_WIDTH_M + 1.0;
         let t = 0.5;
         let mut shell = Vec::new();
-        // In 10 m sections: the LiDAR map samples a triangle on a grid as
-        // fine along its longest edge as across it, so one 300 m triangle
-        // would hold millions of points.
+        // The faces the tunnel shows inside (walls, chamfers up to the
+        // ceiling's edge, the ceiling), in 10 m sections: the LiDAR map
+        // samples a triangle on a grid as fine along its longest edge as
+        // across it, so one 300 m triangle would hold millions of points. Open
+        // faces, not solids, so that the map holds no faces between sections.
         let sections = (length / 10.0).ceil().max(1.0) as usize;
         for k in 0..sections {
             let (xa, xb) = (
                 x0 + length * k as f64 / sections as f64,
                 x0 + length * (k + 1) as f64 / sections as f64,
             );
+            let strip = |(ya, za): (f64, f64), (yb, zb): (f64, f64)| {
+                [
+                    Vec3::new(xa, ya, za),
+                    Vec3::new(xb, ya, za),
+                    Vec3::new(xb, yb, zb),
+                    Vec3::new(xa, yb, zb),
+                ]
+            };
             for s in [-1.0_f64, 1.0] {
-                // Walls, chamfers up to the ceiling's edge, and the ceiling.
-                let (a, b) = (s * half, s * (half + t));
-                shell.extend(cuboid(
-                    Vec3::new(xa, a.min(b), 0.0),
-                    Vec3::new(xb, a.max(b), 4.5),
+                let inward = Vec3::new(0.0, -s, 0.0);
+                shell.extend(panel(strip((s * half, 0.0), (s * half, 4.5)), inward));
+                shell.extend(panel(
+                    strip((s * half, 4.5), (s * 2.5, 6.5)),
+                    Vec3::new(0.0, -s, -1.0),
                 ));
-                let edge = |y: f64, z: f64| [Vec3::new(xa, s * y, z), Vec3::new(xb, s * y, z)];
-                let [p0, p1] = edge(half, 4.5);
-                let [q0, q1] = edge(2.5, 6.5);
-                let [r0, r1] = edge(half + t, 4.5 + t);
-                let [u0, u1] = edge(2.5, 6.5 + t);
-                shell.extend(convex(&hexahedron([p0, p1, q1, q0], [r0, r1, u1, u0])));
             }
-            shell.extend(cuboid(Vec3::new(xa, -2.5, 6.5), Vec3::new(xb, 2.5, 7.0)));
+            shell.extend(panel(strip((-2.5, 6.5), (2.5, 6.5)), Vec3::new(0.0, 0.0, -1.0)));
         }
         self.solid(
             shell,
@@ -883,28 +887,30 @@ impl Builder {
             Finish::Plain,
             SurfaceMaterial::CONCRETE,
         );
-        // Headwalls with the opening.
+        // Headwalls with the opening: their face toward the fields, in 10 m
+        // columns (for the LiDAR map's sampling), and the lintel.
         for x in [x0, x1] {
-            let (a, b) = (x - 0.5 * x.signum(), x + 0.5 * x.signum());
-            let (lo, hi) = (a.min(b), a.max(b));
-            // In 10 m columns, for the LiDAR map's sampling.
+            let out = x.signum();
+            let face = x + 0.5 * out;
+            let rect = |(ya, za): (f64, f64), (yb, zb): (f64, f64)| {
+                [
+                    Vec3::new(face, ya, za),
+                    Vec3::new(face, yb, za),
+                    Vec3::new(face, yb, zb),
+                    Vec3::new(face, ya, zb),
+                ]
+            };
+            let normal = Vec3::new(out, 0.0, 0.0);
             let mut wall = Vec::new();
             for side in [-1.0_f64, 1.0] {
                 let mut y = half + t;
                 while y < 40.0 - 1.0e-6 {
                     let next = (y + 10.0).min(40.0);
-                    let (a, b) = (side * y, side * next);
-                    wall.extend(cuboid(
-                        Vec3::new(lo, a.min(b), 0.0),
-                        Vec3::new(hi, a.max(b), 18.0),
-                    ));
+                    wall.extend(panel(rect((side * y, 0.0), (side * next, 18.0)), normal));
                     y = next;
                 }
             }
-            wall.extend(cuboid(
-                Vec3::new(lo, -half - t, 7.0),
-                Vec3::new(hi, half + t, 18.0),
-            ));
+            wall.extend(panel(rect((-half - t, 7.0), (half + t, 18.0)), normal));
             self.solid(
                 wall,
                 CONCRETE,
