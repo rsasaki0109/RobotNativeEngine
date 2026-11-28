@@ -103,6 +103,7 @@ cargo clippy -p rne_core --all-targets -- -D warnings
 - Any new sensor must define timestamp behavior, latency behavior, and noise behavior.
 - Any new actuator must define limits and failure behavior.
 - Any new feature must include tests and a short docs update.
+- Record changes as fragments in `changelog.d/<section>/<name>.md` (see `changelog.d/README.md`); do not edit `CHANGELOG.md`'s `[Unreleased]` section directly.
 
 ## Testing Requirements
 
