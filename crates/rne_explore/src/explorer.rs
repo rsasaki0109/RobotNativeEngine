@@ -3,6 +3,7 @@
 use crate::frontier::{extract_frontiers, FrontierConfig};
 use crate::gain::{information_gain, SensorModel};
 use crate::reach::ReachMap;
+use crate::resistance::effective_resistance_to_end;
 use rne_math::Vec3;
 use rne_nav::{Costmap, CostmapConfig, GridCoord, GridError, OccupancyGrid, Pose2d};
 use std::cmp::Ordering;
@@ -140,7 +141,15 @@ pub struct RevisitConfig {
     /// stops revisiting until one closes: where the estimator cannot close a
     /// loop (a featureless corridor), going back only costs driving.
     pub max_tries: usize,
+    /// With [`Explorer::decide_with_graph`]: how much a loop closure is
+    /// worth as a constraint, in metres of odometry (a closure pins two
+    /// poses about as well as this much driving would).
+    pub loop_closure_m: f64,
 }
+
+/// Trajectory length merged into one node when computing effective
+/// resistance.
+const RESISTANCE_STEP_M: f64 = 0.5;
 
 impl Default for RevisitConfig {
     fn default() -> Self {
@@ -150,6 +159,7 @@ impl Default for RevisitConfig {
             max_detour_m: 15.0,
             tried_radius_m: 1.5,
             max_tries: 3,
+            loop_closure_m: 0.5,
         }
     }
 }
@@ -210,6 +220,26 @@ impl Explorer {
         history: &[Pose2d],
         open_loop_m: f64,
     ) -> Result<Decision, GridError> {
+        self.decide_with_graph(grid, robot, history, &[], open_loop_m)
+    }
+
+    /// Like [`Explorer::decide_with_history`], with the loop closures
+    /// already in the pose graph (`(from, to)` indices into `history`).
+    ///
+    /// A revisit is then scored by the graph's effective resistance between
+    /// the place and the robot instead of the trajectory length between them
+    /// (see [`effective_resistance_to_end`]): the D-optimal choice. A place
+    /// already tied to the robot by earlier closures has a short effective
+    /// loop, however far back along the trajectory it lies, and closing it
+    /// again tells the graph little. With no closures the two measures agree.
+    pub fn decide_with_graph(
+        &mut self,
+        grid: &OccupancyGrid,
+        robot: Pose2d,
+        history: &[Pose2d],
+        loops: &[(usize, usize)],
+        open_loop_m: f64,
+    ) -> Result<Decision, GridError> {
         let (candidates, reach) = self.score(grid, robot)?;
         self.reach = reach;
         if let Some(config) = self.revisit {
@@ -220,7 +250,7 @@ impl Explorer {
             }
             self.last_open_loop_m = open_loop_m;
             if open_loop_m >= config.open_loop_m && self.tried.len() < config.max_tries {
-                if let Some(target) = self.revisit_target(grid, history, &config) {
+                if let Some(target) = self.revisit_target(grid, history, loops, &config) {
                     self.current_revisit = Some(target);
                     return Ok(Decision::Revisit(target));
                 }
@@ -231,16 +261,19 @@ impl Explorer {
         Ok(self.choose(candidates))
     }
 
-    /// The visited place to go back to: old enough along the trajectory,
-    /// reachable within the detour, not tried. Among those, the one that
-    /// closes the longest loop for its detour: trajectory length between it
-    /// and the robot, minus the path there. Correcting drift needs a loop
-    /// around it, and going back down the corridor just driven closes a short
-    /// loop that corrects little.
+    /// The visited place to go back to: far enough back (its loop at least
+    /// `min_loop_m` long), reachable within the detour, not tried. Among
+    /// those, the one that closes the longest loop for its detour: loop
+    /// length minus the path there. Correcting drift needs a loop around it,
+    /// and going back down the corridor just driven closes a short loop that
+    /// corrects little. The loop length is the trajectory length between the
+    /// place and the robot, or with `loops`, the graph's effective
+    /// resistance between them.
     fn revisit_target(
         &self,
         grid: &OccupancyGrid,
         history: &[Pose2d],
+        loops: &[(usize, usize)],
         config: &RevisitConfig,
     ) -> Option<Candidate> {
         if let Some(current) = self.current_revisit {
@@ -250,12 +283,17 @@ impl Explorer {
             }
         }
         let reach = self.reach.as_ref()?;
-        // Distance along the trajectory from each pose to its end.
-        let mut behind = vec![0.0; history.len()];
-        for i in (0..history.len().saturating_sub(1)).rev() {
-            let (a, b) = (history[i], history[i + 1]);
-            behind[i] = behind[i + 1] + (b.x_m - a.x_m).hypot(b.y_m - a.y_m);
-        }
+        let behind = if loops.is_empty() {
+            // Distance along the trajectory from each pose to its end.
+            let mut behind = vec![0.0; history.len()];
+            for i in (0..history.len().saturating_sub(1)).rev() {
+                let (a, b) = (history[i], history[i + 1]);
+                behind[i] = behind[i + 1] + (b.x_m - a.x_m).hypot(b.y_m - a.y_m);
+            }
+            behind
+        } else {
+            effective_resistance_to_end(history, loops, config.loop_closure_m, RESISTANCE_STEP_M)
+        };
         history
             .iter()
             .zip(&behind)
@@ -542,6 +580,7 @@ mod tests {
             max_detour_m: 8.0,
             tried_radius_m: 1.5,
             max_tries: 3,
+            loop_closure_m: 0.5,
         })
     }
 
@@ -569,6 +608,26 @@ mod tests {
         assert!(target.path_m <= 8.0);
         // The recent half of the trajectory (y = 4.5) cannot close a loop.
         assert_eq!(target.goal_cell.y, 8);
+    }
+
+    #[test]
+    fn a_closed_loop_leaves_nothing_worth_revisiting() {
+        let grid = two_doors();
+        let robot = Pose2d::new(5.5, 6.5, 0.0);
+        // Without the graph's closures the row's start lies 15 m back.
+        assert!(matches!(
+            revisiting()
+                .decide_with_graph(&grid, robot, &history(), &[], 12.0)
+                .unwrap(),
+            Decision::Revisit(_)
+        ));
+        // With the start already closed to the end, every place is tied to
+        // the robot by at most about 4.5 m of graph: no loop of 6 m is left
+        // to close, so the explorer explores instead.
+        let decision = revisiting()
+            .decide_with_graph(&grid, robot, &history(), &[(0, 15)], 12.0)
+            .unwrap();
+        assert!(matches!(decision, Decision::Goal(_)), "{decision:?}");
     }
 
     #[test]
