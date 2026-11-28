@@ -6,6 +6,25 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `modules/robot-foresight`, `modules/robot-navigation`, `modules/robot-manipulation`
+  (ADR 037, `docs/FORESIGHT.md`): standalone modules, free of RNE crates, for planning
+  against forecast world states.
+  - `robot_foresight`: `ForecastSet` of multimodal predicted agents whose position
+    uncertainty grows with lookahead; `ConstantVelocityForecaster`, `LearnedForecaster`
+    (any `InferenceModel`) and `BlendedForecaster`; `HybridPipeline` of `Proposer`,
+    `Refiner`, `Critic` and `Certifier` stages with `Provenance` on every candidate and a
+    full `Decision` trace; `MlpModel` loads dense networks from JSON.
+  - `robot_navigation`: `VoxelGrid`, `SpaceTimeAstar` over (voxel, time), straight-line
+    and `LearnedVelocityProposer` proposers, `ShortcutRefiner`, `ForecastCertifier`.
+  - `robot_manipulation`: DH `SerialChain` with IK, `time_scale_path`
+    (path-velocity decomposition around the forecast), direct, RRT-Connect and
+    `LearnedViaPointProposer` motion proposers, `MotionCertifier`, antipodal grasp
+    sampling, `LearnedGraspScorer` and `ReachabilityCertifier`.
+  - Example 165 (drone in a warehouse aisle: snapshot and constant-velocity plans
+    collide, the blended learned+classical forecast plan passes 0.50 m clear) and
+    example 166 (arm: the classical sweep waits 1.8 s for a hand; a learned via-point
+    route over it certifies and arrives at 1.40 s instead of 3.00 s).
+
 - `rne_adapter_lidarloc`: lidar_localization_ros2's solution remapping (`Tracking::
   enable_degeneracy_remapping`, `degeneracy_remapping_weak_ratio`,
   `degeneracy_remapping_min_horizontal_constraint`) and what it dropped

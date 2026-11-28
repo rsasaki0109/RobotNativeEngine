@@ -1,0 +1,17 @@
+[package]
+name = "robot_manipulation"
+description = "Forecast-aware arm motion and grasp planning with interchangeable learned and classical stages"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+glam = { workspace = true }
+robot_foresight = { workspace = true }
+serde = { workspace = true }

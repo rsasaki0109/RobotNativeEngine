@@ -4168,6 +4168,37 @@ fn lint_boundaries() -> anyhow::Result<()> {
         }
     }
 
+    // Standalone modules (ADR 037) must stay free of RNE crates, adapters,
+    // ROS 2, physics backends and renderers so they can leave the workspace.
+    let module_forbidden = [
+        "rne_",
+        "rcl",
+        "ros2",
+        "adapters/",
+        "rapier",
+        "wgpu",
+        "bevy",
+        "mujoco",
+    ];
+    for manifest in find_cargo_tomls(&workspace_root.join("modules"))? {
+        let content = fs::read_to_string(&manifest)?;
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if !trimmed.starts_with('"') && !trimmed.contains(" = ") {
+                continue;
+            }
+            for pattern in module_forbidden {
+                if trimmed.contains(pattern) {
+                    anyhow::bail!(
+                        "forbidden dependency in standalone module {}: {}",
+                        manifest.display(),
+                        trimmed
+                    );
+                }
+            }
+        }
+    }
+
     let traffic_manifest = workspace_root.join("crates/rne_traffic/Cargo.toml");
     let traffic_content = fs::read_to_string(&traffic_manifest)?;
     let traffic_forbidden = [
