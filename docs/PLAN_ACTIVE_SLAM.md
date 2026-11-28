@@ -402,13 +402,30 @@ binary):
 | information gain, trajectory length | 0.836 m | 83.3 % | — |
 | information gain, `--dopt` | 0.851 m | 83.2 % | 3 of 10 |
 
-Most runs are identical. Most revisits are chosen before any closure
-exists, when the two scores agree, and most runs stop revisiting after the
-3 allowed revisits that close nothing. Which place to go back to is
-therefore not what limits the loop worlds: going back rarely produces a
-closure there. Why revisits fail to close (the submap check rejects them,
-or the robot arrives facing away) is the question to answer before more
-policy. `--dopt` stays opt-in.
+Most runs are identical: most revisits are chosen before any closure
+exists, when the two scores agree, and on a ring the best loop to close
+stays the same afterwards. `--dopt` stays opt-in.
+
+What does limit the loop worlds was then measured (seeds 0–4, both
+policies, per revisit and per third of the trajectory):
+
+- Revisits work: 33 of 41 ended because a loop closed (a confirmed pair
+  of closures each); 8 were cut short without one. No closure was wrong.
+  The 3 revisits most runs show are not 3 failed tries: going round a ring
+  produces about that many.
+- The error sits at the end of the trajectory. Mean position error over
+  the first, middle and last third of the keyframes: 0.11–0.34 m,
+  0.28–1.36 m, 0.62–2.09 m (heading at the end off by up to 0.26 rad).
+- Going back once more to close the last open loop before reporting done
+  (tried as `RevisitConfig::close_before_done`) made it worse: SLAM error
+  0.667 → 0.705 m and 0.836 → 0.921 m, no run better, 3–5 m more driving.
+  It was reverted.
+
+So closures happen and are right, yet the trajectory between and after
+them stays off by tens of centimetres: the question has moved from the
+exploration policy to how `Slam2d` applies a closure (the weights it gives
+odometry and closure edges, and the corrections under 5 cm it adds without
+re-optimizing).
 
 ### P3: legged robot, no goals given
 
