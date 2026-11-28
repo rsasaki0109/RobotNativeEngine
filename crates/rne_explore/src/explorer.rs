@@ -145,6 +145,11 @@ pub struct RevisitConfig {
     /// worth as a constraint, in metres of odometry (a closure pins two
     /// poses about as well as this much driving would).
     pub loop_closure_m: f64,
+    /// When no frontier is left, go back once more if the robot has driven
+    /// at least `min_loop_m` since the last closure, before reporting
+    /// [`Decision::Done`]: the last stretch of trajectory is otherwise left
+    /// uncorrected. Off by default.
+    pub close_before_done: bool,
 }
 
 /// Trajectory length merged into one node when computing effective
@@ -160,6 +165,7 @@ impl Default for RevisitConfig {
             tried_radius_m: 1.5,
             max_tries: 3,
             loop_closure_m: 0.5,
+            close_before_done: false,
         }
     }
 }
@@ -249,7 +255,14 @@ impl Explorer {
                 self.current_revisit = None;
             }
             self.last_open_loop_m = open_loop_m;
-            if open_loop_m >= config.open_loop_m && self.tried.len() < config.max_tries {
+            // Before declaring the map done, close the loop still open since
+            // the last closure: otherwise the drift of the last stretch is
+            // never corrected.
+            let closing = candidates.is_empty()
+                && config.close_before_done
+                && open_loop_m >= config.min_loop_m;
+            if (open_loop_m >= config.open_loop_m || closing) && self.tried.len() < config.max_tries
+            {
                 if let Some(target) = self.revisit_target(grid, history, loops, &config) {
                     self.current_revisit = Some(target);
                     return Ok(Decision::Revisit(target));
@@ -581,6 +594,7 @@ mod tests {
             tried_radius_m: 1.5,
             max_tries: 3,
             loop_closure_m: 0.5,
+            close_before_done: false,
         })
     }
 
@@ -608,6 +622,54 @@ mod tests {
         assert!(target.path_m <= 8.0);
         // The recent half of the trajectory (y = 4.5) cannot close a loop.
         assert_eq!(target.goal_cell.y, 8);
+    }
+
+    #[test]
+    fn the_last_loop_is_closed_before_done_only_when_asked() {
+        // A closed room: no frontier left.
+        let grid = room_grid(&[
+            "###########",
+            "#.........#",
+            "#.........#",
+            "#.........#",
+            "#.........#",
+            "#.........#",
+            "#.........#",
+            "#.........#",
+            "#.........#",
+            "###########",
+        ]);
+        let history: Vec<Pose2d> = (0..8)
+            .map(|i| Pose2d::new(1.5 + i as f64, 7.5, 0.0))
+            .chain((0..8).map(|i| Pose2d::new(8.5 - i as f64, 2.5, 0.0)))
+            .collect();
+        let robot = Pose2d::new(1.5, 2.5, 0.0);
+        let revisits = RevisitConfig {
+            open_loop_m: 100.0,
+            min_loop_m: 6.0,
+            ..RevisitConfig::default()
+        };
+        let mut plain = Explorer::new(config(ScorePolicy::NearestFrontier)).with_revisits(revisits);
+        assert_eq!(
+            plain
+                .decide_with_history(&grid, robot, &history, 12.0)
+                .unwrap(),
+            Decision::Done
+        );
+        let mut closing =
+            Explorer::new(config(ScorePolicy::NearestFrontier)).with_revisits(RevisitConfig {
+                close_before_done: true,
+                ..revisits
+            });
+        let decision = closing
+            .decide_with_history(&grid, robot, &history, 12.0)
+            .unwrap();
+        assert!(matches!(decision, Decision::Revisit(_)), "{decision:?}");
+        // Right after a closure there is nothing left to close.
+        let decision = closing
+            .decide_with_history(&grid, robot, &history, 1.0)
+            .unwrap();
+        assert_eq!(decision, Decision::Done);
     }
 
     #[test]

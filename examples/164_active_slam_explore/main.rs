@@ -39,6 +39,8 @@
 //! than 0.25 m as bad.
 //! `--dopt` scores revisits by the pose graph's effective resistance (the
 //! D-optimal choice) instead of the trajectory length.
+//! `--close-last` goes back once more to close the last open loop before
+//! reporting the map done.
 
 mod render;
 mod worlds;
@@ -293,7 +295,10 @@ fn number_arg(name: &str) -> Option<f64> {
 fn new_explorer(policy: ScorePolicy) -> Explorer {
     let explorer = Explorer::new(explorer_config(policy));
     if flag("--revisit") {
-        explorer.with_revisits(RevisitConfig::default())
+        explorer.with_revisits(RevisitConfig {
+            close_before_done: flag("--close-last"),
+            ..RevisitConfig::default()
+        })
     } else {
         explorer
     }
