@@ -43,7 +43,15 @@ impl Default for SlamConfig {
         Self {
             scan: ScanIntegrationConfig::default(),
             likelihood: LikelihoodConfig::default(),
-            matcher: ScanMatchConfig::default(),
+            // Two more coarse-to-fine levels than the matcher's default: its
+            // last step of 0.025 rad and 3.75 cm leaves a smaller correction
+            // unmade, so a heading bias in odometry passed through every
+            // keyframe and bent the trajectory. At five levels the step is
+            // 0.006 rad and 9 mm.
+            matcher: ScanMatchConfig {
+                levels: 5,
+                ..ScanMatchConfig::default()
+            },
             max_beams: 180,
             loop_candidates: 8,
             loop_min_separation: 10,

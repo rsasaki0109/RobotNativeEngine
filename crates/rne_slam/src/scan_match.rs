@@ -370,6 +370,30 @@ mod tests {
         );
     }
 
+    /// A heading error smaller than half the last angular step is left
+    /// unmade with three levels (step 0.025 rad); `Slam2d`'s five levels
+    /// (step 0.006 rad) remove it.
+    #[test]
+    fn five_levels_correct_a_heading_error_three_leave() {
+        let grid = room_grid();
+        let field = LikelihoodField::from_occupancy(&grid, &LikelihoodConfig::default()).unwrap();
+        let truth = Pose2d::new(0.4, -0.3, 0.0);
+        let points = scan_points_2d(&room_scan(truth.x_m, truth.y_m), 360);
+        let initial = Pose2d::new(truth.x_m, truth.y_m, 0.01);
+        let heading_error = |levels: usize| {
+            let matcher = ScanMatcher::new(ScanMatchConfig {
+                levels,
+                ..ScanMatchConfig::default()
+            });
+            let result = matcher
+                .match_scan(&field, &points, Pose2d::IDENTITY, initial)
+                .unwrap();
+            (result.pose.yaw_rad - truth.yaw_rad).abs()
+        };
+        assert!(heading_error(3) > 0.009, "{}", heading_error(3));
+        assert!(heading_error(5) < 0.004, "{}", heading_error(5));
+    }
+
     #[test]
     fn empty_points_do_not_match() {
         let grid = room_grid();
