@@ -1000,8 +1000,7 @@ pub(crate) fn run(
         tick += 1;
     }
     report.duration_s = tick as f64 * DT_S;
-    report.odometry_scale = hybrid.odometry_scale();
-    report.ghost_odometry_scale = ghost.as_ref().map(|g| g.localizer.odometry_scale());
+    (report.odometry_scale, report.ghost_odometry_scale) = odometry_scales(&hybrid, ghost.as_ref());
     report
 }
 
@@ -1052,6 +1051,14 @@ fn localizers(
         matching: MatchState::new(lidarloc(cloud, options)),
     });
     (localizer(options.factor_graph), ghost)
+}
+
+/// The odometry scales the localizer and the one without GNSS calibrated.
+fn odometry_scales(localizer: &Localizer, ghost: Option<&Ghost>) -> (f64, Option<f64>) {
+    (
+        localizer.odometry_scale(),
+        ghost.map(|g| g.localizer.odometry_scale()),
+    )
 }
 
 /// Index of a source in [`RunReport::time_in`].
