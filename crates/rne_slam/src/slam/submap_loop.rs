@@ -90,9 +90,10 @@ impl Default for SubmapLoopConfig {
     }
 }
 
-/// Gauss-Newton iterations per closure: the graph starts close to the optimum
-/// (the previous one), and the optimizer only stops early at 1e-10.
-const OPTIMIZE_ITERATIONS: usize = 8;
+/// Gauss-Newton iterations per closure. A closure around a long loop moves
+/// the graph far from the previous optimum: after the 8 iterations used
+/// before, 100 more moved the nodes of a 370-keyframe loop another 0.5 m.
+const OPTIMIZE_ITERATIONS: usize = 100;
 
 /// State of submap loop closure inside [`Slam2d`].
 #[derive(Clone, Debug)]
