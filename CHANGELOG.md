@@ -6,6 +6,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_explore::Explorer::decide_with_graph` and `effective_resistance_to_end`: revisits
+  scored by the pose graph's effective resistance (D-optimal) instead of trajectory length;
+  example 164 `--dopt`. On the loop worlds it changes little (SLAM error 0.667 → 0.648 m and
+  0.836 → 0.851 m); see `docs/PLAN_ACTIVE_SLAM.md`.
+
 - Example 131 `--explore`: a footprint guard (`guard.rs`) rolls the Go2's rectangle forward
   under each command against the navigation map and replaces one that would bring the
   body within 8 cm of an obstacle; commands are rate-limited; a frontier the body cannot

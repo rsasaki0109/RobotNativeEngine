@@ -375,11 +375,40 @@ Open after P2:
   (SLAM error 0.16–1.28 m per run). Where the remaining error comes from
   was not measured; P1 put it on heading error built up at the corners,
   which only a closure around the whole ring removes. D-optimality (design item 4), choosing revisits by the
-  pose-graph uncertainty they remove, is the next policy step.
+  pose-graph uncertainty they remove, was tried next; see below.
 - The default `Slam2d` closure (whole map, score 0.55) is unchanged; its
   wrong closures are harmless only because it does not rebuild the map.
   Whether submap closure should become the default is a separate
   `rne_slam` decision.
+
+#### D-optimal revisits (tried after P3; no measurable effect)
+
+`Explorer::decide_with_graph` (example 164 `--dopt`) scores a revisit by the
+pose graph's effective resistance between the place and the robot, with
+odometry steps as resistors of their length and loop closures as 0.5 m,
+instead of by the trajectory length between them. Closing a loop multiplies
+the graph's weighted spanning trees, its D-optimality measure, by `1 + R/r`,
+so the largest resistance is the most informative closure; a place already
+tied to the robot by earlier closures counts as close. With no closures the
+two scores agree.
+
+On the 10 loop seeds (`--rebuild-map --submap-loops --revisit`, same
+binary):
+
+| policy | SLAM error | mapped | runs with lower error |
+| --- | --- | --- | --- |
+| nearest frontier, trajectory length | 0.667 m | 86.4 % | — |
+| nearest frontier, `--dopt` | 0.648 m | 86.8 % | 3 of 10 |
+| information gain, trajectory length | 0.836 m | 83.3 % | — |
+| information gain, `--dopt` | 0.851 m | 83.2 % | 3 of 10 |
+
+Most runs are identical. Most revisits are chosen before any closure
+exists, when the two scores agree, and most runs stop revisiting after the
+3 allowed revisits that close nothing. Which place to go back to is
+therefore not what limits the loop worlds: going back rarely produces a
+closure there. Why revisits fail to close (the submap check rejects them,
+or the robot arrives facing away) is the question to answer before more
+policy. `--dopt` stays opt-in.
 
 ### P3: legged robot, no goals given
 
