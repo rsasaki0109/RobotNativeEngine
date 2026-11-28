@@ -241,6 +241,23 @@ streets from PLATEAU's LOD2 model, with QZSS:
 ([Shibuya](docs/media/plateau-gnss-shibuya.gif),
 [Shinjuku](docs/media/plateau-gnss-shinjuku.gif)).
 
+### Foresight: planning against the future, learned and classical together
+
+`modules/` holds three standalone modules that depend on no RNE crate and can
+move to their own repositories ([ADR 037](docs/adr/037-foresight-modules.md)):
+`robot_foresight` (a forecast of the world as a function of time, and a
+pipeline where learned and classical proposers, refiners, critics and
+certifiers are interchangeable), `robot_navigation` (3D space-time
+navigation) and `robot_manipulation` (forecast-aware arm motion and grasp
+planning). In [example 165](examples/165_foresight_drone_warehouse/main.rs) a
+drone plans down a warehouse aisle past a forklift and a worker about to
+cross: the snapshot plan hits the forklift, the constant-velocity plan hits
+the worker, and the plan on a learned+classical blended forecast passes both
+(0.50 m clear). In [example 166](examples/166_foresight_arm_shared_workspace/main.rs)
+an arm's classical sweep waits 1.8 s for a hand to withdraw, and a learned
+via-point route over the hand certifies and arrives at 1.40 s instead of
+3.00 s. Details: [Foresight](docs/FORESIGHT.md).
+
 ## Warehouse fleet operations
 
 <p align="center">
@@ -385,6 +402,7 @@ The workspace is split by responsibility:
 - `rne_planning`/`rne_dynamics`/`rne_legged`/`rne_wbc`/`rne_locomotion`: backend-neutral joint-space planning, articulated dynamics, legged templates, whole-body control, and native legged locomotion.
 - `rne_physics`/`rne_physics_rapier`/`rne_physics_native` and `rne_render`/`rne_render_wgpu`: backend-neutral traits plus the Rapier, native articulated, and wgpu implementations.
 - `rne_asset`/`rne_plugin`/`rne_traffic`: assets, plugin interfaces, backend-neutral traffic.
+- `modules/robot-foresight`/`robot-navigation`/`robot-manipulation`: standalone forecast-aware navigation and manipulation with a hybrid learned/classical pipeline (no RNE dependency).
 - `adapters/ros2`: ROS 2 integration; core crates remain ROS 2-free.
 
 ## Determinism and testing
@@ -433,7 +451,7 @@ ROS 2 is optional, isolated under [adapters/ros2](adapters/ros2); see the
 
 - [Architecture](docs/architecture/000_overview.md) · [Roadmap](docs/ROADMAP.md) · [OSS parity](docs/OSS_PARITY.md) · [Plugin SDK](docs/PLUGIN_SDK.md) · [Browser viewer](web/rne_web_viewer/README.md)
 - Conformance/readiness: [physics](docs/EXTERNAL_PHYSICS_BACKEND_CONFORMANCE.md) · [hardware](docs/HARDWARE_ADAPTER_CONFORMANCE.md) · [simulator](docs/EXTERNAL_SIMULATOR_ADAPTER_CONFORMANCE.md) · [OpenArm cross-sim](docs/OPENARM_CROSS_SIM_PROOF.md) · [compat corpus](docs/COMPATIBILITY_CORPUS.md) · [support](docs/SUPPORT.md) · [1.0 readiness](docs/ONE_ZERO_READINESS.md) · [flagship validation](docs/FLAGSHIP_VALIDATION_WORKFLOW.md)
-- Indoor autonomy: [multi-floor navigation](docs/MULTI_FLOOR_NAVIGATION.md)
+- Indoor autonomy: [multi-floor navigation](docs/MULTI_FLOOR_NAVIGATION.md) · [foresight: space-time navigation and manipulation](docs/FORESIGHT.md)
 - Physics: [height field terrain](docs/HEIGHT_FIELD_TERRAIN.md) · [collision bake](docs/COLLISION_BAKE.md) · [arm position control](docs/ARM_POSITION_CONTROL.md)
 - Locomotion: [G1](docs/G1_LOCOMOTION.md)/[workbench](docs/G1_WORKBENCH_MISSION.md)/[splat bg](docs/G1_HEAD_SPLAT_BACKGROUND.md) · [Go2](docs/GO2_LOCOMOTION.md) · [frontier plan](docs/PLAN_LEGGED_LOCOMOTION_FRONTIER.md) · [sensors](docs/IMU_SIMULATION.md)
 - Case studies: [Tsukuba](docs/TSUKUBA_CONFIRMATION_RUN.md)/[full](docs/TSUKUBA_FULL_RUN.md)/[3DGS bg](docs/TSUKUBA_3DGS_BACKGROUND.md) · [SSL 2v2](docs/SSL_SMALL_PITCH.md)/[adapter](docs/SSL_ADAPTER.md)

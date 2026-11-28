@@ -1,0 +1,20 @@
+[package]
+name = "foresight_arm_shared_workspace"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+glam = { workspace = true }
+robot_foresight = { workspace = true }
+robot_manipulation = { workspace = true }
+
+[[example]]
+name = "166_foresight_arm_shared_workspace"
+path = "main.rs"
+test = true

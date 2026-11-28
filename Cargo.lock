@@ -1454,6 +1454,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
 
 [[package]]
+name = "foresight_arm_shared_workspace"
+version = "0.4.0"
+dependencies = [
+ "glam",
+ "robot_foresight",
+ "robot_manipulation",
+]
+
+[[package]]
+name = "foresight_drone_warehouse"
+version = "0.4.0"
+dependencies = [
+ "glam",
+ "robot_foresight",
+ "robot_navigation",
+]
+
+[[package]]
 name = "futures-channel"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5214,6 +5232,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "robot_foresight"
+version = "0.4.0"
+dependencies = [
+ "glam",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "robot_kinematics"
 version = "0.4.0"
 dependencies = [
@@ -5221,6 +5249,26 @@ dependencies = [
  "rne_math",
  "rne_robot",
  "rne_urdf_import",
+]
+
+[[package]]
+name = "robot_manipulation"
+version = "0.4.0"
+dependencies = [
+ "glam",
+ "robot_foresight",
+ "serde",
+]
+
+[[package]]
+name = "robot_navigation"
+version = "0.4.0"
+dependencies = [
+ "approx",
+ "glam",
+ "robot_foresight",
+ "serde",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

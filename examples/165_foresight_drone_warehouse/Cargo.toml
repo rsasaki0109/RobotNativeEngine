@@ -1,0 +1,20 @@
+[package]
+name = "foresight_drone_warehouse"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+glam = { workspace = true }
+robot_foresight = { workspace = true }
+robot_navigation = { workspace = true }
+
+[[example]]
+name = "165_foresight_drone_warehouse"
+path = "main.rs"
+test = true
