@@ -745,6 +745,8 @@ pub(crate) struct RunReport {
     pub track: Vec<(Pose2d, Pose2d, LocalizationSource)>,
     /// Errors of the localizer without GNSS every 0.5 s (`--ghost`), meters.
     pub ghost_errors: Vec<f64>,
+    /// The odometry scale the localizer without GNSS calibrated.
+    pub ghost_odometry_scale: Option<f64>,
     /// Frames for the 3D render (when recording).
     pub frames: Vec<FrameRecord>,
     /// The constellations the receiver tracked, e.g. "GPS+Galileo+QZSS".
@@ -999,6 +1001,7 @@ pub(crate) fn run(
     }
     report.duration_s = tick as f64 * DT_S;
     report.odometry_scale = hybrid.odometry_scale();
+    report.ghost_odometry_scale = ghost.as_ref().map(|g| g.localizer.odometry_scale());
     report
 }
 

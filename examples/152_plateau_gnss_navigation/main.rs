@@ -666,9 +666,10 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
         let e = &report.ghost_errors;
         let rmse = (e.iter().map(|v| v * v).sum::<f64>() / e.len() as f64).sqrt();
         println!(
-            "  {:<24} without GNSS (--ghost): error RMSE {rmse:.2} m, max {:.2} m",
+            "  {:<24} without GNSS (--ghost): error RMSE {rmse:.2} m, max {:.2} m; odometry scale {:.4}",
             "",
-            e.iter().copied().fold(0.0, f64::max)
+            e.iter().copied().fold(0.0, f64::max),
+            report.ghost_odometry_scale.unwrap_or(1.0)
         );
     }
 }
