@@ -545,14 +545,17 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 
 | 3D LiDAR, BeiDou | RMSE (max) |
 |------|------|
-| With GNSS | 0.72 m (3.08 m) |
-| Without GNSS (`--ghost`) | 0.72 m (3.08 m) |
+| With GNSS | 0.39 m (1.37 m) |
+| Without GNSS (`--ghost`) | 0.39 m (1.37 m) |
 
 GNSS adds nothing here, and the tunnel is not the hard case it looks:
 the scan's point-to-plane covariance is narrow across the tunnel and wide
 along it, so the hybrid takes the lateral position from LiDAR and the
-along-track position from the wheels. Over 300 m that drifts 3 m, and
-the far headwall, in reach before the exit, takes it back. The fields on
+along-track position from the wheels, and the far headwall, in reach
+before the exit, takes back what they drifted. The wheels read 1 % long,
+3 m over the tunnel; the hybrid calibrates their scale wherever RTK or the
+LiDAR holds it (`odometry_scale_calibration`, 0.9901 by the tunnel), which
+leaves 1.4 m at most (3.1 m without the calibration). The fields on
 either side are only 100 m long, and a headwall or the houses are always
 within the LiDAR's 60 m. GNSS (none for 26 % of the run) matters for a
 longer tunnel that opens onto open ground.
@@ -569,20 +572,26 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 
 | 3D LiDAR, BeiDou | RMSE (max) |
 |------|------|
-| With GNSS | 4.2 m (11.5 m) |
-| Without GNSS (`--ghost`) | 17.8 m (70 m) |
+| With GNSS | 0.51 m (1.43 m) |
+| Without GNSS (`--ghost`) | 42 m (187 m) |
 
-Along a kilometre of tunnel the wheels (1 % scale error) drift 11 m. At the
-exit the far headwall is behind the robot and the fields ahead hold nothing
-to pin it, so LiDAR cannot take the 11 m back. RTK fixes within seconds of
-leaving the tunnel and puts the robot where it is (0.00 m); without GNSS it
-crosses the fields with the error it left the tunnel with, which grows to
-70 m before the far town.
+Along a kilometre of tunnel the wheels (1 % scale error) drifted 11 m
+before the hybrid calibrated their scale; at the exit the far headwall is
+behind the robot and the fields ahead hold nothing to pin it, so LiDAR could
+not take the 11 m back, and the first RTK fixes on leaving the tunnel did
+(4.2 m RMSE, 11.5 m max). Calibrated in the town before it, the wheels now
+leave the tunnel within 2 m. Without GNSS the fields are the problem, not
+the tunnel: 350 m of dead reckoning with a gyro bias put the robot 25 m off
+before the far town, with or without the calibration, and the LiDAR there
+locks onto the wrong place; which way the wrong lock then drags it is
+chance (70 m at most without the calibration, 187 m with it).
 
 The last 200 m of the tunnel and the fields after it, from a low camera behind
 the robot (`--render-cinematic --render-from 1250 --render-to 1560`):
 
-![The long tunnel's exit: 11 m of drift along a kilometre of tunnel, taken back by the first RTK fixes on leaving it; the localizer without GNSS crosses the fields with it](../../docs/media/plateau-gnss-long-tunnel.gif)
+Before the odometry calibration (11 m of drift at the exit):
+
+![The long tunnel's exit before the odometry calibration: 11 m of drift along a kilometre of tunnel, taken back by the first RTK fixes on leaving it; the localizer without GNSS crosses the fields with it](../../docs/media/plateau-gnss-long-tunnel.gif)
 
 ### Crowds and traffic for the 3D LiDAR (`--weather`)
 
@@ -689,15 +698,15 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 
 | 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2, registration only (before) | lidar_localization_ros2, tracking |
 |------|------|------|------|
-| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.04 m (0.40 m) |
-| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.11 m) |
+| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.03 m (0.45 m) |
+| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.12 m) |
 | Shibuya at rush hour (`--weather rush`), with GNSS | 0.01 m (0.07 m) | | 0.03 m (0.13 m) |
 | Shibuya, unknown start, with GNSS | 0.60 m (25 m) | | 0.60 m (25 m) |
 | Shibuya, unknown start, without GNSS | 61 m (109 m) | | 0.64 m (25 m) |
-| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.02 m (0.27 m) |
-| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 85 m (230 m) |
-| Tunnel (`--area tunnel`), with GNSS | 0.72 m (3.08 m) | | 0.84 m (2.85 m) |
-| Tunnel, without GNSS | 0.72 m (3.08 m) | | 0.84 m (2.83 m) |
+| Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.02 m (0.18 m) |
+| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 90 m (270 m) |
+| Tunnel (`--area tunnel`), with GNSS | 0.39 m (1.37 m) | | 0.04 m (0.27 m) |
+| Tunnel, without GNSS | 0.39 m (1.37 m) | | 0.06 m (0.39 m) |
 
 * **Unknown start.** lidar_localization_ros2's global search finds the robot
   in the first scan (14 s of computing), without GNSS. `rne_slam` searches
@@ -710,7 +719,14 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
   LiDAR sees, so it stays a few centimetres less exact, and the conclusions
   hold: either LiDAR holds the robot among the buildings, and only GNSS
   carries it across the fields.
-* **What each check is for**, in the tunnel with GNSS: without the seed
+* **The tunnel** depends on the wheels along it, and they read 1 % long.
+  With their scale calibrated before the tunnel (0.9901, by the hybrid's
+  `odometry_scale_calibration`), lidar_localization_ros2 with solution
+  remapping follows them through it and stays within 0.27 m (2.82 m before
+  the calibration); `rne_slam`, whose matches still pull the estimate along
+  the tunnel a little, within 1.37 m (3.08 m).
+* **What each check is for**, in the tunnel with GNSS (before the odometry
+  calibration): without the seed
   correction guards NDT slid along the tunnel (42 m RMSE); without the
   point-to-plane check it stopped metres off on the open ground at the
   portals (12 m at most); without solution remapping it slid along the
