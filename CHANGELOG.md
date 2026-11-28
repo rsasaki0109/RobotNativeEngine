@@ -11,13 +11,16 @@ All notable changes to Robot Native Engine are documented in this file.
   `degeneracy_remapping_min_horizontal_constraint`) and what it dropped
   (`Alignment::degeneracy_dropped_m`, `horizontal_constraint`); example 152 uses it in place of
   its own.
+- Example 113 renders other splat scenes: `RNE_SPLAT_MANIFEST`, `RNE_WAYPOINTS` and
+  `RNE_MAX_STEPS`. `tools/prepare_voxel51_truck_3dgs.py` turns the Voxel51 Tanks and
+  Temples truck into an outdoor street scene for it (ground plane at y = 0, metric scale
+  assumed from the truck, a loop around it).
 - Example 131 `--explore`: a footprint guard (`guard.rs`) rolls the Go2's rectangle forward
   under each command against the navigation map and replaces one that would bring the
   body within 8 cm of an obstacle; commands are rate-limited; a frontier the body cannot
   reach is given up after 10 s. Replaces the step-away rule; the planning radius drops to
   0.38 m. On the dressed scene and 60 generated layouts no run fell and no leg came within
   0.17 m of furniture; 60 of 61 pass (the other fails the map-precision gate).
-
 - `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
   lidar_localization_ros2's global localization over the whole map.
 - Example 152:
