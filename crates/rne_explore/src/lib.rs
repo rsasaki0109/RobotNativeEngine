@@ -26,8 +26,10 @@ mod explorer;
 mod frontier;
 mod gain;
 mod reach;
+mod resistance;
 
 pub use explorer::{Candidate, Decision, Explorer, ExplorerConfig, RevisitConfig, ScorePolicy};
 pub use frontier::{extract_frontiers, Frontier, FrontierConfig};
 pub use gain::{information_gain, SensorModel};
 pub use reach::ReachMap;
+pub use resistance::effective_resistance_to_end;
