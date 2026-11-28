@@ -261,8 +261,9 @@ impl Slam2d {
             } else {
                 previous_odom.inverse().compose(odom_pose)
             };
-            self.graph
-                .add_edge(PoseGraphEdge::odometry(node - 1, node, measurement));
+            let mut edge = PoseGraphEdge::odometry(node - 1, node, measurement);
+            edge.information = exp_info(if matched { "RNE_W_ODO" } else { "RNE_W_RAW" });
+            self.graph.add_edge(edge);
         }
 
         let (loop_closures, graph_moved) = if !matched {
@@ -392,7 +393,7 @@ impl Slam2d {
         }
 
         let measurement = self.graph.node(candidate).unwrap().inverse().compose(pose);
-        let information = (1.0, 1.0, 1.0);
+        let information = exp_info("RNE_W_LOOP");
         self.graph.add_edge(PoseGraphEdge::loop_closure(
             candidate,
             current,
@@ -848,4 +849,11 @@ mod tests {
             0.5
         ));
     }
+}
+
+pub(crate) fn exp_info(var: &str) -> (f64, f64, f64) {
+    std::env::var(var).ok().map_or((1.0, 1.0, 1.0), |v| {
+        let p: Vec<f64> = v.split(',').map(|x| x.parse().unwrap()).collect();
+        (p[0], p[1], p[2])
+    })
 }
