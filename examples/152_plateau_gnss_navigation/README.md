@@ -664,11 +664,15 @@ Two checks stand between NDT and the hybrid:
   0.5–2.6 m off (its 1 m cells pin a scan of bare ground to their lattice)
   and the gate let it through. The fit's residuals give the covariance the
   hybrid weighs the scan by.
-* **Solution remapping.** Where NDT's Hessian is weakest along a horizontal
-  translation, with under 5 % of its strongest eigenvalue (along a tunnel),
-  the part of NDT's correction in that direction is dropped. NDT and the
-  point-to-plane fit otherwise slid along the tunnel together, below the
-  seed guards' limits, and dragged the estimate 95 m.
+* **Solution remapping**, lidar_localization_ros2's own
+  (`enable_degeneracy_remapping`, which came out of this example): where
+  NDT's Hessian is weakest along a horizontal translation with under 5 % of
+  its strongest eigenvalue (along a tunnel), and along every horizontal
+  direction fewer than 2 % of the scan's points face a surface that pins it
+  (`degeneracy_remapping_min_horizontal_constraint`: bare ground, which the
+  Hessian misses), the part of NDT's correction in that direction is
+  dropped. NDT and the point-to-plane fit otherwise slid along the tunnel
+  together, below the seed guards' limits, and dragged the estimate 95 m.
 
 While the hybrid dead reckons, `rne_slam`'s search over the window runs once
 a second. The NDT Hessian is also reported as a covariance
@@ -699,6 +703,8 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
   in the first scan (14 s of computing), without GNSS. `rne_slam` searches
   only a few metres around a start 25 m off, and without GNSS never finds
   itself.
+
+![Shibuya with both localizers started 25 m off: lidar_localization_ros2's global search places the one without GNSS (red) in the first scan](../../docs/media/plateau-gnss-lidarloc-unknown-start.gif)
 * **Everywhere else** the two hold the robot alike. NDT's 1 m cells are
   coarser than point-to-plane on a map sampled from the very surfaces the
   LiDAR sees, so it stays a few centimetres less exact, and the conclusions

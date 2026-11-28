@@ -145,6 +145,14 @@ pub struct Alignment {
     /// pose, row-major in (x, y, z, roll, pitch, yaw). The score is at a
     /// maximum, so it is negative definite; see [`Alignment::planar_covariance`].
     pub score_hessian: Option<[f64; 36]>,
+    /// [`LidarLoc::localize`] with `enable_degeneracy_remapping`: the
+    /// correction dropped along the directions the scan does not pin, meters,
+    /// when any was.
+    pub degeneracy_dropped_m: Option<f64>,
+    /// With `degeneracy_remapping_min_horizontal_constraint`: how the map's
+    /// surfaces under the scan pin it horizontally (the eigenvalues, ascending,
+    /// of their normals' summed horizontal parts over the scan's point count).
+    pub horizontal_constraint: Option<[f64; 2]>,
 }
 
 impl Alignment {
@@ -239,6 +247,25 @@ pub struct Tracking {
     pub map_distance_filter_max_distance_m: f64,
     pub map_distance_filter_warmup_accepts: i32,
     pub scan_period_sec: f64,
+    /// The seed correction guards' agreement release (the node's
+    /// `seed_correction_guard_agreement_release_*`): with `_scans` K > 0, a
+    /// correction the guard rejects is accepted when it agrees with the last
+    /// K - 1 rejected ones and undoes what accepted scans slid. 0: off.
+    pub seed_correction_guard_agreement_release_scans: i32,
+    pub seed_correction_guard_agreement_release_translation_m: f64,
+    pub seed_correction_guard_agreement_release_yaw_deg: f64,
+    pub seed_correction_guard_agreement_release_window_sec: f64,
+    pub seed_correction_guard_agreement_release_drift_sec: f64,
+    pub seed_correction_guard_agreement_release_drift_tolerance_m: f64,
+    /// Solution remapping: where NDT_OMP's Hessian is weakest along a
+    /// horizontal translation with less than `degeneracy_remapping_weak_ratio`
+    /// of its strongest eigenvalue (a corridor, a tunnel), the correction
+    /// along it is dropped; with `degeneracy_remapping_min_horizontal_constraint`
+    /// above 0, also along every horizontal direction the map's surfaces under
+    /// the scan pin less than that (bare ground).
+    pub enable_degeneracy_remapping: bool,
+    pub degeneracy_remapping_weak_ratio: f64,
+    pub degeneracy_remapping_min_horizontal_constraint: f64,
 }
 
 impl Default for Tracking {
@@ -264,6 +291,15 @@ impl Default for Tracking {
             map_distance_filter_max_distance_m: 3.0,
             map_distance_filter_warmup_accepts: 5,
             scan_period_sec: 0.1,
+            seed_correction_guard_agreement_release_scans: 0,
+            seed_correction_guard_agreement_release_translation_m: 0.15,
+            seed_correction_guard_agreement_release_yaw_deg: 2.0,
+            seed_correction_guard_agreement_release_window_sec: 1.0,
+            seed_correction_guard_agreement_release_drift_sec: 5.0,
+            seed_correction_guard_agreement_release_drift_tolerance_m: 0.25,
+            enable_degeneracy_remapping: false,
+            degeneracy_remapping_weak_ratio: 0.05,
+            degeneracy_remapping_min_horizontal_constraint: 0.0,
         }
     }
 }
@@ -589,6 +625,15 @@ struct RawTracking {
     map_distance_filter_max_distance_m: c_double,
     map_distance_filter_warmup_accepts: c_int,
     scan_period_sec: c_double,
+    seed_correction_guard_agreement_release_scans: c_int,
+    seed_correction_guard_agreement_release_translation_m: c_double,
+    seed_correction_guard_agreement_release_yaw_deg: c_double,
+    seed_correction_guard_agreement_release_window_sec: c_double,
+    seed_correction_guard_agreement_release_drift_sec: c_double,
+    seed_correction_guard_agreement_release_drift_tolerance_m: c_double,
+    enable_degeneracy_remapping: c_int,
+    degeneracy_remapping_weak_ratio: c_double,
+    degeneracy_remapping_min_horizontal_constraint: c_double,
 }
 
 impl From<&Tracking> for RawTracking {
@@ -618,6 +663,22 @@ impl From<&Tracking> for RawTracking {
             map_distance_filter_max_distance_m: t.map_distance_filter_max_distance_m,
             map_distance_filter_warmup_accepts: t.map_distance_filter_warmup_accepts,
             scan_period_sec: t.scan_period_sec,
+            seed_correction_guard_agreement_release_scans: t
+                .seed_correction_guard_agreement_release_scans,
+            seed_correction_guard_agreement_release_translation_m: t
+                .seed_correction_guard_agreement_release_translation_m,
+            seed_correction_guard_agreement_release_yaw_deg: t
+                .seed_correction_guard_agreement_release_yaw_deg,
+            seed_correction_guard_agreement_release_window_sec: t
+                .seed_correction_guard_agreement_release_window_sec,
+            seed_correction_guard_agreement_release_drift_sec: t
+                .seed_correction_guard_agreement_release_drift_sec,
+            seed_correction_guard_agreement_release_drift_tolerance_m: t
+                .seed_correction_guard_agreement_release_drift_tolerance_m,
+            enable_degeneracy_remapping: c_int::from(t.enable_degeneracy_remapping),
+            degeneracy_remapping_weak_ratio: t.degeneracy_remapping_weak_ratio,
+            degeneracy_remapping_min_horizontal_constraint: t
+                .degeneracy_remapping_min_horizontal_constraint,
         }
     }
 }
@@ -660,6 +721,9 @@ struct RawResult {
     map_distance_filter_applied: c_int,
     score_hessian_valid: c_int,
     score_hessian: [c_double; 36],
+    degeneracy_remapped: c_int,
+    degeneracy_dropped_m: c_double,
+    horizontal_constraint: [c_double; 2],
 }
 
 #[cfg_attr(not(lidarloc), allow(dead_code))]
@@ -683,6 +747,13 @@ impl RawResult {
             map_distance_filter_kept_points: self.map_distance_filter_kept_points,
             map_distance_filter_applied: self.map_distance_filter_applied != 0,
             score_hessian: (self.score_hessian_valid != 0).then_some(self.score_hessian),
+            degeneracy_dropped_m: (self.degeneracy_remapped != 0)
+                .then_some(self.degeneracy_dropped_m),
+            horizontal_constraint: self
+                .horizontal_constraint
+                .iter()
+                .all(|v| v.is_finite())
+                .then_some(self.horizontal_constraint),
         }
     }
 }

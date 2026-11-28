@@ -6,6 +6,11 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ### Added
 
+- `rne_adapter_lidarloc`: lidar_localization_ros2's solution remapping (`Tracking::
+  enable_degeneracy_remapping`, `degeneracy_remapping_weak_ratio`,
+  `degeneracy_remapping_min_horizontal_constraint`) and what it dropped
+  (`Alignment::degeneracy_dropped_m`, `horizontal_constraint`); example 152 uses it in place of
+  its own.
 - `rne_explore::Explorer::decide_with_graph` and `effective_resistance_to_end`: revisits
   scored by the pose graph's effective resistance (D-optimal) instead of trajectory length;
   example 164 `--dopt`. On the loop worlds it changes little (SLAM error 0.667 → 0.648 m and
@@ -364,6 +369,10 @@ All notable changes to Robot Native Engine are documented in this file.
   that are not Y-up) come with it.
 
 ### Fixed
+
+- `rne_render_wgpu`: the mesh and texture caches no longer keep uploads whose source only the
+  cache holds. A capture that builds meshes for each frame ran out of memory after about 500
+  frames (example 152).
 
 - `rne_nav::Costmap::cost_at` panicked for a cell just outside the map instead of
   returning `None`: it indexed the costs before checking the bounds.

@@ -10,9 +10,9 @@
 set -euo pipefail
 
 REPO="https://github.com/rsasaki0109/lidar_localization_ros2"
-# Pinned revision the adapter is tested against (#358: global localization, on
-# #355: local re-acquisition, the NDT Hessian and the map-distance prefilter).
-REV="d3584783f0220f7d7080196594458bfb3c6e0607"
+# Pinned revision the adapter is tested against (degeneracy remapping, on #358:
+# global localization; #355: re-acquisition, the NDT Hessian, the prefilter).
+REV="d410dc7daa03c16873a466a96104125cf9567f66"
 NDT_OMP_REPO="https://github.com/rsasaki0109/ndt_omp_ros2"
 NDT_OMP_BRANCH="humble"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
