@@ -22,6 +22,11 @@
 //! - Always: `wheel_odom.tum`, the base's wheel odometry (2 % distance and
 //!   3 % turn error, see `wheel_odom.rs`) in its own z-up frame (x forward,
 //!   y left), seconds. The body is the IMU rotated by -90 deg about x.
+//! - `RNE_SPLAT_MANIFEST=FILE`: render another splat scene instead of Dr
+//!   Johnson (its ground at world y = 0, metric scale), with
+//!   `RNE_WAYPOINTS="x,z;x,z;..."` (RNE world, closed loop) as the route and
+//!   `RNE_MAX_STEPS` (2400 = 40 s) as the length. The collision scene stays
+//!   the flat Dr Johnson one, so the route must avoid the scene's objects.
 //! - `RNE_NO_PREVIEW=1`: skip the colour previews (every 20th `cam0` one is
 //!   kept) and the fixed overview camera, which halves the rendering.
 
@@ -78,14 +83,20 @@ const DRIVE_TURN_GAIN: f64 = 4.0;
 const DRIVE_TURN_MAX_RAD_S: f64 = 4.0;
 
 /// Differential-drive waypoint follower. Returns wheel velocities.
-fn follow_route(waypoint_index: &mut usize, x: f64, z: f64, yaw: f64) -> DiffDriveAction {
-    let target = WAYPOINTS[*waypoint_index % WAYPOINTS.len()];
+fn follow_route(
+    route: &[[f64; 2]],
+    waypoint_index: &mut usize,
+    x: f64,
+    z: f64,
+    yaw: f64,
+) -> DiffDriveAction {
+    let target = route[*waypoint_index % route.len()];
     let dx = target[0] - x;
     let dz = target[1] - z;
     if (dx * dx + dz * dz).sqrt() < WAYPOINT_REACHED_M {
-        *waypoint_index = (*waypoint_index + 1) % WAYPOINTS.len();
+        *waypoint_index = (*waypoint_index + 1) % route.len();
     }
-    let target = WAYPOINTS[*waypoint_index % WAYPOINTS.len()];
+    let target = route[*waypoint_index % route.len()];
     let desired_yaw = (-(target[1] - z)).atan2(target[0] - x);
     let mut error = desired_yaw - yaw;
     while error > std::f64::consts::PI {
@@ -158,6 +169,55 @@ fn write_rgb_png(path: &Path, width: u32, height: u32, rgba8: &[u8]) -> Result<(
     let mut png_writer = encoder.write_header()?;
     png_writer.write_image_data(&rgb)?;
     Ok(())
+}
+
+/// The splat scene: `RNE_SPLAT_MANIFEST`, else Dr Johnson.
+fn splat_manifest(workspace: &Path) -> PathBuf {
+    std::env::var_os("RNE_SPLAT_MANIFEST").map_or_else(
+        || {
+            workspace
+                .join("assets/environments/voxel51_drjohnson_3dgs/voxel51_drjohnson.rne.splat.toml")
+        },
+        PathBuf::from,
+    )
+}
+
+/// Parse `"x,z;x,z;..."` into waypoints (at least two).
+fn parse_route(text: &str) -> Result<Vec<[f64; 2]>, String> {
+    let route = text
+        .split(';')
+        .filter(|point| !point.trim().is_empty())
+        .map(|point| {
+            let mut parts = point.split(',').map(|v| v.trim().parse::<f64>());
+            match (parts.next(), parts.next(), parts.next()) {
+                (Some(Ok(x)), Some(Ok(z)), None) if x.is_finite() && z.is_finite() => Ok([x, z]),
+                _ => Err(format!("bad waypoint {point:?}, expected x,z")),
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if route.len() < 2 {
+        return Err("RNE_WAYPOINTS needs at least two waypoints".into());
+    }
+    Ok(route)
+}
+
+/// The route (`RNE_WAYPOINTS`, else the Dr Johnson loop) and the step count
+/// (`RNE_MAX_STEPS`, else 40 s).
+fn route_from_env() -> Result<(Vec<[f64; 2]>, u64), String> {
+    let route = match std::env::var("RNE_WAYPOINTS") {
+        Ok(text) => parse_route(&text)?,
+        Err(_) => WAYPOINTS.to_vec(),
+    };
+    let steps = match std::env::var("RNE_MAX_STEPS") {
+        Ok(text) => text
+            .trim()
+            .parse::<u64>()
+            .ok()
+            .filter(|&n| n > 0)
+            .ok_or_else(|| format!("bad RNE_MAX_STEPS {text:?}"))?,
+        Err(_) => MAX_STEPS,
+    };
+    Ok((route, steps))
 }
 
 /// Render the robot at its spawn pose from the fixed camera (fast appearance check).
@@ -318,13 +378,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let scene_path = workspace.join("assets/scenes/drjohnson_nav.rne.scene.toml");
-    let manifest = workspace
-        .join("assets/environments/voxel51_drjohnson_3dgs/voxel51_drjohnson.rne.splat.toml");
+    let manifest = splat_manifest(&workspace);
+    let (route, max_steps) = route_from_env().map_err(io::Error::other)?;
 
     // Start pose comes from the scene robot asset
     // (dataset_diff_drive_drjohnson: calibrated Dr Johnson spawn).
     let mut environment = DiffDriveEpisode::new(DiffDriveEpisodeConfig {
-        max_steps: MAX_STEPS,
+        max_steps,
         goal_x_m: 1.0e9,
         reward: DiffDriveRewardConfig::default(),
         scene_path: Some(scene_path),
@@ -374,8 +434,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(0);
-    for step in 0..MAX_STEPS {
+    for step in 0..max_steps {
         let action = follow_route(
+            &route,
             &mut waypoint_index,
             observation.base_x_m,
             observation.base_z_m,
@@ -578,4 +639,21 @@ fn main() -> Result<(), Box<dyn Error>> {
         output.display()
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_route;
+
+    #[test]
+    fn route_parses_and_rejects_bad_input() {
+        assert_eq!(
+            parse_route("1,2; -3.5,4 ;").unwrap(),
+            vec![[1.0, 2.0], [-3.5, 4.0]]
+        );
+        assert!(parse_route("1,2").is_err());
+        assert!(parse_route("1,2;3").is_err());
+        assert!(parse_route("1,2;3,4,5").is_err());
+        assert!(parse_route("1,2;x,4").is_err());
+    }
 }
