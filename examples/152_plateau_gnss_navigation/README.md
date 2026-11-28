@@ -703,6 +703,8 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
   in the first scan (14 s of computing), without GNSS. `rne_slam` searches
   only a few metres around a start 25 m off, and without GNSS never finds
   itself.
+
+![Shibuya with both localizers started 25 m off: lidar_localization_ros2's global search places the one without GNSS (red) in the first scan](../../docs/media/plateau-gnss-lidarloc-unknown-start.gif)
 * **Everywhere else** the two hold the robot alike. NDT's 1 m cells are
   coarser than point-to-plane on a map sampled from the very surfaces the
   LiDAR sees, so it stays a few centimetres less exact, and the conclusions
