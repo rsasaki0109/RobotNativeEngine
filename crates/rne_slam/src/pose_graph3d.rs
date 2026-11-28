@@ -187,11 +187,16 @@ impl PoseGraph3d {
         }
 
         let size = active.len() * POSE3D_DIM;
-        let mut final_cost = 0.0;
+        // Levenberg-Marquardt that starts as Gauss-Newton, as in
+        // [`crate::PoseGraph::optimize`]: a step that lowers the cost is kept
+        // and λ shrinks tenfold; one that does not is undone and λ grows
+        // tenfold, to at least `damping`.
+        let damping = damping.max(0.0).max(MIN_DAMPING);
+        let mut lambda = MIN_DAMPING;
+        let mut cost = self.cost(&fixed);
         for _ in 0..iterations {
             let mut h = vec![0.0; size * size];
             let mut b = vec![0.0; size];
-            let mut cost = 0.0;
 
             for edge in &self.edges {
                 if fixed[edge.from] && fixed[edge.to] {
@@ -200,7 +205,6 @@ impl PoseGraph3d {
                 let from = self.nodes[edge.from];
                 let to = self.nodes[edge.to];
                 let error = residual_pair(from, to, edge.measurement);
-                cost += weighted_quadratic(&error, &edge.information);
                 let jacobian_from = numeric_jacobian_from(from, to, edge.measurement);
                 let jacobian_to = numeric_jacobian_to(from, to, edge.measurement);
                 accumulate(
@@ -224,14 +228,22 @@ impl PoseGraph3d {
                         &error,
                         &edge.information,
                     );
+                    accumulate_cross(
+                        &mut h,
+                        size,
+                        &free_index,
+                        (edge.from, &jacobian_from),
+                        (edge.to, &jacobian_to),
+                        &edge.information,
+                    );
                 }
             }
 
-            let diagonal = damping.max(0.0).max(1.0e-9);
             for i in 0..size {
-                h[i * size + i] += diagonal;
+                h[i * size + i] += lambda;
             }
             let delta = solve_cholesky(&h, &b, size).ok_or(PoseGraph3dError::SingularSystem)?;
+            let previous = self.nodes.clone();
             let mut max_step = 0.0_f64;
             for (position, node) in active.iter().enumerate() {
                 let mut xi = [0.0; POSE3D_DIM];
@@ -241,13 +253,33 @@ impl PoseGraph3d {
                 }
                 self.nodes[*node] = self.nodes[*node].compose(Se3::exp(xi));
             }
-            final_cost = cost;
+            let candidate = self.cost(&fixed);
+            if candidate.is_finite() && candidate <= cost {
+                cost = candidate;
+                lambda = (lambda * 0.1).max(MIN_DAMPING);
+            } else {
+                self.nodes = previous;
+                lambda = (lambda * 10.0).max(damping).min(MAX_DAMPING);
+            }
             if max_step < 1.0e-10 {
                 break;
             }
         }
 
-        Ok(final_cost)
+        Ok(cost)
+    }
+
+    /// Total weighted squared residual over the edges that touch a free node.
+    fn cost(&self, fixed: &[bool]) -> f64 {
+        self.edges
+            .iter()
+            .filter(|edge| !(fixed[edge.from] && fixed[edge.to]))
+            .map(|edge| {
+                let error =
+                    residual_pair(self.nodes[edge.from], self.nodes[edge.to], edge.measurement);
+                weighted_quadratic(&error, &edge.information)
+            })
+            .sum()
     }
 
     fn fixed_mask(&self, anchor: usize) -> Vec<bool> {
@@ -339,6 +371,35 @@ fn weighted_quadratic(error: &[f64; POSE3D_DIM], information: &[f64; POSE3D_DIM]
         .sum()
 }
 
+/// Bounds on the Levenberg-Marquardt λ.
+const MIN_DAMPING: f64 = 1.0e-9;
+const MAX_DAMPING: f64 = 1.0e9;
+
+/// Applies the coupling blocks `J_fromᵀ W J_to` and its transpose to `h`,
+/// when both endpoints are free.
+fn accumulate_cross(
+    h: &mut [f64],
+    size: usize,
+    free_index: &[Option<usize>],
+    (from, jacobian_from): (usize, &[[f64; POSE3D_DIM]; POSE3D_DIM]),
+    (to, jacobian_to): (usize, &[[f64; POSE3D_DIM]; POSE3D_DIM]),
+    information: &[f64; POSE3D_DIM],
+) {
+    let (Some(from), Some(to)) = (free_index[from], free_index[to]) else {
+        return;
+    };
+    for a in 0..POSE3D_DIM {
+        for c in 0..POSE3D_DIM {
+            let mut sum = 0.0;
+            for row in 0..POSE3D_DIM {
+                sum += jacobian_from[row][a] * information[row] * jacobian_to[row][c];
+            }
+            h[(from * POSE3D_DIM + a) * size + to * POSE3D_DIM + c] += sum;
+            h[(to * POSE3D_DIM + c) * size + from * POSE3D_DIM + a] += sum;
+        }
+    }
+}
+
 // Each parameter is an independent named SI-unit quantity; bundling into a config struct here would only relocate the arity, not reduce it.
 #[allow(clippy::too_many_arguments)]
 fn accumulate(
@@ -428,6 +489,35 @@ mod tests {
 
     fn pose(x: f64, z: f64, angle: f64) -> Se3 {
         Se3::new(yaw(angle), Vec3::new(x, 0.0, z))
+    }
+
+    /// A long chain bent away from its exact measurements returns to them
+    /// in a few iterations: the normal equations couple neighbouring nodes.
+    #[test]
+    fn a_long_bent_chain_converges_in_a_few_iterations() {
+        let n = 120;
+        let mut truth = vec![Se3::IDENTITY];
+        for i in 1..n {
+            let step = pose(0.25, 0.0, 0.05 * (i as f64 * 0.1).sin());
+            truth.push(truth[i - 1].compose(step));
+        }
+        let mut graph = PoseGraph3d::new();
+        for (i, node) in truth.iter().enumerate() {
+            // Bend the whole chain by 0.2° per node about the vertical.
+            let bend = pose(0.0, 0.0, 0.0035 * i as f64);
+            graph.add_node(if i == 0 { *node } else { bend.compose(*node) });
+        }
+        for i in 1..n {
+            let measurement = truth[i - 1].inverse().compose(truth[i]);
+            graph.add_edge(PoseGraph3dEdge::odometry(i - 1, i, measurement));
+        }
+        graph.optimize(10, 1.0e-3, 0).expect("optimize");
+        let last = graph.node(n - 1).unwrap().translation;
+        let expected = truth[n - 1].translation;
+        assert!(
+            (last - expected).length() < 1.0e-6,
+            "{last:?} vs {expected:?}"
+        );
     }
 
     #[test]

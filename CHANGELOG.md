@@ -4,6 +4,16 @@ All notable changes to Robot Native Engine are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- `rne_slam`: `PoseGraph::optimize` and `PoseGraph3d::optimize` now solve the full normal
+  equations. They dropped the blocks coupling an edge's two nodes, so each step was
+  block-Jacobi and a long trajectory barely moved under a loop closure. The fixed damping
+  is now Levenberg-Marquardt starting from Gauss-Newton. `SlamConfig`'s default
+  `loop_max_translation_residual_m` drops from 0.75 to 0.1 m, since wrong single-scan
+  closures, which the old solver ignored, now bend the trajectory. Example 164's replay
+  hash changes to `230d7c872fe7b908`; see `docs/PLAN_ACTIVE_SLAM.md`.
+
 ### Added
 
 - `rne_adapter_lidarloc`: lidar_localization_ros2's solution remapping (`Tracking::
