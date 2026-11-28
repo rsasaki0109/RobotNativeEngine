@@ -647,7 +647,7 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
     println!(
         "  {:<24} sky: {:.1} tracked ({:.1} LOS, {:.1} NLOS/diffracted); GNSS {:.0} s, LiDAR {:.0} s, \
          dead reckoning {:.0} s (longest {:.1} s, {} safety stops); waited for obstacles {:.0} s; \
-         someone within 0.5 m {:.1} s; min LiDAR clearance {:.2} m [{wall_s:.0} s]",
+         someone within 0.5 m {:.1} s; min LiDAR clearance {:.2} m; odometry scale {:.4} [{wall_s:.0} s]",
         "",
         report.tracked / epochs,
         report.los / epochs,
@@ -660,14 +660,16 @@ fn print_report(label: &str, report: &RunReport, wall_s: f64) {
         report.obstacle_wait_s,
         report.close_s,
         report.clearance_m,
+        report.odometry_scale,
     );
     if !report.ghost_errors.is_empty() {
         let e = &report.ghost_errors;
         let rmse = (e.iter().map(|v| v * v).sum::<f64>() / e.len() as f64).sqrt();
         println!(
-            "  {:<24} without GNSS (--ghost): error RMSE {rmse:.2} m, max {:.2} m",
+            "  {:<24} without GNSS (--ghost): error RMSE {rmse:.2} m, max {:.2} m; odometry scale {:.4}",
             "",
-            e.iter().copied().fold(0.0, f64::max)
+            e.iter().copied().fold(0.0, f64::max),
+            report.ghost_odometry_scale.unwrap_or(1.0)
         );
     }
 }

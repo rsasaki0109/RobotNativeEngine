@@ -3,6 +3,7 @@
 mod accelerator;
 mod benchmark;
 mod capability_report;
+mod changelog;
 mod dataset;
 mod docs_evidence_retention;
 mod evidence;
@@ -199,6 +200,7 @@ fn run() -> anyhow::Result<()> {
         "fuzz-smoke" => fuzz_smoke(&mut args),
         "asset" => asset_command(&mut args),
         "lint-boundaries" => lint_boundaries(),
+        "changelog" => changelog::run(&mut args),
         other => anyhow::bail!("unknown xtask command: {other}"),
     }
 }
@@ -2720,6 +2722,8 @@ fn ci() -> anyhow::Result<()> {
 fn ci_lint() -> anyhow::Result<()> {
     run_step("cargo fmt --all -- --check")?;
     lint_boundaries()?;
+    let fragments = changelog::collect_fragments(&workspace_root()?.join(changelog::FRAGMENT_DIR))?;
+    println!("changelog: {} fragment(s) valid", fragments.len());
     run_step("cargo clippy --locked --workspace --all-targets -- -D warnings")
 }
 

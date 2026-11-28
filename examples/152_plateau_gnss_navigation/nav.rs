@@ -100,6 +100,14 @@ impl Localizer {
         }
     }
 
+    /// The odometry scale the hybrid calibrated (1 for the factor graph).
+    fn odometry_scale(&self) -> f64 {
+        match self {
+            Self::Hybrid(h) => h.odometry_scale(),
+            Self::Graph(_) => 1.0,
+        }
+    }
+
     fn predict(&mut self, dt_s: f64, v: f64, w: f64) {
         match self {
             Self::Hybrid(h) => h.predict(dt_s, v, w).expect("predict"),
@@ -730,10 +738,15 @@ pub(crate) struct RunReport {
     /// Time with a person or a vehicle within 0.5 m of the robot's centre
     /// (closer than its 0.35 m footprint and a 0.15 m margin), s.
     pub close_s: f64,
+    /// The odometry scale the localizer calibrated by the end (the wheels
+    /// read 1 % long, so 0.990 is right).
+    pub odometry_scale: f64,
     /// `(truth, estimate, source)` every 0.5 s, for drawing.
     pub track: Vec<(Pose2d, Pose2d, LocalizationSource)>,
     /// Errors of the localizer without GNSS every 0.5 s (`--ghost`), meters.
     pub ghost_errors: Vec<f64>,
+    /// The odometry scale the localizer without GNSS calibrated.
+    pub ghost_odometry_scale: Option<f64>,
     /// Frames for the 3D render (when recording).
     pub frames: Vec<FrameRecord>,
     /// The constellations the receiver tracked, e.g. "GPS+Galileo+QZSS".
@@ -987,6 +1000,7 @@ pub(crate) fn run(
         tick += 1;
     }
     report.duration_s = tick as f64 * DT_S;
+    (report.odometry_scale, report.ghost_odometry_scale) = odometry_scales(&hybrid, ghost.as_ref());
     report
 }
 
@@ -1037,6 +1051,14 @@ fn localizers(
         matching: MatchState::new(lidarloc(cloud, options)),
     });
     (localizer(options.factor_graph), ghost)
+}
+
+/// The odometry scales the localizer and the one without GNSS calibrated.
+fn odometry_scales(localizer: &Localizer, ghost: Option<&Ghost>) -> (f64, Option<f64>) {
+    (
+        localizer.odometry_scale(),
+        ghost.map(|g| g.localizer.odometry_scale()),
+    )
 }
 
 /// Index of a source in [`RunReport::time_in`].
@@ -1099,6 +1121,9 @@ fn build_localizer(
     // the wheels; among Nishi-Shinjuku's towers RTK fixes its ambiguities
     // wrongly and jumps 3.5 m while the estimate follows the wheels.
     config.gnss_reanchor_min_departure_ratio = 0.5;
+    // The wheels read 1 % long: calibrate them wherever RTK or the LiDAR
+    // holds the robot, for the stretches (tunnels) where nothing else does.
+    config.odometry_scale_calibration = true;
     if start_sigma_m > 1.0 {
         config.ekf.initial_position_variance_m2 = start_sigma_m * start_sigma_m;
         config.ekf.initial_yaw_variance_rad2 = 0.04;

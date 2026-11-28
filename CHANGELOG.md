@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes to Robot Native Engine are documented in this file.
+All notable changes to Robot Native Engine are documented in this file. New entries go in
+`changelog.d/` (see its README) and are folded in here at release.
 
 ## [Unreleased]
 
