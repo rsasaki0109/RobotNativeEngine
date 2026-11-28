@@ -423,9 +423,28 @@ policies, per revisit and per third of the trajectory):
 
 So closures happen and are right, yet the trajectory between and after
 them stays off by tens of centimetres: the question has moved from the
-exploration policy to how `Slam2d` applies a closure (the weights it gives
-odometry and closure edges, and the corrections under 5 cm it adds without
-re-optimizing).
+exploration policy to how `Slam2d` applies a closure.
+
+Measured further, per closure (seeds 0–1):
+
+- No closure lowered the mean position error of the graph by more than a
+  few millimetres (e.g. 0.105 → 0.105 m, 0.549 → 0.547 m).
+- Most closures are short: 35–60 keyframes back (8 m), where the relative
+  drift is small, so they correct little. The closure that matters, around
+  the whole ring (370–430 keyframes), corrected about 1.4 m and 0.14 rad.
+- Its optimization was not converged: after the 8 Gauss-Newton iterations
+  `SubmapLoopConfig` uses, 100 more moved the nodes another 0.5 m. Running
+  100 iterations, though, did not help either (SLAM error 0.667 → 0.681 m
+  and 0.836 → 0.813 m over 10 seeds, about even per seed), and one run's
+  optimization diverged. It was not adopted.
+
+Even converged, then, closing the ring does not bring the trajectory
+closer to the truth. What the graph holds is the next suspect: every edge,
+odometry or closure, has unit information whatever its length or how well
+its scan match was constrained, so a closure's correction is spread evenly
+while the drift is not (it comes from heading errors at the corners).
+Weighting edges by their match covariance is an `rne_slam` change of its
+own.
 
 ### P3: legged robot, no goals given
 
