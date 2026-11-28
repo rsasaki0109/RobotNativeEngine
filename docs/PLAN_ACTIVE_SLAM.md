@@ -398,11 +398,11 @@ goal run, whose output is unchanged.
 
 | | goals given (131) | explored (P3) |
 | --- | --- | --- |
-| finished | both goals, 180 s budget | nothing left to explore at 47 s |
-| room A / room B floor mapped | — | 96.6 % / 98.9 % |
-| SLAM error | 0.042 m RMS | 0.041 m RMS (0.064 max) |
-| odometry alone, max | — | 3.9 m |
-| base / body to obstacles | > 0.2 m | 0.49 m / 0.33 m |
+| finished | both goals, 180 s budget | nothing left to explore at 50 s |
+| room A / room B floor mapped | — | 96.4 % / 98.9 % |
+| SLAM error | 0.042 m RMS | 0.031 m RMS (0.054 max) |
+| odometry alone, max | — | 4.1 m |
+| base / body to obstacles | > 0.2 m | 0.50 m / 0.29 m |
 | map cells on a real obstacle | 100 % | 100 % |
 
 The body clearance (head, hips, knees and feet against the furniture's
@@ -426,31 +426,51 @@ What exploration needs that the goal run does not:
   put a foot within 1–2 cm of furniture. Weight 4 keeps paths centred; the
   inscribed band is made lethal (except within 0.3 m of the robot, so it can
   back out), because `plan_path` only refuses lethal cells.
-- **The Go2's size, not its width.** Inscribed radius 0.42 m: the legs reach
-  about 0.38 m from the base. The 1.0 m doorway leaves 0.16 m to pass.
-- **No turn in place against an obstacle.** When the robot has to turn
-  more than 1 rad and something is within the inscribed radius ahead or
-  behind, it first walks straight away from it for 1 s, and may not do so
-  again for 2 s. Re-deciding that every frame made the step and the turn
-  alternate until the trot fell.
+- **A footprint guard** (`guard.rs`). A disc cannot stand for the Go2: its
+  head reaches 0.29 m ahead of the base, its rear legs 0.38 m behind and
+  0.18 m to the sides, so a turn in place swings the rear through an arc a
+  disc does not have. At 20 Hz the guard rolls the footprint rectangle
+  (0.40 m back, 0.31 m forward, ±0.20 m, measured from the links over a
+  walk) forward 1 s under the follower's command, against a distance field
+  of the navigation map. If it would come within 8 cm of an obstacle (or,
+  already closer, get any closer), it picks instead the best of 25
+  speed/yaw-rate candidates that do not, by heading to the lookahead point,
+  progress, clearance and closeness to the command being sent, and holds it
+  0.5 s. The disc radius the planner uses is then only about leaving room:
+  0.38 m (0.42 m closed the 1.0 m doorway in one layout once its jambs fell
+  on 5 cm cells).
+- **Commands that change gently.** Speed changes at most 0.5 m/s², yaw rate
+  1.0 rad/s²: the guard and the follower can disagree in sign, and a yaw
+  rate flipped from +0.5 to −0.25 rad/s within 0.2 s made the trot fall
+  without touching anything.
+- **Giving up a frontier.** Where the planner's disc fits but the guard
+  finds no way for the body, the robot stops making progress and the
+  explorer would choose the same frontier forever (one layout ran out its
+  300 s). A frontier is given up after 10 s with less than 0.25 m of
+  progress toward it, and filled in on the map the explorer chooses on.
 
 **Generated layouts** (`--explore --layout-seed N`, `layouts.rs`): the same
 shell with the doorway moved and 6–8 seeded boxes, 0.40–1.20 m tall,
 against a wall or at least 1.0 m from walls and each other, every floor
-cell reachable (tested on 50 seeds). Over the dressed scene and seeds 0–19:
+cell reachable (tested on 50 seeds). The dressed scene plus layouts:
 
-| | runs | fell | body clearance > 0.10 m | floor mapped, worst room | SLAM error |
+| | runs | fell | body > 0.10 m from furniture | passed | worst room mapped |
 | --- | --- | --- | --- | --- | --- |
-| P3 settings before the obstacle layer (seeds 0–9) | 10 | 1 | 7 | 69.5 % (the fall) | — |
-| final | 21 | 0 | 19 | 96.6 % | 0.019–0.062 m RMS (passing runs) |
+| P3 as first merged (seeds 0–9) | 10 | 1 | 7 | 7 | 69.5 % |
+| obstacle layer + step away (dressed, seeds 0–19) | 21 | 0 | 19 | 19 | 96.6 % |
+| footprint guard (dressed, seeds 0–39) | 41 | 0 | 41 (closest 0.17 m) | 41 | 96.4 % |
+| footprint guard, held out (seeds 40–59) | 20 | 0 | 20 (closest 0.21 m) | 19 | 99.4 % |
 
-The two that miss the gate come within 0.07 m (seed 10, a calf passing the
-north wall) and exactly 0.10 m (seed 12), with no fall. Each fix above moved
-the closest approach of some other layout, so the margin, not the fall rate,
-is what remains: legged exploration in rooms of 1.0 m passages leaves the
-legs centimetres from furniture. A footprint-aware planner (a rectangle
-turning with the body instead of a disc) is the next step there. Seed 4 runs
-in CI next to the dressed scene.
+Seeds 0–39 were looked at while fixing things (the doorway radius and the
+give-up rule came from seeds 32 and 11), so seeds 40–59 were run once,
+untouched. The one of them that fails does so on map precision: 93.1 % of
+the SLAM map's occupied cells lie within 10 cm of a real obstacle, under
+the 95 % gate inherited from the goal run, while exploration itself
+finished with 99.8 % of the floor mapped. That is the SLAM map's quality,
+not the walk's, and is left open here. Over all 61 runs SLAM error was
+0.017–0.061 m RMS; the guard stepped in 195 times over seeds 0–39 (in 21
+runs, at most 73 in one), and 4 frontiers were given up (in 2 runs).
+Layout seed 4 runs in CI next to the dressed scene.
 
 On the way: an earlier version kept the SLAM scan band under the lowest
 crate (0.35 m) instead of adding the layer. It passed the dressed scene but

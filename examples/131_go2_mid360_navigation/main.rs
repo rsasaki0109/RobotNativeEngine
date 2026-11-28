@@ -33,6 +33,7 @@
 //! cargo run --release -p go2_mid360_navigation --example 131_go2_mid360_navigation -- --explore
 //! ```
 
+mod guard;
 mod layouts;
 
 use std::f64::consts::PI;
@@ -79,11 +80,11 @@ const EXPLORE_SENSOR_RANGE_M: f64 = 5.0;
 /// on a grid of this pitch.
 const COVERAGE_CLEARANCE_M: f64 = 0.10;
 const COVERAGE_PITCH_M: f64 = 0.10;
-/// Exploration keeps the base this far off mapped obstacles: the Go2's legs
-/// reach about 0.38 m from it. With the settings here 0.30 and 0.38 let a leg
-/// reach furniture and the trot fell; 0.40 to 0.45 did not. The 1.0 m doorway
-/// leaves 0.16 m to pass.
-const EXPLORE_INSCRIBED_RADIUS_M: f64 = 0.42;
+/// Exploration plans the base this far off mapped obstacles. The body is
+/// kept clear by the footprint guard (`guard.rs`), so this only has to leave
+/// paths a disc can follow without squeezing the guard: 0.42 m closed the
+/// 1.0 m doorway once its jambs fell on 5 cm cells, 0.38 m leaves 0.24 m.
+const EXPLORE_INSCRIBED_RADIUS_M: f64 = 0.38;
 /// Weight of the inflation cost in the exploration planner. At the default
 /// 0.5 a path runs along the inscribed band, and turning there brought a foot
 /// within 1–2 cm of furniture and the trot fell; at 3 to 5 paths keep to the
@@ -139,16 +140,18 @@ const COLLISION_BAND_M: [f64; 2] = [0.10, 0.55];
 /// Returns below this height above the floor are floor: their rays clear
 /// the obstacle layer.
 const FLOOR_RETURN_M: f64 = 0.05;
-/// Stepping out of the inscribed band before a turn in place: speed, and how
-/// far ahead or behind (cosine of the bearing) the obstacle must be for a step
-/// along the body axis to help.
-const ESCAPE_SPEED_M_S: f64 = 0.1;
-const ESCAPE_MIN_ALIGNMENT: f64 = 0.3;
-/// A step away lasts this long, and the next cannot start for this long after:
-/// re-deciding every frame made the step and the turn alternate until the
-/// trot fell.
-const ESCAPE_HOLD_S: f64 = 1.0;
-const ESCAPE_COOLDOWN_S: f64 = 2.0;
+/// The footprint guard checks the follower's command at 20 Hz and holds a
+/// replacement for 0.5 s.
+const GUARD_EVERY_STEPS: u64 = 25;
+const GUARD_HOLD_S: f64 = 0.5;
+/// With `--explore`, commands change at most this fast.
+const MAX_ACCELERATION_M_S2: f64 = 0.5;
+const MAX_YAW_ACCELERATION_RAD_S2: f64 = 1.0;
+/// A frontier is given up when the robot moves less than this in this long
+/// while heading for it, and the cells within this radius of it are filled.
+const STUCK_DISTANCE_M: f64 = 0.25;
+const STUCK_TIME_S: f64 = 10.0;
+const ABANDON_RADIUS_M: f64 = 0.3;
 /// Log-odds given to obstacle-layer cells copied into the navigation map.
 const OBSTACLE_LOG_ODDS: f64 = 5.0;
 /// Returns closer than this are the robot itself.
@@ -207,11 +210,19 @@ struct Nav {
     path: Option<Path2d>,
     /// Present with `--explore`: chooses frontiers instead of [`GOALS`].
     explorer: Option<Explorer>,
-    /// Set each frame with `--explore`: step away from an obstacle at this
-    /// speed instead of turning in place next to it.
-    escape_speed_m_s: Option<f64>,
-    /// The step away in progress, if any.
-    escape: Escape,
+    /// Set each frame with `--explore`: distance to obstacles on the
+    /// navigation map, for the footprint guard.
+    clearance: Option<guard::ClearanceField>,
+    /// The guard's replacement command and until when it holds.
+    guard_hold: Option<(f64, UnitreeGo2TrotCommand)>,
+    /// How often the guard replaced the follower's command.
+    guard_overrides: usize,
+    /// The command sent last, for the slew limit.
+    last_command: UnitreeGo2TrotCommand,
+    /// When and where the robot last made progress toward a goal.
+    progress_anchor: (f64, Pose2d),
+    /// Frontier goals given up on (see [`Nav::watch_progress`]).
+    abandoned: Vec<Vec3>,
     /// Present with `--explore`: obstacles at the Go2's height, kept apart
     /// from the SLAM map (see [`Nav::update_obstacle_layer`]).
     obstacle_layer: Option<OccupancyGrid>,
@@ -283,8 +294,12 @@ impl Nav {
             path: None,
             explorer: explore.then(|| Explorer::new(explorer_config())),
             obstacle_layer,
-            escape_speed_m_s: None,
-            escape: Escape::default(),
+            clearance: None,
+            guard_hold: None,
+            guard_overrides: 0,
+            last_command: UnitreeGo2TrotCommand::default(),
+            progress_anchor: (0.0, start),
+            abandoned: Vec::new(),
             explored: false,
             frontier_goals: 0,
             plan_failures: 0,
@@ -349,7 +364,9 @@ impl Nav {
             self.process_keyframe(&scan);
         }
         self.update_obstacle_layer(&returns);
-        self.escape_speed_m_s = self.escape_speed();
+        if self.explorer.is_some() {
+            self.clearance = Some(guard::ClearanceField::from_grid(&self.navigation_grid()));
+        }
         self.odom_at_frame_start = self.odom;
         self.frame_start_pose = end_pose;
         self.last_cloud = Some(cloud);
@@ -501,37 +518,57 @@ impl Nav {
         .expect("mark obstacle layer");
     }
 
-    /// With `--explore`, when an obstacle is within the inscribed radius of
-    /// the estimate and lies mostly ahead or behind: the speed that walks
-    /// straight away from it.
-    fn escape_speed(&self) -> Option<f64> {
-        let layer = self.obstacle_layer.as_ref()?;
-        let grid = self.slam.grid();
-        let estimate = self.estimate();
-        let centre = grid.world_to_grid(Vec3::new(estimate.x_m, estimate.y_m, 0.0))?;
-        let reach = (EXPLORE_INSCRIBED_RADIUS_M / grid.resolution_m()).ceil() as isize;
-        let mut nearest: Option<(f64, Vec3)> = None;
-        for dy in -reach..=reach {
-            for dx in -reach..=reach {
-                let cell = GridCoord {
-                    x: centre.x + dx,
-                    y: centre.y + dy,
-                };
-                if !(grid.is_occupied(cell) || layer.is_occupied(cell)) {
-                    continue;
-                }
-                let offset = grid.grid_to_world(cell) - Vec3::new(estimate.x_m, estimate.y_m, 0.0);
-                let distance = offset.x.hypot(offset.y);
-                if distance < EXPLORE_INSCRIBED_RADIUS_M
-                    && nearest.is_none_or(|(best, _)| distance < best)
-                {
-                    nearest = Some((distance, offset));
+    /// Gives up the current frontier when the robot has not moved
+    /// [`STUCK_DISTANCE_M`] in [`STUCK_TIME_S`] while heading for it: the
+    /// planner's path fits a disc, but the footprint guard found no way for
+    /// the body through, and the explorer would choose the same frontier
+    /// again forever.
+    fn watch_progress(&mut self, estimate: Pose2d) {
+        let now_s = self.trot.time_s();
+        let (since_s, anchor) = self.progress_anchor;
+        let moved = (estimate.x_m - anchor.x_m).hypot(estimate.y_m - anchor.y_m);
+        if self.path.is_none() || moved >= STUCK_DISTANCE_M {
+            self.progress_anchor = (now_s, estimate);
+            return;
+        }
+        if now_s - since_s < STUCK_TIME_S {
+            return;
+        }
+        if let Some(explorer) = self.explorer.as_mut() {
+            if let Some(goal) = explorer.current() {
+                self.abandoned
+                    .push(Vec3::new(goal.goal.x_m, goal.goal.y_m, 0.0));
+            }
+            explorer.clear_goal();
+        }
+        self.path = None;
+        self.progress_anchor = (now_s, estimate);
+    }
+
+    /// The map the explorer chooses on: the navigation map with the
+    /// frontiers given up on filled in, so they are no longer frontiers.
+    fn exploration_grid(&self) -> OccupancyGrid {
+        let mut grid = self.navigation_grid();
+        let reach = (ABANDON_RADIUS_M / grid.resolution_m()).ceil() as isize;
+        for goal in &self.abandoned {
+            let Some(centre) = grid.world_to_grid(*goal) else {
+                continue;
+            };
+            for dy in -reach..=reach {
+                for dx in -reach..=reach {
+                    let cell = GridCoord {
+                        x: centre.x + dx,
+                        y: centre.y + dy,
+                    };
+                    let at = grid.grid_to_world(cell);
+                    if (at - *goal).length() <= ABANDON_RADIUS_M && !grid.is_occupied(cell) {
+                        grid.reset(cell);
+                        grid.apply_occupied(cell, OBSTACLE_LOG_ODDS);
+                    }
                 }
             }
         }
-        let (_, offset) = nearest?;
-        let along = (offset.y.atan2(offset.x) - estimate.yaw_rad).cos();
-        (along.abs() > ESCAPE_MIN_ALIGNMENT).then(|| -along.signum() * ESCAPE_SPEED_M_S)
+        grid
     }
 
     /// The map exploration plans on: the SLAM map with the obstacle layer's
@@ -587,7 +624,8 @@ impl Nav {
     fn replan_explore(&mut self) {
         self.frames_since_plan = 0;
         let estimate = self.estimate();
-        let navigation = self.navigation_grid();
+        self.watch_progress(estimate);
+        let navigation = self.exploration_grid();
         let grid = &navigation;
         let Some(explorer) = self.explorer.as_mut() else {
             return;
@@ -643,7 +681,10 @@ impl Nav {
     }
 
     fn step_control(&mut self) {
-        let command = self.follow();
+        let mut command = self.follow();
+        if self.explorer.is_some() {
+            command = self.slew_limited(command);
+        }
         self.trot.step(&mut self.sim, command);
         self.integrate_odometry();
         let observed = self.sim.observe();
@@ -708,30 +749,9 @@ impl Nav {
         let bearing = wrap_angle(
             (lookahead.y - estimate.y_m).atan2(lookahead.x - estimate.x_m) - estimate.yaw_rad,
         );
-        if bearing.abs() > 1.0 {
-            // A turn in place next to an obstacle would swing a leg into it:
-            // step away along the body axis first, for a fixed time so the
-            // step and the turn do not alternate frame by frame.
-            let now_s = self.trot.time_s();
-            if now_s >= self.escape.cooldown_until_s {
-                if let Some(speed) = self.escape_speed_m_s {
-                    self.escape = Escape {
-                        speed_m_s: speed,
-                        until_s: now_s + ESCAPE_HOLD_S,
-                        cooldown_until_s: now_s + ESCAPE_HOLD_S + ESCAPE_COOLDOWN_S,
-                    };
-                }
-            }
-            if now_s < self.escape.until_s {
-                return UnitreeGo2TrotCommand {
-                    forward_speed_m_s: self.escape.speed_m_s,
-                    yaw_rate_rad_s: 0.0,
-                };
-            }
-        }
         let alignment = bearing.cos().max(0.0).powi(2);
         let approach = (to_goal_m / SLOW_RADIUS_M).clamp(0.4, 1.0);
-        UnitreeGo2TrotCommand {
+        let nominal = UnitreeGo2TrotCommand {
             forward_speed_m_s: if bearing.abs() > 1.0 {
                 0.05
             } else {
@@ -739,7 +759,76 @@ impl Nav {
             },
             yaw_rate_rad_s: (HEADING_GAIN_PER_S * bearing)
                 .clamp(-MAX_YAW_RATE_RAD_S, MAX_YAW_RATE_RAD_S),
+        };
+        self.guarded(nominal, estimate, lookahead)
+    }
+
+    /// Limits how fast the command changes: the guard's choice and the
+    /// follower's can differ in sign, and a yaw rate flipped from +0.5 to
+    /// -0.25 rad/s within 0.2 s made the trot fall.
+    fn slew_limited(&mut self, wanted: UnitreeGo2TrotCommand) -> UnitreeGo2TrotCommand {
+        let dt = 1.0 / UNITREE_GO2_MODEL_TROT_CONTROL_HZ;
+        let step = |from: f64, to: f64, rate: f64| from + (to - from).clamp(-rate * dt, rate * dt);
+        let last = self.last_command;
+        let command = UnitreeGo2TrotCommand {
+            forward_speed_m_s: step(
+                last.forward_speed_m_s,
+                wanted.forward_speed_m_s,
+                MAX_ACCELERATION_M_S2,
+            ),
+            yaw_rate_rad_s: step(
+                last.yaw_rate_rad_s,
+                wanted.yaw_rate_rad_s,
+                MAX_YAW_ACCELERATION_RAD_S2,
+            ),
+        };
+        self.last_command = command;
+        command
+    }
+
+    /// With `--explore`, the footprint guard's command instead of `nominal`
+    /// when the nominal one would bring the body too close to an obstacle.
+    /// A replacement is held for [`GUARD_HOLD_S`] so the two do not
+    /// alternate step by step.
+    fn guarded(
+        &mut self,
+        nominal: UnitreeGo2TrotCommand,
+        estimate: Pose2d,
+        target: Vec3,
+    ) -> UnitreeGo2TrotCommand {
+        let Some(field) = &self.clearance else {
+            return nominal;
+        };
+        let now_s = self.trot.time_s();
+        if let Some((until_s, command)) = self.guard_hold {
+            if now_s < until_s {
+                return command;
+            }
+            self.guard_hold = None;
         }
+        if !self.trot.steps().is_multiple_of(GUARD_EVERY_STEPS) {
+            return nominal;
+        }
+        let ((speed, yaw_rate), replaced) = guard::choose(
+            field,
+            estimate,
+            (nominal.forward_speed_m_s, nominal.yaw_rate_rad_s),
+            (
+                self.last_command.forward_speed_m_s,
+                self.last_command.yaw_rate_rad_s,
+            ),
+            target,
+        );
+        if !replaced {
+            return nominal;
+        }
+        let command = UnitreeGo2TrotCommand {
+            forward_speed_m_s: speed,
+            yaw_rate_rad_s: yaw_rate,
+        };
+        self.guard_hold = Some((now_s + GUARD_HOLD_S, command));
+        self.guard_overrides += 1;
+        command
     }
 
     /// Leg odometry: the body's planar velocity and yaw rate with a scale error
@@ -825,15 +914,6 @@ fn room_coverage(grid: &OccupancyGrid, obstacles: &[StaticObject]) -> Vec<f64> {
             known as f64 / floor.max(1) as f64
         })
         .collect()
-}
-
-/// A step away from an obstacle: its speed, when it ends, and when the next
-/// may start.
-#[derive(Clone, Copy, Debug, Default)]
-struct Escape {
-    speed_m_s: f64,
-    until_s: f64,
-    cooldown_until_s: f64,
 }
 
 /// A return of a Mid-360 frame, levelled and de-skewed to the frame end.
@@ -1036,11 +1116,13 @@ fn report_and_gate_goals(nav: &Nav) {
 fn report_and_gate_exploration(nav: &Nav) {
     let coverage = room_coverage(nav.slam.grid(), &nav.obstacles);
     println!(
-        "explored in {:.1} s ({}): {} frontier goals, {} without a path; mapped room A {:.1} %, room B {:.1} %; clearance >= {:.2} m (body {:.2} m: {} to {} at {:.1} s), lowest body {:.3} m",
+        "explored in {:.1} s ({}): {} frontier goals, {} without a path, {} given up, {} guard overrides; mapped room A {:.1} %, room B {:.1} %; clearance >= {:.2} m (body {:.2} m: {} to {} at {:.1} s), lowest body {:.3} m",
         nav.trot.time_s(),
         if nav.explored { "nothing left" } else { "timed out" },
         nav.frontier_goals,
         nav.plan_failures,
+        nav.abandoned.len(),
+        nav.guard_overrides,
         coverage[0] * 100.0,
         coverage[1] * 100.0,
         nav.min_clearance_m,
@@ -1051,8 +1133,8 @@ fn report_and_gate_exploration(nav: &Nav) {
         nav.min_height_m
     );
     assert!(nav.explored, "exploration did not finish");
-    // Measured 0.23 m with the settings above (0.15–0.24 m with each one
-    // nudged); contact makes the trot fall.
+    // Measured 0.17 m or more over 41 layouts with the guard; contact makes
+    // the trot fall.
     assert!(
         nav.min_body_clearance_m > 0.10,
         "a leg came within {:.2} m of an obstacle",
