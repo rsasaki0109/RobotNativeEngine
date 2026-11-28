@@ -698,13 +698,13 @@ cargo run --release -p plateau_gnss_navigation --example 152_plateau_gnss_naviga
 
 | 3D LiDAR, BeiDou: RMSE (max) | `rne_slam` | lidar_localization_ros2, registration only (before) | lidar_localization_ros2, tracking |
 |------|------|------|------|
-| Shibuya, with GNSS | 0.01 m (0.07 m) | 0.09 m (1.06 m) | 0.03 m (0.45 m) |
-| Shibuya, without GNSS | 0.00 m (0.04 m) | 0.03 m (0.11 m) | 0.03 m (0.12 m) |
+| Shibuya, with GNSS | 0.01 m (0.06 m) | 0.09 m (1.06 m) | 0.03 m (0.45 m) |
+| Shibuya, without GNSS | 0.00 m (0.06 m) | 0.03 m (0.11 m) | 0.03 m (0.12 m) |
 | Shibuya at rush hour (`--weather rush`), with GNSS | 0.01 m (0.07 m) | | 0.03 m (0.13 m) |
 | Shibuya, unknown start, with GNSS | 0.60 m (25 m) | | 0.60 m (25 m) |
 | Shibuya, unknown start, without GNSS | 61 m (109 m) | | 0.64 m (25 m) |
 | Suburb, with GNSS | 0.00 m (0.05 m) | 0.10 m (1.87 m) | 0.02 m (0.18 m) |
-| Suburb, without GNSS | 87 m (235 m) | 90 m (242 m) | 90 m (270 m) |
+| Suburb, without GNSS | 87 m (234 m) | 90 m (242 m) | 90 m (270 m) |
 | Tunnel (`--area tunnel`), with GNSS | 0.39 m (1.37 m) | | 0.04 m (0.27 m) |
 | Tunnel, without GNSS | 0.39 m (1.37 m) | | 0.06 m (0.39 m) |
 
