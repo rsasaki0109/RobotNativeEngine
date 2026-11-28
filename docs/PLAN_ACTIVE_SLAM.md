@@ -446,6 +446,50 @@ while the drift is not (it comes from heading errors at the corners).
 Weighting edges by their match covariance is an `rne_slam` change of its
 own.
 
+#### The optimizer was not Gauss-Newton (found after P3)
+
+Weighting edges was tried first and moved nothing (three weightings of
+odometry against closures, yaw against position: 0.56–0.65 m against
+0.58–0.67 m over 20 loop runs). Rebuilding a finished run's graph with
+every odometry edge set to the true relative pose did not move it
+towards the truth either, which no correct solver allows. The cause:
+`PoseGraph::optimize` (and `PoseGraph3d::optimize`) added only each
+node's own block `JᵀΩJ` to the normal equations and dropped the blocks
+coupling the two nodes of an edge. Each step was block-Jacobi, not
+Gauss-Newton: a 350-node chain bent away from exact measurements barely
+moved in 100 iterations. That is why closures corrected nothing above,
+and why more iterations did not help.
+
+Both optimizers now add the coupling blocks, and the fixed damping
+(`1e-3`, which alone still stalled the chain's softest bending) became
+Levenberg-Marquardt that starts as Gauss-Newton. The chain converges in
+four iterations; a finished run with true odometry edges now lands within
+0.03–0.15 m of the truth.
+
+A working optimizer exposed what the inert one had hidden: `Slam2d`'s
+single-scan loop closures, accepted within 0.75 m of the prediction,
+included wrong ones (3 of 8 and 7 of 28 on warehouse start 0), and they now
+bend the trajectory (SLAM error 0.239 → 0.591 m). A Huber kernel and edge
+weights did not stop that; gating closures at 0.1 m of the prediction
+(`SlamConfig::loop_max_translation_residual_m`, default 0.75 → 0.1) did:
+no wrong closure on the four warehouse starts.
+
+| | warehouse, 4 starts | loop worlds, 20 runs |
+| --- | --- | --- |
+| nearest frontier, before | 0.172 m | 0.583 m |
+| nearest frontier, after | 0.157 m | 0.616 m |
+| information gain, before | 0.076 m | 0.671 m |
+| information gain, after | 0.091 m | 0.485 m |
+
+(Loop worlds: `--rebuild-map --submap-loops --revisit`, seeds 0–9, both
+starts.) The averages move less than the per-run results do, because the
+estimate steers the robot and every run takes a different route. With a
+converged graph, what is left on the loop worlds is mostly the odometry
+edges themselves: replacing them with the true relative poses brings most
+runs to 0.03–0.15 m, while replacing the closures does little, except in
+two runs where one closure was wrong. Example 164's replay hash is now
+`230d7c872fe7b908`.
+
 ### P3: legged robot, no goals given
 
 - Example 131's Go2 + Mid-360, with `rne_explore` instead of the hand-given
