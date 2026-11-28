@@ -11,7 +11,8 @@
 //!    [`ForecastSet`]: [`ConstantVelocityForecaster`] is classical,
 //!    [`LearnedForecaster`] wraps any [`InferenceModel`], and
 //!    [`BlendedForecaster`] mixes the two so a learned forecast never removes
-//!    the physically plausible one.
+//!    the physically plausible one. [`ObstacleTracker`] turns raw
+//!    detections into those tracks.
 //! 2. **Learned and classical algorithms as peers.** A [`HybridPipeline`]
 //!    gathers candidates from any mix of [`Proposer`]s, improves them with
 //!    [`Refiner`]s, prices them with weighted [`Critic`]s and gates them with
@@ -34,6 +35,7 @@ mod forecasters;
 mod hybrid;
 mod model;
 mod rng;
+mod tracking;
 
 pub use error::ForesightError;
 pub use forecast::{AgentForecast, ForecastSet, TimedState, TrajectoryMode, WorldForecast};
@@ -48,6 +50,7 @@ pub use model::{
     check_output, Activation, DenseLayer, FnModel, InferenceModel, MlpModel, ModelSpec,
 };
 pub use rng::SplitMix64;
+pub use tracking::{Detection, ObstacleTracker, ObstacleTrackerConfig, Track};
 
 /// Re-exported vector type used for positions (metres) and velocities (m/s).
 pub use glam::DVec3;

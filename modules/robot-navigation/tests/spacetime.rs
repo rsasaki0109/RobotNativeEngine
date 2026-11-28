@@ -185,3 +185,42 @@ fn certifier_rejects_speeding() {
     let cert = ForecastCertifier::default().certify(&p, &traj);
     assert!(!cert.is_certified());
 }
+
+#[test]
+fn detections_to_tracker_to_forecast_to_plan() {
+    use robot_foresight::{
+        ConstantVelocityForecaster, Detection, Forecaster, ObstacleTracker, ObstacleTrackerConfig,
+    };
+    // A person observed for 1 s walking +y across x = 6 m at 2 m/s.
+    let mut tracker = ObstacleTracker::new(ObstacleTrackerConfig::default(), -1.0).unwrap();
+    for k in 1..=10 {
+        let t = -1.0 + 0.1 * f64::from(k);
+        let y = -2.0 + 2.0 * t;
+        tracker
+            .update(
+                &[Detection {
+                    position_m: DVec3::new(6.0, y, 1.0),
+                    radius_m: 0.35,
+                }],
+                0.1,
+            )
+            .unwrap();
+    }
+    let forecaster = ConstantVelocityForecaster {
+        dt_s: 0.1,
+        sigma0_m: 0.05,
+        sigma_growth_mps: 0.05,
+    };
+    let forecast = forecaster
+        .forecast(&tracker.agent_tracks(), tracker.time_s(), 10.0)
+        .unwrap();
+    let p = problem(room(), forecast);
+    let traj = default_pipeline(1)
+        .decide(&p)
+        .into_solution()
+        .expect("certified plan");
+    for w in traj.sample(0.02) {
+        let person = DVec3::new(6.0, -2.0 + 2.0 * w.t_s, 1.0);
+        assert!(w.position_m.distance(person) > 0.55, "{w:?}");
+    }
+}

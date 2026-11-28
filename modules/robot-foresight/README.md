@@ -11,6 +11,7 @@ classical algorithms are interchangeable. Shared core of
 - `HybridPipeline` with `Proposer`, `Refiner`, `Critic`, `Certifier`,
   `Provenance`, `Decision`
 - `InferenceModel`, `MlpModel` (JSON weights), `FnModel`
+- `ObstacleTracker`: detections to `AgentTrack`s (ported from `rne_nav`)
 - `SplitMix64`
 
 Dependencies: `glam`, `serde`, `serde_json`, `thiserror`. No RNE crate.

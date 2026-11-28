@@ -18,12 +18,16 @@
 //! ([`SpaceTimeAstar`]) compete in one [`robot_foresight::HybridPipeline`];
 //! [`ForecastCertifier`] gates both with the same collision and limit
 //! checks. [`default_pipeline`] assembles the classical stages.
+//!
+//! For robots that only need a plane, [`planar`] carries the classical 2D
+//! stack (occupancy grid, costmap, A*, pure pursuit, DWA) ported from RNE.
 
 #![deny(missing_docs)]
 
 mod certify;
 mod critics;
 mod pipeline;
+pub mod planar;
 mod problem;
 mod proposers;
 mod refine;

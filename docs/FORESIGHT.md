@@ -74,6 +74,14 @@ println!("{}", decision.summary());
 - `ForecastCertifier`: start state, speed limits, static clearance, forecast
   risk over the trajectory and a hold period after arrival, goal reached.
 
+- `planar`: the classical 2D stack ported from `rne_nav` (occupancy grid,
+  inflated costmap, A* `plan_path`, pure pursuit, DWA), for robots that only
+  need a plane.
+
+Perception enters through `robot_foresight::ObstacleTracker` (ported from
+`rne_nav`): detections in, timestamped `AgentTrack`s out, ready for any
+forecaster.
+
 ## `robot_manipulation`
 
 - `SerialChain`: DH revolute chain, link collision spheres, damped

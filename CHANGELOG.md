@@ -20,6 +20,10 @@ All notable changes to Robot Native Engine are documented in this file.
     (path-velocity decomposition around the forecast), direct, RRT-Connect and
     `LearnedViaPointProposer` motion proposers, `MotionCertifier`, antipodal grasp
     sampling, `LearnedGraspScorer` and `ReachabilityCertifier`.
+  - Ported from RNE (no RNE dependency): `rne_nav`'s 2D stack (grid, costmap, A*,
+    pure pursuit, DWA) as `robot_navigation::planar`, and `rne_nav::ObstacleTracker` as
+    `robot_foresight::ObstacleTracker` (3D, timestamped history, `agent_tracks()` for
+    forecasters). `rne_nav` is unchanged.
   - Example 165 (drone in a warehouse aisle: snapshot and constant-velocity plans
     collide, the blended learned+classical forecast plan passes 0.50 m clear) and
     example 166 (arm: the classical sweep waits 1.8 s for a hand; a learned via-point

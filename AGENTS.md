@@ -41,8 +41,8 @@ ROS2 is an adapter only. Do not add ROS2, rclrs, rclcpp, DDS, or ROS message dep
 - `crates/rne_nav`: backend-neutral occupancy grids, costmaps, tiled maps, plan/control, multi-robot avoidance, and timestamped transform tree
 - `crates/rne_slam`: deterministic 2D scan matching, online occupancy SLAM, Monte Carlo localization, and a GNSS-outdoors / LiDAR-indoors localization arbiter
 - `crates/rne_explore`: active SLAM decisions (frontier clusters, reachability, information gain, goal selection with hysteresis); returns goals, does not plan, drive or estimate
-- `modules/robot-foresight` (`robot_foresight`): forecasts of future world states (multimodal predicted agents with growing uncertainty; classical, learned and blended forecasters) and the hybrid pipeline in which learned and classical proposers, refiners, critics and certifiers are interchangeable
-- `modules/robot-navigation` (`robot_navigation`): 3D space-time navigation on `robot_foresight` (voxel maps, space-time A*, learned velocity policy proposer, forecast certifier)
+- `modules/robot-foresight` (`robot_foresight`): forecasts of future world states (multimodal predicted agents with growing uncertainty; classical, learned and blended forecasters) the hybrid pipeline in which learned and classical proposers, refiners, critics and certifiers are interchangeable, and a detection tracker (ported from `rne_nav`)
+- `modules/robot-navigation` (`robot_navigation`): 3D space-time navigation on `robot_foresight` (voxel maps, space-time A*, learned velocity policy proposer, forecast certifier) and, in `planar`, the 2D grid/costmap/A*/pure pursuit/DWA stack ported from `rne_nav`
 - `modules/robot-manipulation` (`robot_manipulation`): forecast-aware arm motion and grasp planning on `robot_foresight` (DH chains and IK, path-velocity decomposition, RRT-Connect, learned via-point prior, antipodal grasps, learned grasp scorer)
 - `crates/rne_gnss`: ray-traced GNSS simulation (WGS-84 geodesy, GPS/Galileo/QZSS orbits and broadcast ephemerides, building occlusion against boxes or a BVH triangle mesh, multi-bounce reflections, knife-edge diffraction, dual-frequency code/carrier/Doppler observations, multi-antenna rigs, built-in SPP with RAIM)
 - `crates/rne_ai`: agent, observation, action, reward, policy traits
@@ -153,7 +153,7 @@ Allowed dependencies:
 - `rne_explore` may depend on `rne_nav`, `rne_slam`, `rne_core`, `rne_ecs`, and `rne_math`; not on a renderer, a physics backend, ROS 2 or visloc-rs.
 - `rne_gnss` may depend on `rne_core` and `rne_math`.
 - `robot_foresight` may depend on `glam`, `serde`, `serde_json` and `thiserror` only (no RNE crate), so it can move to its own repository unchanged.
-- `robot_navigation` and `robot_manipulation` may depend on `robot_foresight`, `glam` and `serde` only.
+- `robot_navigation` may depend on `robot_foresight`, `glam`, `serde` and `thiserror` only; `robot_manipulation` on `robot_foresight`, `glam` and `serde` only.
 - `rne_accelerator_contract` may depend on `rne_ai`; vendor runtime dependencies remain in adapters.
 - Offline importers such as `rne_plateau` may depend on `rne_traffic`.
 - `adapters/*` may depend on external ecosystems such as ROS2.

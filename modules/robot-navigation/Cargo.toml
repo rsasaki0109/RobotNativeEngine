@@ -15,3 +15,7 @@ workspace = true
 glam = { workspace = true }
 robot_foresight = { workspace = true }
 serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+approx = "0.5"

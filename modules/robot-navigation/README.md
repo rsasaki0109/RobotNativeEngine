@@ -10,8 +10,10 @@ and classical planners competing behind one certifier. See
 - `ShortcutRefiner`; critics `DurationCritic`, `PathLengthCritic`,
   `RiskCritic`, `LearnedCostCritic`
 - `ForecastCertifier`, `check_trajectory`, `default_pipeline`
+- `planar`: occupancy grid, costmap, A*, pure pursuit and DWA, ported from
+  `rne_nav`
 
-Dependencies: `robot_foresight`, `glam`, `serde`. No RNE crate.
+Dependencies: `robot_foresight`, `glam`, `serde`, `thiserror`. No RNE crate.
 
 ```bash
 cargo test -p robot_navigation

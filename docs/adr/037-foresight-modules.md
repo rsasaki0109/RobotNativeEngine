@@ -44,7 +44,8 @@ Add a top-level `modules/` directory with three crates:
 Dependency rules (added to `AGENTS.md`):
 
 - `robot_foresight` depends on `glam`, `serde`, `serde_json` and `thiserror`
-  only; the other two add `robot_foresight`.
+  only; the other two add `robot_foresight` (and `robot_navigation` keeps
+  `thiserror` for the ported 2D errors).
 - None of them depends on an RNE crate, a renderer, a physics backend, ROS 2,
   Nav2 or a learning runtime. Learned models are `InferenceModel`
   implementations supplied by the caller (an adapter wraps ONNX or an
@@ -60,6 +61,26 @@ Safety rule built into the pipeline: certifiers are the only gate to
 execution, they see every candidate regardless of provenance, and a proposer
 that errors is recorded and skipped, so a classical proposer is always a
 fallback for a learned one.
+
+## Ported from RNE
+
+Code that depends only on `rne_math` (whose `Vec3` is `glam::DVec3`) moves
+with `rne_math::Vec3` replaced by `glam::DVec3`, behaviour and tests intact:
+
+| from | to | change |
+|---|---|---|
+| `rne_nav::{pose2d, grid, costmap, path, planner, control, dwa}` | `robot_navigation::planar` | `Pose2d::to_transform3` → `to_affine3` (`glam::DAffine3`) |
+| `rne_nav::ObstacleTracker` | `robot_foresight::ObstacleTracker` | 3D, own clock, bounded timestamped history, `agent_tracks()` for forecasters; `ForesightError` instead of `DynamicError` |
+
+`rne_nav` keeps its copies: it is a published crate in the Rust API
+baseline, and re-exporting from the modules would change its public types.
+Once the modules leave the workspace, `rne_nav` can depend on them and
+re-export. Not ported, because they are tied to RNE types: `rne_planning`
+(planning scene and groups over `rne_robot` entities and the ECS), the
+`rne_nav` ECS resources and systems, and `rne_slam`. The remaining
+`rne_nav` modules that depend only on `rne_math` (layers, recovery,
+avoidance, coordination, tf, map I/O, the multi-floor building model) can
+move the same way when a module needs them.
 
 ## Splitting into repositories
 
