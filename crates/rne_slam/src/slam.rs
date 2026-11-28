@@ -48,7 +48,7 @@ impl Default for SlamConfig {
             loop_candidates: 8,
             loop_min_separation: 10,
             loop_min_score: 0.55,
-            loop_max_translation_residual_m: 0.75,
+            loop_max_translation_residual_m: 0.1,
             loop_max_rotation_residual_rad: 0.5,
         }
     }
