@@ -68,6 +68,26 @@ const LIDAR_LOCK_MIN_TRAVEL_M: f64 = 0.5;
 /// along the direction of travel, meters.
 const LIDAR_LOCK_RELEASE_M: f64 = 0.25;
 
+/// Wheel distance over which one odometry-scale sample is taken, meters
+/// ([`HybridLocalizerConfig::odometry_scale_calibration`]).
+const ODOMETRY_SCALE_SEGMENT_M: f64 = 20.0;
+
+/// Largest horizontal sigma of the estimate, meters, at both ends of an
+/// odometry-scale sample.
+const ODOMETRY_SCALE_MAX_SIGMA_M: f64 = 0.15;
+
+/// Wheel distance of samples, meters, before the calibrated scale is applied.
+const ODOMETRY_SCALE_MIN_DISTANCE_M: f64 = 60.0;
+
+/// Largest departure of an odometry-scale sample from 1; farther samples
+/// are dropped.
+const ODOMETRY_SCALE_MAX_DEVIATION: f64 = 0.05;
+
+/// Wheel distance, meters, after which old odometry-scale samples have lost
+/// most of their weight (the scale drifts with load, tyre pressure and
+/// surface).
+const ODOMETRY_SCALE_MEMORY_M: f64 = 1000.0;
+
 /// A planar absolute position fix from a satellite receiver.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AbsolutePositionFix {
@@ -290,6 +310,19 @@ pub struct HybridLocalizerConfig {
     pub odometry_linear_variance: f64,
     /// Odometry (gyro) yaw-rate variance.
     pub odometry_angular_variance: f64,
+    /// Calibrates the wheel odometry's scale online and applies it to every
+    /// forward velocity: wherever the estimate is held to within
+    /// `ODOMETRY_SCALE_MAX_SIGMA_M` (RTK fixed fixes, LiDAR matches that pin
+    /// both directions), every `ODOMETRY_SCALE_SEGMENT_M` the wheels cover is
+    /// compared with the distance the estimate moved. A wheel that reads 1 %
+    /// long otherwise puts 10 m of error into each kilometre of dead
+    /// reckoning, and along a tunnel, whose walls pin nothing along it, the
+    /// wheels are all there is. Samples farther than
+    /// `ODOMETRY_SCALE_MAX_DEVIATION` from 1 are dropped (the estimate
+    /// jumped), and the scale is applied once about
+    /// `ODOMETRY_SCALE_MIN_DISTANCE_M` of samples are in. Off by default.
+    #[serde(default)]
+    pub odometry_scale_calibration: bool,
 }
 
 impl Default for HybridLocalizerConfig {
@@ -339,6 +372,7 @@ impl Default for HybridLocalizerConfig {
             lidar_yaw_variance_rad2: 0.0025,
             odometry_linear_variance: 0.0025,
             odometry_angular_variance: 1.0e-4,
+            odometry_scale_calibration: false,
         }
     }
 }
@@ -406,6 +440,16 @@ pub struct HybridLocalizer {
     lidar_distrusted: bool,
     last_amcl: Option<AmclUpdate>,
     transitions: Vec<SourceTransition>,
+    /// Odometry integrated without the calibrated scale.
+    raw_odometry: Pose2d,
+    /// Where the estimate and `raw_odometry` were when the current
+    /// odometry-scale sample started.
+    scale_anchor: Option<(Pose2d, Pose2d)>,
+    /// Weighted sums of the distances the estimate moved and the wheels
+    /// covered over the odometry-scale samples, meters.
+    scale_sums_m: (f64, f64),
+    /// The calibrated odometry scale (1 until calibrated).
+    odometry_scale: f64,
 }
 
 impl HybridLocalizer {
@@ -440,6 +484,10 @@ impl HybridLocalizer {
             lidar_distrusted: false,
             last_amcl: None,
             transitions: Vec::new(),
+            raw_odometry: initial_pose,
+            scale_anchor: None,
+            scale_sums_m: (0.0, 0.0),
+            odometry_scale: 1.0,
         })
     }
 
@@ -473,6 +521,13 @@ impl HybridLocalizer {
         &self.transitions
     }
 
+    /// The odometry scale applied to forward velocities: 1 unless
+    /// [`HybridLocalizerConfig::odometry_scale_calibration`] has calibrated
+    /// it.
+    pub fn odometry_scale(&self) -> f64 {
+        self.odometry_scale
+    }
+
     /// Whether the prior map covers a pose.
     pub fn map_covers(&self, pose: Pose2d) -> bool {
         self.map
@@ -487,6 +542,14 @@ impl HybridLocalizer {
         linear_m_s: f64,
         angular_rad_s: f64,
     ) -> Result<(), HybridError> {
+        if linear_m_s.is_finite() && angular_rad_s.is_finite() && dt_s.is_finite() {
+            self.raw_odometry = self.raw_odometry.compose(Pose2d::new(
+                linear_m_s * dt_s,
+                0.0,
+                angular_rad_s * dt_s,
+            ));
+        }
+        let linear_m_s = linear_m_s * self.odometry_scale;
         self.ekf.predict(dt_s)?;
         if linear_m_s.is_finite() && dt_s.is_finite() {
             self.travelled_since_scan_m += linear_m_s * dt_s;
@@ -573,6 +636,7 @@ impl HybridLocalizer {
         if fix.kind == FixKind::Fixed {
             self.agreed_dead_reckoned = Some(self.ekf.pose());
         }
+        self.sample_odometry_scale();
         Ok(GnssDecision::Fused)
     }
 
@@ -1031,7 +1095,51 @@ impl HybridLocalizer {
     fn fuse_point_cloud_match(&mut self, m: &PointCloudMatch) -> Result<(), FusionError> {
         self.ekf
             .update_position_covariance(m.pose.x_m, m.pose.y_m, m.position_covariance_m2)?;
-        self.ekf.update_yaw(m.pose.yaw_rad, m.yaw_variance_rad2)
+        self.ekf.update_yaw(m.pose.yaw_rad, m.yaw_variance_rad2)?;
+        self.sample_odometry_scale();
+        Ok(())
+    }
+
+    /// After an absolute update: closes an odometry-scale sample once the
+    /// wheels have covered `ODOMETRY_SCALE_SEGMENT_M` since it started, and
+    /// starts the next one, if the estimate is held tightly now. A loose
+    /// estimate drops the open sample: along a tunnel the estimate follows
+    /// the wheels, and comparing them with themselves would teach nothing.
+    fn sample_odometry_scale(&mut self) {
+        if !self.config.odometry_scale_calibration {
+            return;
+        }
+        let covariance = self.ekf.covariance();
+        let held = covariance[0][0].max(covariance[1][1]).sqrt() <= ODOMETRY_SCALE_MAX_SIGMA_M;
+        let (pose, raw) = (self.ekf.pose(), self.raw_odometry);
+        if !held {
+            self.scale_anchor = None;
+            return;
+        }
+        let Some((anchor_pose, anchor_raw)) = self.scale_anchor else {
+            self.scale_anchor = Some((pose, raw));
+            return;
+        };
+        let wheels_m = (raw.x_m - anchor_raw.x_m).hypot(raw.y_m - anchor_raw.y_m);
+        if wheels_m < ODOMETRY_SCALE_SEGMENT_M {
+            return;
+        }
+        let moved_m = (pose.x_m - anchor_pose.x_m).hypot(pose.y_m - anchor_pose.y_m);
+        self.scale_anchor = Some((pose, raw));
+        // A sample that disagrees with the wheels by more than any wheel
+        // could (the estimate jumped: a re-anchor, a relocalization) is
+        // dropped rather than clamped.
+        if (moved_m / wheels_m - 1.0).abs() > ODOMETRY_SCALE_MAX_DEVIATION {
+            return;
+        }
+        let keep = (-wheels_m / ODOMETRY_SCALE_MEMORY_M).exp();
+        let (moved_sum, wheels_sum) = self.scale_sums_m;
+        let (moved_sum, wheels_sum) = (keep * moved_sum + moved_m, keep * wheels_sum + wheels_m);
+        self.scale_sums_m = (moved_sum, wheels_sum);
+        // The weighted sum stays a little below the distance sampled.
+        if wheels_sum >= 0.9 * ODOMETRY_SCALE_MIN_DISTANCE_M {
+            self.odometry_scale = moved_sum / wheels_sum;
+        }
     }
 
     /// Whether the arbiter is searching the map for a LiDAR relocalization.
@@ -1720,6 +1828,68 @@ mod tests {
             kind: FixKind::Fixed,
             ..good_fix(x, 0.0)
         }
+    }
+
+    /// Drives 200 m under RTK fixed fixes and 100 m without, on wheels that
+    /// read 1 % long; returns the error at the end and the scale applied.
+    fn drive_on_long_wheels(calibrate: bool) -> (f64, f64) {
+        let config = HybridLocalizerConfig {
+            odometry_scale_calibration: calibrate,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 0.0, 0.0), config).unwrap();
+        let dt = 0.1;
+        for step in 1..=3000 {
+            let t = f64::from(step) * dt;
+            localizer.predict(dt, 1.01, 0.0).unwrap();
+            if step % 10 == 0 {
+                let fix = (t <= 200.0).then(|| AbsolutePositionFix {
+                    time_s: t,
+                    ..rtk_fixed(t)
+                });
+                localizer.update_gnss(fix.as_ref(), t).unwrap();
+            }
+        }
+        let pose = localizer.pose();
+        (
+            (pose.x_m - 300.0).hypot(pose.y_m),
+            localizer.odometry_scale(),
+        )
+    }
+
+    #[test]
+    fn calibrating_the_odometry_scale_shortens_the_dead_reckoning_error() {
+        let (error_off, scale_off) = drive_on_long_wheels(false);
+        let (error_on, scale_on) = drive_on_long_wheels(true);
+        assert_eq!(scale_off, 1.0);
+        assert!((scale_on - 1.0 / 1.01).abs() < 1e-3, "{scale_on}");
+        assert!(error_off > 0.8, "{error_off}");
+        assert!(error_on < 0.1, "{error_on}");
+    }
+
+    #[test]
+    fn the_odometry_scale_ignores_a_loose_estimate() {
+        // Single-point fixes (metres of sigma) never hold the estimate tightly
+        // enough to sample the wheels.
+        let config = HybridLocalizerConfig {
+            odometry_scale_calibration: true,
+            ..HybridLocalizerConfig::default()
+        };
+        let mut localizer =
+            HybridLocalizer::new(room_map(), Pose2d::new(0.0, 0.0, 0.0), config).unwrap();
+        for step in 1..=2000 {
+            let t = f64::from(step) * 0.1;
+            localizer.predict(0.1, 1.01, 0.0).unwrap();
+            if step % 10 == 0 {
+                let fix = AbsolutePositionFix {
+                    time_s: t,
+                    ..good_fix(t, 0.0)
+                };
+                localizer.update_gnss(Some(&fix), t).unwrap();
+            }
+        }
+        assert_eq!(localizer.odometry_scale(), 1.0);
     }
 
     #[test]
