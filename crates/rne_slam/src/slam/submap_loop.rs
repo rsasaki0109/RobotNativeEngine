@@ -299,7 +299,7 @@ impl Slam2d {
                 closure.candidate,
                 closure.node,
                 closure.measurement,
-                super::exp_info("RNE_W_LOOP"),
+                (1.0, 1.0, 1.0),
             ));
         }
         if optimize {

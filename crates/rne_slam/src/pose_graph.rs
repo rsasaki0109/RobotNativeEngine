@@ -277,20 +277,25 @@ impl PoseGraph {
             free_index[*node] = Some(position);
         }
 
-        let mut final_error = 0.0;
+        // Levenberg-Marquardt that starts as Gauss-Newton: a step that lowers
+        // the cost is kept and λ shrinks tenfold; one that does not is undone
+        // and λ grows tenfold, to at least `damping`. A fixed λ would stall
+        // the soft, long-wavelength bending of a long trajectory, which is
+        // exactly what a loop closure has to correct.
+        let damping = damping.max(0.0).max(MIN_DAMPING);
+        let mut lambda = MIN_DAMPING;
+        let mut cost = self.cost(&fixed, huber_delta);
         for _ in 0..iterations {
             let n = active.len();
             let size = n * 3;
             let mut h = vec![0.0; size * size];
             let mut b = vec![0.0; n * 3];
-            let mut total_error = 0.0;
 
             for edge in &self.edges {
                 if fixed[edge.from] && fixed[edge.to] {
                     continue;
                 }
                 let error = residual(&self.nodes, edge);
-                total_error += information_quadratic(edge, &error);
                 let (jacobian_from, jacobian_to) = edge_jacobians(&self.nodes, edge);
                 let information = match huber_delta {
                     None => edge.information,
@@ -329,25 +334,64 @@ impl PoseGraph {
                         error,
                         information,
                     );
+                    accumulate_cross(
+                        &mut h,
+                        size,
+                        &free_index,
+                        (edge.from, jacobian_from),
+                        (edge.to, jacobian_to),
+                        information,
+                    );
                 }
             }
-            add_damping(&mut h, n, damping);
+            add_damping(&mut h, n, lambda);
             let delta = solve_cholesky(&h, &b, n).ok_or(PoseGraphError::SingularSystem)?;
+            let previous = self.nodes.clone();
             for (position, node) in active.iter().enumerate() {
                 let pose = &mut self.nodes[*node];
                 pose.x_m -= delta[position * 3];
                 pose.y_m -= delta[position * 3 + 1];
                 pose.yaw_rad = wrap_angle(pose.yaw_rad - delta[position * 3 + 2]);
             }
-            final_error = total_error;
-            if delta.iter().all(|value| value.abs() < 1.0e-10) {
+            let converged = delta.iter().all(|value| value.abs() < 1.0e-10);
+            let candidate = self.cost(&fixed, huber_delta);
+            if candidate.is_finite() && candidate <= cost {
+                cost = candidate;
+                lambda = (lambda * 0.1).max(MIN_DAMPING);
+            } else {
+                self.nodes = previous;
+                lambda = (lambda * 10.0).max(damping).min(MAX_DAMPING);
+            }
+            if converged {
                 break;
             }
         }
 
-        Ok(final_error)
+        Ok(self.cost(&fixed, None))
+    }
+
+    /// Total weighted squared residual over the edges that touch a free
+    /// node, with the Huber kernel when given.
+    fn cost(&self, fixed: &[bool], huber_delta: Option<f64>) -> f64 {
+        self.edges
+            .iter()
+            .filter(|edge| !(fixed[edge.from] && fixed[edge.to]))
+            .map(|edge| {
+                let squared = information_quadratic(edge, &residual(&self.nodes, edge));
+                match huber_delta {
+                    Some(delta) if squared.sqrt() > delta => {
+                        2.0 * delta * squared.sqrt() - delta * delta
+                    }
+                    _ => squared,
+                }
+            })
+            .sum()
     }
 }
+
+/// Bounds on the Levenberg-Marquardt λ.
+const MIN_DAMPING: f64 = 1.0e-9;
+const MAX_DAMPING: f64 = 1.0e9;
 
 impl Default for PoseGraph {
     fn default() -> Self {
@@ -421,6 +465,32 @@ fn accumulate(
         b[base + a] += sum;
     }
 }
+/// Applies the coupling blocks `J_fromᵀ Ω J_to` and its transpose to `h`,
+/// when both endpoints are free.
+fn accumulate_cross(
+    h: &mut [f64],
+    size: usize,
+    free_index: &[Option<usize>],
+    (from, jacobian_from): (usize, [[f64; 3]; 3]),
+    (to, jacobian_to): (usize, [[f64; 3]; 3]),
+    information: (f64, f64, f64),
+) {
+    let (Some(from), Some(to)) = (free_index[from], free_index[to]) else {
+        return;
+    };
+    let weights = [information.0, information.1, information.2];
+    for a in 0..3 {
+        for c in 0..3 {
+            let mut sum = 0.0;
+            for (row, weight) in weights.iter().enumerate() {
+                sum += jacobian_from[row][a] * weight * jacobian_to[row][c];
+            }
+            h[(from * 3 + a) * size + to * 3 + c] += sum;
+            h[(to * 3 + c) * size + from * 3 + a] += sum;
+        }
+    }
+}
+
 fn information_quadratic(edge: &PoseGraphEdge, error: &(f64, f64, f64)) -> f64 {
     let values = [error.0, error.1, error.2];
     let weights = [edge.information.0, edge.information.1, edge.information.2];
@@ -432,7 +502,7 @@ fn information_quadratic(edge: &PoseGraphEdge, error: &(f64, f64, f64)) -> f64 {
 }
 
 fn add_damping(h: &mut [f64], n: usize, damping: f64) {
-    let diagonal = damping.max(0.0).max(1.0e-9);
+    let diagonal = damping;
     let size = n * 3;
     for i in 0..size {
         h[i * size + i] += diagonal;
@@ -505,6 +575,37 @@ fn wrap_angle(angle: f64) -> f64 {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+
+    /// A long chain bent away from its exact measurements returns to them
+    /// in a few iterations: the normal equations couple neighbouring nodes,
+    /// and the damping does not hold back the chain's softest bending.
+    #[test]
+    fn a_long_bent_chain_converges_in_a_few_iterations() {
+        let n = 350;
+        let mut truth = vec![Pose2d::IDENTITY];
+        for i in 1..n {
+            let step = Pose2d::new(0.25, 0.0, 0.05 * (i as f64 * 0.1).sin());
+            truth.push(truth[i - 1].compose(step));
+        }
+        let mut graph = PoseGraph::new();
+        for (i, node) in truth.iter().enumerate() {
+            // Bend the whole chain by 0.1° per node.
+            graph.add_node(Pose2d::new(0.0, 0.0, 0.002 * i as f64).compose(*node));
+        }
+        for i in 1..n {
+            let measurement = truth[i - 1].inverse().compose(truth[i]);
+            graph.add_edge(PoseGraphEdge::odometry(i - 1, i, measurement));
+        }
+        let before = graph.node(n - 1).unwrap();
+        assert!((before.x_m - truth[n - 1].x_m).hypot(before.y_m - truth[n - 1].y_m) > 10.0);
+        graph.optimize(8, 1.0e-3, 0).unwrap();
+        for (node, expected) in graph.nodes().iter().zip(&truth) {
+            assert!(
+                (node.x_m - expected.x_m).hypot(node.y_m - expected.y_m) < 1.0e-6,
+                "{node:?} vs {expected:?}"
+            );
+        }
+    }
 
     /// Finite-difference check of `edge_jacobians` against `residual`.
     #[test]
