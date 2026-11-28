@@ -13,6 +13,15 @@ All notable changes to Robot Native Engine are documented in this file.
   0.38 m. On the dressed scene and 60 generated layouts no run fell and no leg came within
   0.17 m of furniture; 60 of 61 pass (the other fails the map-precision gate).
 
+- `rne_adapter_lidarloc::LidarLoc::global_localize` (`GlobalSearch`, `GlobalFix`):
+  lidar_localization_ros2's global localization over the whole map.
+- Example 152:
+  - `--area longtunnel`, a kilometre of tunnel between fields, where the first RTK fixes
+    after the tunnel take back 11 m of drift;
+  - `--lidarloc` finds an unknown start with lidar_localization_ros2's global search (0.64 m
+    without GNSS, against 61 m), checks NDT against the point-to-plane fit, and drops NDT's
+    correction along its Hessian's weakest direction (solution remapping) in a tunnel;
+  - `--render-from` and `--render-to` render a stretch of the run.
 - Example 131 `--explore --layout-seed N`: generated two-room layouts (doorway moved, seeded
   furniture 0.40–1.20 m tall, every floor cell reachable). Exploration now plans on the SLAM
   map plus an obstacle layer from the 3D returns (marked by returns at the Go2's height,

@@ -296,6 +296,132 @@ pub struct Update {
     pub reacquisition_proposal: Option<Mat4>,
 }
 
+/// Global localization ([`LidarLoc::global_localize`]): the G2 engine
+/// "bbs3d" search over the whole map, its candidates refined and the best
+/// kept when it passes the tracking's score threshold and no other place
+/// fits nearly as well.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlobalSearch {
+    /// The map's voxel hierarchy: thinned to `map_leaf_m`, finest voxels
+    /// `min_level_res_m`, `max_level` coarser levels.
+    pub map_leaf_m: f64,
+    pub min_level_res_m: f64,
+    pub max_level: i32,
+    /// The scan as the search sees it (base frame, levelled).
+    pub scan_min_range_m: f64,
+    pub scan_max_range_m: f64,
+    pub scan_leaf_m: f64,
+    pub top_k: i32,
+    pub min_separation_m: f64,
+    pub relative_score_floor: f64,
+    pub timeout_ms: i32,
+    pub max_queue_nodes: usize,
+    pub num_threads: i32,
+    pub max_tilt_rad: f64,
+    pub candidate_separation_m: f64,
+    pub min_fitness_ratio: f64,
+}
+
+impl Default for GlobalSearch {
+    /// The G2 bbs3d defaults (`lidarloc_default_global_config`).
+    fn default() -> Self {
+        Self {
+            map_leaf_m: 0.1,
+            min_level_res_m: 0.5,
+            max_level: 6,
+            scan_min_range_m: 1.0,
+            scan_max_range_m: 30.0,
+            scan_leaf_m: 0.5,
+            top_k: 8,
+            min_separation_m: 3.0,
+            relative_score_floor: 0.9,
+            timeout_ms: 10_000,
+            max_queue_nodes: 4_000_000,
+            num_threads: 4,
+            max_tilt_rad: 0.02,
+            candidate_separation_m: 2.0,
+            min_fitness_ratio: 1.2,
+        }
+    }
+}
+
+/// One global localization.
+#[derive(Debug, Clone, PartialEq)]
+pub struct GlobalFix {
+    /// The pose found (map from sensor), when one was.
+    pub pose: Option<Mat4>,
+    /// `proposed`, `ambiguous`, `best_fitness_above_threshold`, ...
+    pub reason: String,
+    pub fitness: f64,
+    pub candidates: usize,
+    /// The best fitness among the other candidates.
+    pub second_fitness: f64,
+    pub scan_points: usize,
+    pub timed_out: bool,
+    pub voxelmap_build_ms: f64,
+    pub search_ms: f64,
+    pub total_ms: f64,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(not(lidarloc), allow(dead_code))]
+struct RawGlobalConfig {
+    map_leaf_m: c_double,
+    min_level_res_m: c_double,
+    max_level: c_int,
+    scan_min_range_m: c_double,
+    scan_max_range_m: c_double,
+    scan_leaf_m: c_double,
+    top_k: c_int,
+    min_separation_m: c_double,
+    relative_score_floor: c_double,
+    timeout_ms: c_int,
+    max_queue_nodes: usize,
+    num_threads: c_int,
+    max_tilt_rad: c_double,
+    candidate_separation_m: c_double,
+    min_fitness_ratio: c_double,
+}
+
+impl From<&GlobalSearch> for RawGlobalConfig {
+    fn from(g: &GlobalSearch) -> Self {
+        Self {
+            map_leaf_m: g.map_leaf_m,
+            min_level_res_m: g.min_level_res_m,
+            max_level: g.max_level,
+            scan_min_range_m: g.scan_min_range_m,
+            scan_max_range_m: g.scan_max_range_m,
+            scan_leaf_m: g.scan_leaf_m,
+            top_k: g.top_k,
+            min_separation_m: g.min_separation_m,
+            relative_score_floor: g.relative_score_floor,
+            timeout_ms: g.timeout_ms,
+            max_queue_nodes: g.max_queue_nodes,
+            num_threads: g.num_threads,
+            max_tilt_rad: g.max_tilt_rad,
+            candidate_separation_m: g.candidate_separation_m,
+            min_fitness_ratio: g.min_fitness_ratio,
+        }
+    }
+}
+
+#[repr(C)]
+#[cfg_attr(not(lidarloc), allow(dead_code))]
+struct RawGlobalResult {
+    found: c_int,
+    reason: [c_char; 32],
+    pose: [c_double; 16],
+    fitness: c_double,
+    candidates: usize,
+    second_fitness: c_double,
+    scan_points: usize,
+    timed_out: c_int,
+    voxelmap_build_ms: c_double,
+    search_ms: c_double,
+    total_ms: c_double,
+}
+
 /// Local re-acquisition after an odometry-bridged outage, the node's
 /// `enable_local_reacquisition` on an occupancy grid generated from the map:
 /// after `min_rejections` rejected scans given a seed (the odometry bridge:
@@ -584,6 +710,15 @@ extern "C" {
     #[cfg(test)]
     fn lidarloc_default_reacquisition() -> RawReacquisition;
     fn lidarloc_set_reacquisition(core: *mut RawCore, r: *const RawReacquisition) -> c_int;
+    #[cfg(test)]
+    fn lidarloc_default_global_config() -> RawGlobalConfig;
+    fn lidarloc_global_localize(
+        core: *mut RawCore,
+        xyz: *const f32,
+        count: usize,
+        config: *const RawGlobalConfig,
+        result: *mut RawGlobalResult,
+    ) -> c_int;
     fn lidarloc_set_tracking(core: *mut RawCore, tracking: *const RawTracking) -> c_int;
     fn lidarloc_set_initial_pose(
         core: *mut RawCore,
@@ -833,6 +968,62 @@ impl LidarLoc {
         }
     }
 
+    /// Where in the whole map the scan (sensor-frame points, levelled) was
+    /// taken, with no prior. The voxel maps are built on the first call and
+    /// kept. Start tracking at the pose found with
+    /// [`LidarLoc::set_initial_pose`].
+    ///
+    /// # Errors
+    /// [`LidarLocError::Align`] when the search could not run (no map, no
+    /// scan points in range).
+    pub fn global_localize(
+        &mut self,
+        scan: &[Vec3],
+        search: &GlobalSearch,
+    ) -> Result<GlobalFix, LidarLocError> {
+        let xyz = flatten(scan);
+        let config = RawGlobalConfig::from(search);
+        #[cfg(lidarloc)]
+        {
+            let mut raw = std::mem::MaybeUninit::<RawGlobalResult>::zeroed();
+            // SAFETY: xyz holds scan.len() triplets, config lives for the
+            // call, and raw is a result the core fills.
+            let status = unsafe {
+                lidarloc_global_localize(
+                    self.core,
+                    xyz.as_ptr(),
+                    scan.len(),
+                    &config,
+                    raw.as_mut_ptr(),
+                )
+            };
+            if status != 0 {
+                return Err(LidarLocError::Align(self.last_log()));
+            }
+            // SAFETY: zero-initialized and filled by the core.
+            let raw = unsafe { raw.assume_init() };
+            // SAFETY: the core writes a NUL-terminated reason.
+            let reason = unsafe { CStr::from_ptr(raw.reason.as_ptr()) };
+            Ok(GlobalFix {
+                pose: (raw.found != 0).then(|| from_row_major(&raw.pose)),
+                reason: reason.to_string_lossy().into_owned(),
+                fitness: raw.fitness,
+                candidates: raw.candidates,
+                second_fitness: raw.second_fitness,
+                scan_points: raw.scan_points,
+                timed_out: raw.timed_out != 0,
+                voxelmap_build_ms: raw.voxelmap_build_ms,
+                search_ms: raw.search_ms,
+                total_ms: raw.total_ms,
+            })
+        }
+        #[cfg(not(lidarloc))]
+        {
+            let _ = (xyz, config);
+            Err(LidarLocError::Unavailable)
+        }
+    }
+
     /// Starts tracking at `pose` (an initial pose, a reset).
     ///
     /// # Errors
@@ -955,6 +1146,9 @@ mod tests {
         let core = unsafe { lidarloc_default_reacquisition() };
         let ours = RawReacquisition::from(&Reacquisition::default());
         assert_eq!(RawReacquisition { enable: 0, ..ours }, core);
+        // SAFETY: returns a value.
+        let core = unsafe { lidarloc_default_global_config() };
+        assert_eq!(RawGlobalConfig::from(&GlobalSearch::default()), core);
     }
 
     #[test]
