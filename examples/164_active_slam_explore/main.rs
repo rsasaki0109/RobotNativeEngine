@@ -37,6 +37,8 @@
 //! that score directly; `--revisit` lets the explorer drive back to close
 //! loops. Reports count loop closures that disagree with ground truth by more
 //! than 0.25 m as bad.
+//! `--dopt` scores revisits by the pose graph's effective resistance (the
+//! D-optimal choice) instead of the trajectory length.
 
 mod render;
 mod worlds;
@@ -697,8 +699,20 @@ fn choose_goal(
     open_loop_m: f64,
 ) -> Choice {
     let grid = slam.grid();
+    // With `--dopt`, revisits are scored on the pose graph's loop closures
+    // (effective resistance) instead of the trajectory length.
+    let loops: Vec<(usize, usize)> = if flag("--dopt") {
+        slam.graph()
+            .edges()
+            .iter()
+            .filter(|edge| edge.loop_closure)
+            .map(|edge| (edge.from, edge.to))
+            .collect()
+    } else {
+        Vec::new()
+    };
     let decision = explorer
-        .decide_with_history(grid, estimate, slam.graph().nodes(), open_loop_m)
+        .decide_with_graph(grid, estimate, slam.graph().nodes(), &loops, open_loop_m)
         .expect("decide");
     let (candidate, revisit) = match decision {
         Decision::Goal(candidate) => (candidate, false),

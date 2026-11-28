@@ -375,11 +375,76 @@ Open after P2:
   (SLAM error 0.16–1.28 m per run). Where the remaining error comes from
   was not measured; P1 put it on heading error built up at the corners,
   which only a closure around the whole ring removes. D-optimality (design item 4), choosing revisits by the
-  pose-graph uncertainty they remove, is the next policy step.
+  pose-graph uncertainty they remove, was tried next; see below.
 - The default `Slam2d` closure (whole map, score 0.55) is unchanged; its
   wrong closures are harmless only because it does not rebuild the map.
   Whether submap closure should become the default is a separate
   `rne_slam` decision.
+
+#### D-optimal revisits (tried after P3; no measurable effect)
+
+`Explorer::decide_with_graph` (example 164 `--dopt`) scores a revisit by the
+pose graph's effective resistance between the place and the robot, with
+odometry steps as resistors of their length and loop closures as 0.5 m,
+instead of by the trajectory length between them. Closing a loop multiplies
+the graph's weighted spanning trees, its D-optimality measure, by `1 + R/r`,
+so the largest resistance is the most informative closure; a place already
+tied to the robot by earlier closures counts as close. With no closures the
+two scores agree.
+
+On the 10 loop seeds (`--rebuild-map --submap-loops --revisit`, same
+binary):
+
+| policy | SLAM error | mapped | runs with lower error |
+| --- | --- | --- | --- |
+| nearest frontier, trajectory length | 0.667 m | 86.4 % | — |
+| nearest frontier, `--dopt` | 0.648 m | 86.8 % | 3 of 10 |
+| information gain, trajectory length | 0.836 m | 83.3 % | — |
+| information gain, `--dopt` | 0.851 m | 83.2 % | 3 of 10 |
+
+Most runs are identical: most revisits are chosen before any closure
+exists, when the two scores agree, and on a ring the best loop to close
+stays the same afterwards. `--dopt` stays opt-in.
+
+What does limit the loop worlds was then measured (seeds 0–4, both
+policies, per revisit and per third of the trajectory):
+
+- Revisits work: 33 of 41 ended because a loop closed (a confirmed pair
+  of closures each); 8 were cut short without one. No closure was wrong.
+  The 3 revisits most runs show are not 3 failed tries: going round a ring
+  produces about that many.
+- The error sits at the end of the trajectory. Mean position error over
+  the first, middle and last third of the keyframes: 0.11–0.34 m,
+  0.28–1.36 m, 0.62–2.09 m (heading at the end off by up to 0.26 rad).
+- Going back once more to close the last open loop before reporting done
+  (tried as `RevisitConfig::close_before_done`) made it worse: SLAM error
+  0.667 → 0.705 m and 0.836 → 0.921 m, no run better, 3–5 m more driving.
+  It was reverted.
+
+So closures happen and are right, yet the trajectory between and after
+them stays off by tens of centimetres: the question has moved from the
+exploration policy to how `Slam2d` applies a closure.
+
+Measured further, per closure (seeds 0–1):
+
+- No closure lowered the mean position error of the graph by more than a
+  few millimetres (e.g. 0.105 → 0.105 m, 0.549 → 0.547 m).
+- Most closures are short: 35–60 keyframes back (8 m), where the relative
+  drift is small, so they correct little. The closure that matters, around
+  the whole ring (370–430 keyframes), corrected about 1.4 m and 0.14 rad.
+- Its optimization was not converged: after the 8 Gauss-Newton iterations
+  `SubmapLoopConfig` uses, 100 more moved the nodes another 0.5 m. Running
+  100 iterations, though, did not help either (SLAM error 0.667 → 0.681 m
+  and 0.836 → 0.813 m over 10 seeds, about even per seed), and one run's
+  optimization diverged. It was not adopted.
+
+Even converged, then, closing the ring does not bring the trajectory
+closer to the truth. What the graph holds is the next suspect: every edge,
+odometry or closure, has unit information whatever its length or how well
+its scan match was constrained, so a closure's correction is spread evenly
+while the drift is not (it comes from heading errors at the corners).
+Weighting edges by their match covariance is an `rne_slam` change of its
+own.
 
 ### P3: legged robot, no goals given
 
